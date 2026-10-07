@@ -156,7 +156,7 @@ packages/shared/   tipos y enums comunes (tipo_servicio, estados de sector, DTOs
 ### Despliegue
 - **Web:** Vercel, Netlify o Cloudflare Pages (gratis).
 - **API:** Render (plan gratis, se duerme sin tráfico) o el Coolify de Botinfy.
-- **Git:** `main` estable y una rama por funcionalidad. Los tests corren antes de integrar a `main`.
+- **Git:** `main` estable y una rama por funcionalidad. Los tests corren antes de integrar a `main`. Las reglas obligatorias están en §10.
 
 ---
 
@@ -210,3 +210,21 @@ Los criterios de redacción de la tesis, las fuentes verificadas y el estado de 
 - Respuestas prácticas y sin relleno. No sobre-ingeniería: es un MVP académico de 15 semanas.
 - Prefiere entender el sistema antes que recibir soluciones de caja negra: explica el porqué de las decisiones.
 - Si dice "confío en ti", puedes decidir el diseño por tu cuenta.
+
+## 10. Flujo de Git (obligatorio)
+
+`main` todavía no tiene reglas de protección, así que estas normas se cumplen por disciplina:
+
+- **Nunca se hace commit ni push directo a `main`.** Todo trabajo, incluida la documentación, va en una **rama nueva** creada desde `main` actualizada:
+  ```
+  git switch main && git pull
+  git switch -c <tipo>/<T-0XX>-<descripcion-corta>   # tipo: feat | fix | chore | docs | test | refactor
+  ```
+- El **primer push** de la rama la publica en `origin` con su mismo nombre y deja configurado el upstream:
+  ```
+  git push --set-upstream origin <rama>
+  ```
+  Los siguientes pushes son un simple `git push`.
+- Al terminar, se abre un PR a `main` con `gh pr create`. **Solo Leonardo fusiona**, salvo que diga explícitamente lo contrario.
+- No se usa `git push --force` sobre ramas compartidas ni se reescribe el historial de `main`.
+- Los commits van en español con Conventional Commits (`feat(api): ...`).

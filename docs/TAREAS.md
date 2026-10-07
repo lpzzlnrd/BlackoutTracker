@@ -18,14 +18,14 @@
 
 1. Lee `CLAUDE.md`, la sección *Estado* de este archivo y, del plan, solo la parte que toque la tarea.
 2. Toma **la próxima tarea** (o la que pida Leonardo). Verifica que sus dependencias estén en `[x]`. Márcala `[~]`.
-3. `git switch main && git pull` → crea la rama `feat/T-0XX-descripcion-corta` (o `fix/`, `chore/`, `docs/`).
+3. **Siempre en una rama nueva** (`CLAUDE.md` §10): `git switch main && git pull && git switch -c feat/T-0XX-descripcion-corta` (o `fix/`, `chore/`, `docs/`, `test/`). Nunca se trabaja sobre `main`.
 4. Implementa **con los tests** que pide la tarea. Cada test empieza por el ID del caso (`'REP-05: ...'`).
 5. Antes de cerrar: `pnpm lint && pnpm typecheck && pnpm test` (y `pnpm test:int` si toca la BD) en verde.
 6. Actualiza:
    - Este archivo: la casilla `[x]`, la sección *Estado* y las notas de la tarea si algo cambió.
    - `CHANGELOG.md`: una línea en `[Sin publicar]`.
    - `docs/DECISIONES.md`: si decidiste algo que no estaba en el plan.
-7. Commits en español con Conventional Commits (`feat(api): ...`, `test(consenso): ...`). Se hace push y se abre un PR a `main` con `gh pr create`. **No se fusiona sin el visto bueno de Leonardo**, salvo que él lo indique.
+7. Commits en español con Conventional Commits (`feat(api): ...`, `test(consenso): ...`). El primer push es `git push --set-upstream origin <rama>` y los siguientes, `git push`. Se abre un PR a `main` con `gh pr create`. **Solo Leonardo fusiona**, salvo que él indique otra cosa.
 8. Si una tarea resulta más grande de lo previsto, divídela aquí (T-021a, T-021b) en lugar de dejarla a medias sin rastro.
 9. No toques `apps/web` (es de Freddy) ni crees recursos en Supabase o en Render sin la confirmación de Leonardo.
 
