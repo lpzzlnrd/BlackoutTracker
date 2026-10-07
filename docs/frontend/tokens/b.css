@@ -1,0 +1,87 @@
+/*
+  Propuesta B · Estado primero · "Piedra y verde".
+  Referencias: referencia/b-telefono.html, b-escritorio.html, paletas-claro.html, paletas-oscuro.html.
+  Se activa con <html data-diseno="b"> (y la clase `dark` para el modo oscuro).
+
+  Dibujado en las maquetas: todo el modo claro, los 8 colores de paleta del modo oscuro y su
+  sombra de tarjeta. Extrapolado (marcado abajo): el resto del modo oscuro.
+*/
+
+:root[data-diseno='b'] {
+  color-scheme: light;
+
+  /* Superficies y bordes */
+  --fondo: #f7f5f2;
+  --superficie: #ffffff;
+  --superficie-2: #f0ede8;
+  --borde: #e4e0d9;
+  --borde-2: #cfc9bf;
+  --borde-control: #968f83;
+
+  /* Texto */
+  --texto: #1f1b16;
+  --texto-2: #3d372f;
+  --secundario: #5c554c;
+
+  /* Acento verde */
+  --acento: #2f5d46;
+  --sobre-acento: #ffffff;
+  --acento-suave: #e4efe8;
+  --tinta-acento: #244a37;
+  --foco: #2f5d46;
+
+  /* Aviso inverso: es el aviso "Hay una versión nueva de la app" de b-escritorio.html */
+  --inverso-fondo: #1f1b16;
+  --inverso-texto: #f5f2ee;
+  --inverso-acento: #86c09c;
+  --inverso-sobre-acento: #12100e;
+
+  /* Arte del mapa dibujado en las maquetas (el mapa real usa teselas de OpenStreetMap) */
+  --mapa-base: #efede9;
+  --mapa-calle: #ffffff;
+  --mapa-calle-borde: #dedad3;
+  --mapa-parque: #e3e8df;
+
+  /* Tipografía: Atkinson Hyperlegible 400 y 700, autoalojada (ver PWA.md §8) */
+  --fuente-ui: 'Atkinson Hyperlegible', system-ui, sans-serif;
+
+  /* Formas */
+  --radio-chip: 999px;
+  --radio-control: 12px;
+  --radio-boton: 16px;
+  --radio-bloque: 14px;
+  --radio-tarjeta: 22px;
+  --radio-icono: 20px;
+  --sombra-tarjeta: 0 1px 2px rgba(31, 27, 22, 0.06), 0 6px 18px rgba(31, 27, 22, 0.07);
+  --sombra-aviso: 0 8px 24px rgba(31, 27, 22, 0.3);
+}
+
+:root[data-diseno='b'].dark {
+  color-scheme: dark;
+
+  --fondo: #12100e;
+  --superficie: #1c1916;
+  --superficie-2: #26221e;
+  --borde: #34302a;
+  --borde-2: #4a443b;
+  --borde-control: #6f685d;
+
+  --texto: #f5f2ee;
+  --texto-2: #d9d2c7;
+  --secundario: #b0a89c;
+
+  --acento: #86c09c;
+  --sobre-acento: #12100e;
+  --acento-suave: #1f2e25;
+  --tinta-acento: #b0dac0;
+  --foco: #86c09c;
+
+  /* Extrapolado: el aviso se invierte (en claro es oscuro, en oscuro es claro) */
+  --inverso-fondo: #f5f2ee;
+  --inverso-texto: #1f1b16;
+  --inverso-acento: #2f5d46;
+  --inverso-sobre-acento: #ffffff;
+
+  --sombra-tarjeta: 0 6px 18px rgba(0, 0, 0, 0.4);
+  --sombra-aviso: 0 8px 24px rgba(0, 0, 0, 0.5);
+}

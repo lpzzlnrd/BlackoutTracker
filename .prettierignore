@@ -1,0 +1,16 @@
+# Prettier ya respeta .gitignore; aquí va lo que sí se versiona pero no se formatea.
+
+# Lockfile (lo escribe pnpm)
+pnpm-lock.yaml
+
+# Documentación escrita a mano (tablas y listas en español)
+*.md
+
+# Datos geográficos: un GeoJSON formateado queda con un número por línea
+data/
+
+# Referencias del frontend: HTML exportado del diseño, con los estilos en línea
+docs/frontend/referencia/
+
+# Migraciones: las genera drizzle-kit (meta/*.json) o van a mano en SQL
+apps/api/drizzle/

@@ -1,0 +1,89 @@
+/*
+  Propuesta C · Datos primero · "Grafito".
+  Referencias: referencia/c-telefono.html, c-escritorio.html, paletas-claro.html, paletas-oscuro.html.
+  Se activa con <html data-diseno="c"> (y la clase `dark` para el modo oscuro).
+
+  Dibujado en las maquetas: todo el modo claro y los 8 colores de paleta del modo oscuro.
+  Extrapolado (marcado abajo): el resto del modo oscuro y el aviso inverso.
+  Esta propuesta no usa color de marca: el único color de la interfaz es el de los estados.
+*/
+
+:root[data-diseno='c'] {
+  color-scheme: light;
+
+  /* Superficies y bordes */
+  --fondo: #fafafa;
+  --superficie: #ffffff;
+  --superficie-2: #f4f4f5;
+  --borde: #e4e4e7;
+  --borde-2: #d4d4d8;
+  --borde-control: #8e8e98;
+
+  /* Texto */
+  --texto: #18181b;
+  --texto-2: #3f3f46;
+  --secundario: #52525b;
+
+  /* Acento grafito: el botón principal es negro; el foco es el único azul de la interfaz */
+  --acento: #18181b;
+  --sobre-acento: #fafafa;
+  --acento-suave: #f4f4f5;
+  --tinta-acento: #18181b;
+  --foco: #2563eb;
+
+  /* Segmento del rango intercuartílico en la tabla de sectores */
+  --barra-rango: #a1a1aa;
+
+  /* Aviso inverso (versión nueva, avisos breves). Extrapolado: C no lo dibuja. */
+  --inverso-fondo: #18181b;
+  --inverso-texto: #fafafa;
+  --inverso-acento: #fafafa;
+  --inverso-sobre-acento: #18181b;
+
+  /* Arte del mapa dibujado en las maquetas (el mapa real usa teselas de OpenStreetMap) */
+  --mapa-base: #eeeeef;
+  --mapa-calle: #ffffff;
+  --mapa-calle-borde: #d9d9de;
+  --mapa-parque: #e4e8e2;
+
+  /* Tipografía: IBM Plex Sans (400, 500, 600) y IBM Plex Mono (400, 500), autoalojadas */
+  --fuente-ui: 'IBM Plex Sans', system-ui, sans-serif;
+  --fuente-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  /* Formas: sin sombras, solo líneas finas */
+  --radio-etiqueta: 4px;
+  --radio-chip: 6px;
+  --radio-control: 8px;
+  --radio-boton: 8px;
+  --radio-bloque: 6px;
+  --radio-tarjeta: 10px;
+  --sombra-tarjeta: none;
+}
+
+:root[data-diseno='c'].dark {
+  color-scheme: dark;
+
+  --fondo: #09090b;
+  --superficie: #131316;
+  --superficie-2: #1c1c21;
+  --borde: #27272a;
+  --borde-2: #3f3f46;
+  --borde-control: #6b6b76;
+
+  --texto: #fafafa;
+  --texto-2: #d4d4d8;
+  --secundario: #a1a1aa;
+
+  --acento: #fafafa;
+  --sobre-acento: #09090b;
+  --acento-suave: #1c1c21;
+  --tinta-acento: #fafafa;
+  --foco: #60a5fa;
+
+  /* Extrapolado */
+  --barra-rango: #71717a;
+  --inverso-fondo: #fafafa;
+  --inverso-texto: #18181b;
+  --inverso-acento: #18181b;
+  --inverso-sobre-acento: #fafafa;
+}

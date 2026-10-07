@@ -1,0 +1,88 @@
+/*
+  Propuesta A · Mapa primero · "Pizarra y azul".
+  Referencias: referencia/a-telefono.html, a-escritorio.html, paletas-claro.html, paletas-oscuro.html.
+  Se activa con <html data-diseno="a"> (y la clase `dark` para el modo oscuro).
+
+  Dibujado en las maquetas: todo el modo claro y los 8 colores de paleta del modo oscuro.
+  Extrapolado (marcado abajo): los demás valores del modo oscuro y el aviso inverso.
+*/
+
+:root[data-diseno='a'] {
+  color-scheme: light;
+
+  /* Superficies y bordes */
+  --fondo: #f8fafc;
+  --superficie: #ffffff;
+  --superficie-2: #f1f5f9;
+  --borde: #e2e8f0;
+  --borde-2: #cbd5e1;
+  --borde-control: #7d8ea8;
+
+  /* Texto */
+  --texto: #0f172a;
+  --texto-2: #334155;
+  --secundario: #475569;
+
+  /* Acento azul */
+  --acento: #1d4ed8;
+  --sobre-acento: #ffffff;
+  --acento-suave: #e8eefc;
+  --tinta-acento: #1e3a8a;
+  --foco: #1d4ed8;
+
+  /* Aviso inverso (versión nueva, avisos breves). Extrapolado: A no lo dibuja. */
+  --inverso-fondo: #0f172a;
+  --inverso-texto: #f1f5f9;
+  --inverso-acento: #7aa2ff;
+  --inverso-sobre-acento: #0b1220;
+
+  /* Arte del mapa dibujado en las maquetas (el mapa real usa teselas de OpenStreetMap) */
+  --mapa-base: #edeff2;
+  --mapa-calle: #ffffff;
+  --mapa-calle-borde: #d5dae1;
+  --mapa-parque: #e1e8e3;
+
+  /* Tipografía: la del sistema, sin descargar nada */
+  --fuente-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+
+  /* Formas */
+  --radio-chip: 999px;
+  --radio-etiqueta: 6px;
+  --radio-control: 10px;
+  --radio-boton: 12px;
+  --radio-bloque: 12px;
+  --radio-tarjeta: 14px;
+  --radio-hoja: 20px;
+  --sombra-flotante: 0 1px 3px rgba(15, 23, 42, 0.14);
+  --sombra-hoja: 0 -6px 24px rgba(15, 23, 42, 0.14);
+}
+
+:root[data-diseno='a'].dark {
+  color-scheme: dark;
+
+  --fondo: #0b1220;
+  --superficie: #111a2c;
+  --superficie-2: #1a2438;
+  --borde: #243049;
+  --borde-2: #334463;
+  --borde-control: #5b6b88;
+
+  --texto: #f1f5f9;
+  --texto-2: #c9d5e6;
+  --secundario: #a3b1c6;
+
+  --acento: #7aa2ff;
+  --sobre-acento: #0b1220;
+  --acento-suave: #16264a;
+  --tinta-acento: #b4cbff;
+  --foco: #7aa2ff;
+
+  --inverso-fondo: #f1f5f9;
+  --inverso-texto: #0f172a;
+  --inverso-acento: #1d4ed8;
+  --inverso-sobre-acento: #ffffff;
+
+  /* Extrapolado: sombras casi invisibles sobre fondos oscuros */
+  --sombra-flotante: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --sombra-hoja: 0 -6px 24px rgba(0, 0, 0, 0.5);
+}

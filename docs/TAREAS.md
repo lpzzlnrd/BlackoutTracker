@@ -33,7 +33,7 @@
 
 ## Fase 0 — Fundaciones (S1)
 
-- [ ] **T-001 · Monorepo pnpm** (L)
+- [~] **T-001 · Monorepo pnpm** (L)
   `package.json` raíz (con `packageManager` y `engines.node >=22`), `pnpm-workspace.yaml`, `tsconfig.base.json`, ESLint (flat config) + Prettier, `.editorconfig`, `.gitattributes` (`* text=auto eol=lf`), `.nvmrc`, `.gitignore` (node, dist, coverage, `.env*` salvo `.env.example`). Scripts raíz: `dev`, `build`, `lint`, `typecheck`, `test`, `test:int`.
   *Hecho cuando:* `pnpm install && pnpm lint && pnpm typecheck` corren sin error en un repo vacío de código.
 - [ ] **T-002 · `packages/shared`** (L) — dep: T-001
