@@ -215,7 +215,7 @@ Los criterios de redacción de la tesis, las fuentes verificadas y el estado de 
 
 `main` todavía no tiene reglas de protección, así que estas normas se cumplen por disciplina:
 
-- **Nunca se hace commit ni push directo a `main`.** Todo trabajo, incluida la documentación, va en una **rama nueva** creada desde `main` actualizada:
+- **Nunca se hace commit ni push directo a `main`.** Todo el trabajo va en una **rama nueva** creada desde `main` actualizada. La única excepción es la documentación de planificación, y solo cuando Leonardo lo autorice de forma explícita:
   ```
   git switch main && git pull
   git switch -c <tipo>/<T-0XX>-<descripcion-corta>   # tipo: feat | fix | chore | docs | test | refactor
