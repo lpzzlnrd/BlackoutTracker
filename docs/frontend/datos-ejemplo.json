@@ -1,0 +1,177 @@
+{
+  "nota": "Datos de ejemplo de las maquetas de docs/frontend/referencia. La forma sigue docs/PLAN.md §4 y §5 y es provisional hasta que exista packages/shared (T-002). Los campos marcados como propuesta están explicados en docs/frontend/datos.md. Las horas están en UTC; las maquetas las muestran en America/Caracas (UTC-4).",
+  "zonaHoraria": "America/Caracas",
+  "ahora": "2026-10-07T19:06:00Z",
+  "config": {
+    "consensoN": 3,
+    "estimacionNMin": 5
+  },
+  "escenarios": {
+    "en-linea": {
+      "enLinea": true,
+      "ultimaSincronizacion": "2026-10-07T19:06:00Z",
+      "cola": []
+    },
+    "sin-conexion": {
+      "enLinea": false,
+      "ultimaSincronizacion": "2026-10-07T18:32:00Z",
+      "cola": [
+        {
+          "id": "0b8f4c1e-6d52-4b6e-9a3f-2f6e1c7a5d10",
+          "tipoServicio": "electricidad",
+          "accion": "cierre",
+          "ocurridoEn": "2026-10-07T19:04:00Z",
+          "estado": "pendiente"
+        }
+      ]
+    }
+  },
+  "residente": { "sectorId": 1 },
+  "sectores": [
+    { "id": 1, "nombre": "Sector 1" },
+    { "id": 2, "nombre": "Sector 2" },
+    { "id": 3, "nombre": "Sector 3" },
+    { "id": 4, "nombre": "Sector 4" }
+  ],
+  "estados": [
+    {
+      "sectorId": 1,
+      "tipoServicio": "electricidad",
+      "estado": "sin_servicio",
+      "reportesSinConfirmar": 0,
+      "desde": "2026-10-07T18:20:00Z",
+      "confirmaciones": 3
+    },
+    {
+      "sectorId": 2,
+      "tipoServicio": "electricidad",
+      "estado": "con_servicio",
+      "reportesSinConfirmar": 0,
+      "desde": null
+    },
+    {
+      "sectorId": 3,
+      "tipoServicio": "electricidad",
+      "estado": "con_servicio",
+      "reportesSinConfirmar": 2,
+      "desde": null
+    },
+    {
+      "sectorId": 4,
+      "tipoServicio": "electricidad",
+      "estado": "con_servicio",
+      "reportesSinConfirmar": 0,
+      "desde": null
+    },
+    {
+      "sectorId": 1,
+      "tipoServicio": "agua",
+      "estado": "con_servicio",
+      "reportesSinConfirmar": 0,
+      "desde": null
+    },
+    {
+      "sectorId": 2,
+      "tipoServicio": "agua",
+      "estado": "con_servicio",
+      "reportesSinConfirmar": 0,
+      "desde": null
+    },
+    {
+      "sectorId": 3,
+      "tipoServicio": "agua",
+      "estado": "con_servicio",
+      "reportesSinConfirmar": 0,
+      "desde": null
+    },
+    {
+      "sectorId": 4,
+      "tipoServicio": "agua",
+      "estado": "con_servicio",
+      "reportesSinConfirmar": 0,
+      "desde": null
+    }
+  ],
+  "estimaciones": [
+    {
+      "sectorId": 1,
+      "tipoServicio": "electricidad",
+      "suficiente": true,
+      "n": 12,
+      "medianaMin": 240,
+      "q1Min": 150,
+      "q3Min": 360
+    },
+    {
+      "sectorId": 2,
+      "tipoServicio": "electricidad",
+      "suficiente": true,
+      "n": 9,
+      "medianaMin": 220,
+      "q1Min": 140,
+      "q3Min": 290
+    },
+    { "sectorId": 3, "tipoServicio": "electricidad", "suficiente": false, "n": 3 },
+    {
+      "sectorId": 4,
+      "tipoServicio": "electricidad",
+      "suficiente": true,
+      "n": 7,
+      "medianaMin": 170,
+      "q1Min": 120,
+      "q3Min": 220
+    },
+    { "sectorId": 1, "tipoServicio": "agua", "suficiente": false, "n": 3 }
+  ],
+  "eventos": [
+    {
+      "id": 101,
+      "sectorId": 1,
+      "tipoServicio": "electricidad",
+      "inicioEn": "2026-10-07T18:20:00Z",
+      "finEn": null
+    },
+    {
+      "id": 100,
+      "sectorId": 3,
+      "tipoServicio": "agua",
+      "inicioEn": "2026-10-06T19:00:00Z",
+      "finEn": "2026-10-06T23:35:00Z"
+    },
+    {
+      "id": 99,
+      "sectorId": 4,
+      "tipoServicio": "electricidad",
+      "inicioEn": "2026-10-06T15:00:00Z",
+      "finEn": "2026-10-06T17:50:00Z"
+    },
+    {
+      "id": 98,
+      "sectorId": 2,
+      "tipoServicio": "electricidad",
+      "inicioEn": "2026-10-06T14:20:00Z",
+      "finEn": "2026-10-06T17:50:00Z"
+    },
+    {
+      "id": 97,
+      "sectorId": 1,
+      "tipoServicio": "electricidad",
+      "inicioEn": "2026-10-06T13:10:00Z",
+      "finEn": "2026-10-06T16:40:00Z"
+    },
+    {
+      "id": 96,
+      "sectorId": 1,
+      "tipoServicio": "agua",
+      "inicioEn": "2026-10-05T10:30:00Z",
+      "finEn": "2026-10-05T15:30:00Z"
+    },
+    {
+      "id": 95,
+      "sectorId": 1,
+      "tipoServicio": "electricidad",
+      "inicioEn": "2026-10-04T22:05:00Z",
+      "finEn": "2026-10-05T03:10:00Z"
+    }
+  ]
+}

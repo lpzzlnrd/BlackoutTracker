@@ -1,0 +1,244 @@
+<!doctype html>
+<!--
+  Referencia de diseño de BlackoutTracker (docs/frontend/).
+  Es la maqueta exportada del lienzo de Claude Design: HTML + estilos en línea, sin dependencias
+  salvo las fuentes de Google (solo en B y C). Ábrela en el navegador para comparar con la app.
+  No la edites a mano: si el diseño cambia, se vuelve a exportar (ver docs/frontend/README.md).
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>B estado en escritorio</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</head>
+<body>
+<div style="position: relative; box-sizing: border-box; min-height: 860px; background: #F7F5F2; color: #1F1B16; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif">
+
+  <!-- Barra superior -->
+  <header style="box-sizing: border-box; padding: 10px 32px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; background: #FFFFFF; border-bottom: 1px solid #E4E0D9">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <svg width="32" height="32" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2c-3.9 0-7 3-7 6.9 0 5.2 7 12.7 7 12.7s7-7.5 7-12.7c0-3.9-3.1-6.9-7-6.9z" fill="#2F5D46"/><path d="M12.9 5.6 8.9 10.6h2.7l-.6 3.8 4.1-5.1h-2.7z" fill="#FFFFFF"/></svg>
+      <span style="font-size: 19px; font-weight: 700">BlackoutTracker</span>
+    </div>
+    <nav aria-label="Principal" style="display: flex; flex-wrap: wrap; gap: 4px">
+      <a href="#inicio" aria-current="page" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; box-sizing: border-box; padding: 0 16px; border-radius: 12px; background: #E4EFE8; color: #244A37; text-decoration: none; font-size: 16px; font-weight: 700">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Inicio</span>
+      </a>
+      <a href="#mapa" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; box-sizing: border-box; padding: 0 16px; border-radius: 12px; color: #3D372F; text-decoration: none; font-size: 16px; font-weight: 700">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        <span>Mapa</span>
+      </a>
+      <a href="#cuenta" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; box-sizing: border-box; padding: 0 16px; border-radius: 12px; color: #3D372F; text-decoration: none; font-size: 16px; font-weight: 700">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Cuenta</span>
+      </a>
+    </nav>
+    <div role="status" style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #5C554C">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+      <span>En línea · actualizado a las 15:06</span>
+    </div>
+  </header>
+
+  <main style="box-sizing: border-box; max-width: 1160px; margin: 0 auto; padding: 32px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+
+    <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+      <div>
+        <div style="font-size: 15px; color: #5C554C">Tu sector</div>
+        <h1 style="margin: 0; font-size: 34px; font-weight: 700; line-height: 1.15">Sector 1</h1>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 20px">
+        <!-- Luz -->
+        <section aria-labelledby="t-luz" style="background: #FFFFFF; border: 1px solid #E4E0D9; border-radius: 22px; padding: 20px; box-shadow: 0 1px 2px rgba(31, 27, 22, .06), 0 6px 18px rgba(31, 27, 22, .07)">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+            <div style="display: flex; align-items: center; gap: 10px">
+              <span style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 20px; background: #F0EDE8">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              </span>
+              <h2 id="t-luz" style="margin: 0; font-size: 19px; font-weight: 700">Luz</h2>
+            </div>
+            <div style="display: inline-flex; align-items: center; white-space: nowrap; gap: 6px; padding: 5px 12px; border-radius: 999px; background: #FBE6DF; color: #8A2B10; font-size: 14px; font-weight: 700">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              <span>Sin servicio</span>
+            </div>
+          </div>
+          <div style="margin-top: 16px; font-size: 24px; font-weight: 700; line-height: 1.2; text-wrap: balance">Sin luz desde las 14:20</div>
+          <div style="margin-top: 2px; font-size: 16px; color: #5C554C">3 vecinos lo confirmaron</div>
+          <div style="margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: #F0EDE8">
+            <div style="font-size: 13px; color: #5C554C">Estimación estadística</div>
+            <div style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap">
+              <span style="font-size: 24px; font-weight: 700">aprox. 4 h</span>
+              <span style="font-size: 15px; color: #5C554C">según 12 cortes registrados</span>
+            </div>
+          </div>
+          <button type="button" style="margin-top: 16px; width: 100%; height: 52px; border: 0; border-radius: 16px; background: #2F5D46; color: #FFFFFF; font-family: inherit; font-size: 17px; font-weight: 700">Ya volvió la luz</button>
+        </section>
+
+        <!-- Agua -->
+        <section aria-labelledby="t-agua" style="background: #FFFFFF; border: 1px solid #E4E0D9; border-radius: 22px; padding: 20px; box-shadow: 0 1px 2px rgba(31, 27, 22, .06), 0 6px 18px rgba(31, 27, 22, .07)">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+            <div style="display: flex; align-items: center; gap: 10px">
+              <span style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 20px; background: #F0EDE8">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+              </span>
+              <h2 id="t-agua" style="margin: 0; font-size: 19px; font-weight: 700">Agua</h2>
+            </div>
+            <div style="display: inline-flex; align-items: center; white-space: nowrap; gap: 6px; padding: 5px 12px; border-radius: 999px; background: #E3EEF9; color: #18486F; font-size: 14px; font-weight: 700">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <span>Con servicio</span>
+            </div>
+          </div>
+          <div style="margin-top: 16px; font-size: 24px; font-weight: 700; line-height: 1.2; text-wrap: balance">Hay agua</div>
+          <div style="margin-top: 2px; font-size: 16px; color: #5C554C">Última interrupción: hace 2 días, duró 5 h</div>
+          <div style="margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: #F0EDE8">
+            <div style="font-size: 13px; color: #5C554C">Estimación estadística</div>
+            <div style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap">
+              <span style="font-size: 19px; font-weight: 700">Datos insuficientes</span>
+              <span style="font-size: 15px; color: #5C554C">3 de 5 cortes registrados</span>
+            </div>
+          </div>
+          <button type="button" style="margin-top: 16px; width: 100%; height: 52px; border: 1.5px solid #968F83; border-radius: 16px; background: #FFFFFF; color: #1F1B16; font-family: inherit; font-size: 17px; font-weight: 700">Se fue el agua</button>
+        </section>
+      </div>
+
+      <!-- Historial -->
+      <section aria-labelledby="t-hist" style="background: #FFFFFF; border: 1px solid #E4E0D9; border-radius: 22px; padding: 20px; box-shadow: 0 1px 2px rgba(31, 27, 22, .06), 0 6px 18px rgba(31, 27, 22, .07)">
+        <h2 id="t-hist" style="margin: 0 0 8px; font-size: 19px; font-weight: 700">Últimos cortes en tu sector</h2>
+        <div style="overflow-x: auto">
+          <table style="width: 100%; border-collapse: collapse; font-size: 15px; white-space: nowrap">
+            <thead>
+              <tr>
+                <th scope="col" style="text-align: left; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #5C554C; border-bottom: 1px solid #CFC9BF">Servicio</th>
+                <th scope="col" style="text-align: left; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #5C554C; border-bottom: 1px solid #CFC9BF">Inicio</th>
+                <th scope="col" style="text-align: left; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #5C554C; border-bottom: 1px solid #CFC9BF">Fin</th>
+                <th scope="col" style="text-align: right; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #5C554C; border-bottom: 1px solid #CFC9BF">Duración</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 12px; border-bottom: 1px solid #E4E0D9; font-weight: 700">Luz</td>
+                <td style="padding: 12px; border-bottom: 1px solid #E4E0D9">Hoy, 14:20</td>
+                <td style="padding: 12px; border-bottom: 1px solid #E4E0D9"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; background: #FBE6DF; color: #8A2B10; font-size: 13px; font-weight: 700">En curso</span></td>
+                <td style="padding: 12px; border-bottom: 1px solid #E4E0D9; text-align: right; color: #5C554C">—</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px; border-bottom: 1px solid #E4E0D9; font-weight: 700">Luz</td>
+                <td style="padding: 12px; border-bottom: 1px solid #E4E0D9">Ayer, 09:10</td>
+                <td style="padding: 12px; border-bottom: 1px solid #E4E0D9">12:40</td>
+                <td style="padding: 12px; border-bottom: 1px solid #E4E0D9; text-align: right">3 h 30 min</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px; border-bottom: 1px solid #E4E0D9; font-weight: 700">Agua</td>
+                <td style="padding: 12px; border-bottom: 1px solid #E4E0D9">Hace 2 días, 06:30</td>
+                <td style="padding: 12px; border-bottom: 1px solid #E4E0D9">11:30</td>
+                <td style="padding: 12px; border-bottom: 1px solid #E4E0D9; text-align: right">5 h</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px; font-weight: 700">Luz</td>
+                <td style="padding: 12px">Hace 3 días, 18:05</td>
+                <td style="padding: 12px">23:10</td>
+                <td style="padding: 12px; text-align: right">5 h 5 min</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div style="flex: 1 1 340px; min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 20px; align-items: start">
+      <!-- Mini mapa -->
+      <section aria-labelledby="t-mapa" style="background: #FFFFFF; border: 1px solid #E4E0D9; border-radius: 22px; padding: 16px; box-shadow: 0 1px 2px rgba(31, 27, 22, .06), 0 6px 18px rgba(31, 27, 22, .07)">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px">
+          <h2 id="t-mapa" style="margin: 0; font-size: 19px; font-weight: 700">Mapa de sectores</h2>
+          <a href="#mapa" style="display: inline-flex; align-items: center; min-height: 44px; margin: -8px 0; padding: 0 4px; color: #2F5D46; font-size: 15px; font-weight: 700; text-decoration: underline">Ver completo</a>
+        </div>
+        <svg viewBox="60 60 470 470" preserveAspectRatio="xMidYMid slice" style="display: block; width: 100%; height: auto; aspect-ratio: 1 / 1; border-radius: 14px" role="img" aria-label="Mapa de sectores: Sector 1 sin servicio, Sector 2 con servicio, Sector 3 con reportes sin confirmar, Sector 4 con servicio">
+          <defs>
+            <pattern id="trama" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <rect width="9" height="9" fill="#F5C84C" fill-opacity=".6"/>
+              <line x1="0" y1="0" x2="0" y2="9" stroke="#946200" stroke-width="3"/>
+            </pattern>
+          </defs>
+          <rect x="-400" y="-400" width="1400" height="1400" fill="#EFEDE9"/>
+          <path d="M130 330 L205 322 L218 372 L140 388 Z" fill="#E3E8DF"/>
+          <path d="M360 120 L430 112 L440 170 L368 176 Z" fill="#E3E8DF"/>
+          <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <g stroke="#DEDAD3" stroke-width="16">
+              <path d="M-300 285 C150 275 330 268 900 298"/>
+              <path d="M312 -400 C318 150 322 300 332 1000"/>
+            </g>
+            <g stroke="#FFFFFF" stroke-width="12">
+              <path d="M-300 285 C150 275 330 268 900 298"/>
+              <path d="M312 -400 C318 150 322 300 332 1000"/>
+            </g>
+            <g stroke="#FFFFFF" stroke-width="5">
+              <path d="M-300 125 L900 135"/>
+              <path d="M-300 205 C200 190 400 205 900 215"/>
+              <path d="M-300 380 C160 372 330 378 900 392"/>
+              <path d="M-300 470 L900 500"/>
+              <path d="M205 -400 L212 1000"/>
+              <path d="M420 -400 C424 200 418 400 430 1000"/>
+              <path d="M115 -400 L108 1000"/>
+              <path d="M520 -400 L526 1000"/>
+            </g>
+          </g>
+          <polygon points="90,130 300,80 320,270 100,300" style="fill: #C0391A; fill-opacity: .78; stroke: #8F2A12; stroke-width: 2.5; stroke-linejoin: round"/>
+          <polygon points="300,80 510,140 500,290 320,270" style="fill: #5B9BD5; fill-opacity: .6; stroke: #235C94; stroke-width: 2.5; stroke-linejoin: round"/>
+          <polygon points="100,300 320,270 330,440 130,480" fill="url(#trama)" style="stroke: #946200; stroke-width: 2.5; stroke-linejoin: round"/>
+          <polygon points="320,270 500,290 480,500 330,440" style="fill: #5B9BD5; fill-opacity: .6; stroke: #235C94; stroke-width: 2.5; stroke-linejoin: round"/>
+          <polygon points="90,130 300,80 320,270 100,300" fill="none" style="stroke: #1F1B16; stroke-width: 5; stroke-linejoin: round"/>
+          <g font-size="20" font-weight="700" text-anchor="middle" fill="#1F1B16" style="paint-order: stroke; stroke: #FFFFFF; stroke-width: 5px; stroke-linejoin: round">
+            <text x="203" y="190">Sector 1</text>
+            <text x="408" y="190">Sector 2</text>
+            <text x="222" y="360">Sector 3</text>
+            <text x="408" y="365">Sector 4</text>
+          </g>
+          <g stroke-linecap="round" stroke-linejoin="round" fill="none">
+            <circle cx="203" cy="218" r="15" fill="#FFFFFF" stroke="#8A2B10" stroke-width="1.5"/>
+            <g transform="translate(194 209) scale(.75)" stroke="#8A2B10" stroke-width="2.6"><line x1="7" y1="7" x2="17" y2="17"/><line x1="17" y1="7" x2="7" y2="17"/></g>
+            <circle cx="408" cy="218" r="15" fill="#FFFFFF" stroke="#18486F" stroke-width="1.5"/>
+            <g transform="translate(399 209) scale(.75)" stroke="#18486F" stroke-width="2.6"><polyline points="6 12.5 10.5 17 18 8"/></g>
+            <circle cx="222" cy="388" r="15" fill="#FFFFFF" stroke="#6A4700" stroke-width="1.5"/>
+            <g transform="translate(213 379) scale(.75)" stroke="#6A4700" stroke-width="2.6"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></g>
+            <circle cx="408" cy="393" r="15" fill="#FFFFFF" stroke="#18486F" stroke-width="1.5"/>
+            <g transform="translate(399 384) scale(.75)" stroke="#18486F" stroke-width="2.6"><polyline points="6 12.5 10.5 17 18 8"/></g>
+          </g>
+        </svg>
+        <div style="margin-top: 10px; font-size: 12px; color: #5C554C">© OpenStreetMap contributors</div>
+      </section>
+
+      <!-- Otros sectores -->
+      <section aria-labelledby="t-otros" style="background: #FFFFFF; border: 1px solid #E4E0D9; border-radius: 22px; padding: 16px 20px; box-shadow: 0 1px 2px rgba(31, 27, 22, .06), 0 6px 18px rgba(31, 27, 22, .07)">
+        <h2 id="t-otros" style="margin: 0 0 4px; font-size: 19px; font-weight: 700">Otros sectores</h2>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; box-sizing: border-box; min-height: 56px; border-bottom: 1px solid #E4E0D9">
+          <span style="font-size: 16px; font-weight: 700">Sector 2</span>
+          <span style="display: inline-flex; align-items: center; white-space: nowrap; gap: 6px; padding: 4px 12px; border-radius: 999px; background: #E3EEF9; color: #18486F; font-size: 14px; font-weight: 700"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Con servicio</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; box-sizing: border-box; min-height: 56px; border-bottom: 1px solid #E4E0D9">
+          <div>
+            <div style="font-size: 16px; font-weight: 700">Sector 3</div>
+            <div style="font-size: 13px; color: #5C554C">2 de 3 reportes</div>
+          </div>
+          <span style="display: inline-flex; align-items: center; white-space: nowrap; gap: 6px; padding: 4px 12px; border-radius: 999px; background: #FDF0CE; color: #6A4700; font-size: 14px; font-weight: 700"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Sin confirmar</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px">
+          <span style="font-size: 16px; font-weight: 700">Sector 4</span>
+          <span style="display: inline-flex; align-items: center; white-space: nowrap; gap: 6px; padding: 4px 12px; border-radius: 999px; background: #E3EEF9; color: #18486F; font-size: 14px; font-weight: 700"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Con servicio</span>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Aviso de PWA: versión nueva disponible (en la app real va fijo en la esquina de la ventana) -->
+  <div role="status" style="position: absolute; right: 24px; bottom: 24px; display: flex; align-items: center; gap: 16px; box-sizing: border-box; max-width: calc(100% - 48px); padding: 8px 8px 8px 20px; border-radius: 16px; background: #1F1B16; color: #F5F2EE; box-shadow: 0 8px 24px rgba(31, 27, 22, .3); font-size: 15px">
+    <span>Hay una versión nueva de la app</span>
+    <button type="button" style="height: 44px; padding: 0 18px; border: 0; border-radius: 12px; background: #86C09C; color: #12100E; font-family: inherit; font-size: 15px; font-weight: 700">Actualizar</button>
+  </div>
+</div>
+</body>
+</html>

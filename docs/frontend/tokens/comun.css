@@ -1,0 +1,74 @@
+/*
+  Tokens comunes a las tres propuestas (A, B y C). Se cargan siempre, junto con uno de
+  tokens/a.css, tokens/b.css o tokens/c.css y con tokens/tailwind.css.
+
+  Valores exactos de docs/frontend/referencia/*.html. Los de modo claro salen de las maquetas;
+  los de modo oscuro, de referencia/paletas-oscuro.html. Contraste y daltonismo validados:
+  ver docs/frontend/CANON.md §3.
+
+  El modo oscuro se activa con la clase `dark` en <html> (ver docs/frontend/PWA.md §6).
+*/
+
+:root {
+  /* Con servicio: azul (el par azul/bermellón es el más seguro para daltónicos) */
+  --estado-con-servicio-relleno: #5b9bd5;
+  --estado-con-servicio-opacidad: 0.6;
+  --estado-con-servicio-trazo: #235c94;
+  --estado-con-servicio-chip: #e3eef9;
+  --estado-con-servicio-tinta: #18486f;
+
+  /* Sin servicio: bermellón intenso, el único estado "de alarma" */
+  --estado-sin-servicio-relleno: #c0391a;
+  --estado-sin-servicio-opacidad: 0.78;
+  --estado-sin-servicio-trazo: #8f2a12;
+  --estado-sin-servicio-chip: #fbe6df;
+  --estado-sin-servicio-tinta: #8a2b10;
+
+  /* Reportes sin confirmar: ámbar con trama diagonal (nunca solo color) */
+  --estado-sin-confirmar-relleno: #f5c84c;
+  --estado-sin-confirmar-opacidad: 0.6;
+  --estado-sin-confirmar-trazo: #946200;
+  --estado-sin-confirmar-chip: #fdf0ce;
+  --estado-sin-confirmar-tinta: #6a4700;
+
+  /* Sin datos (sin caché todavía): gris con trazo punteado */
+  --estado-sin-datos-relleno: #9ca3af;
+  --estado-sin-datos-opacidad: 0.38;
+  --estado-sin-datos-trazo: #6f7782;
+  --estado-sin-datos-chip: #edeff2;
+  --estado-sin-datos-tinta: #474f5c;
+
+  /* Apoyo del mapa. La base y las calles del arte dibujado dependen de la propuesta. */
+  --mapa-halo: #ffffff;
+  --mapa-insignia: #ffffff;
+}
+
+:root.dark {
+  --estado-con-servicio-relleno: #5b9bd5;
+  --estado-con-servicio-opacidad: 0.55;
+  --estado-con-servicio-trazo: #9cc7f0;
+  --estado-con-servicio-chip: #13293f;
+  --estado-con-servicio-tinta: #a8cef2;
+
+  --estado-sin-servicio-relleno: #cf3a22;
+  --estado-sin-servicio-opacidad: 0.85;
+  --estado-sin-servicio-trazo: #ffb59c;
+  --estado-sin-servicio-chip: #3a1d12;
+  --estado-sin-servicio-tinta: #ffb59c;
+
+  --estado-sin-confirmar-relleno: #f5c84c;
+  --estado-sin-confirmar-opacidad: 0.75;
+  --estado-sin-confirmar-trazo: #f5cf72;
+  --estado-sin-confirmar-chip: #3a2c0b;
+  --estado-sin-confirmar-tinta: #f5cf72;
+
+  --estado-sin-datos-relleno: #8b93a0;
+  --estado-sin-datos-opacidad: 0.22;
+  --estado-sin-datos-trazo: #b5bcc7;
+  --estado-sin-datos-chip: #23262b;
+  --estado-sin-datos-tinta: #b5bcc7;
+
+  --mapa-base: #1a1f29;
+  --mapa-halo: var(--fondo);
+  --mapa-insignia: var(--superficie);
+}

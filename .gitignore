@@ -1,0 +1,22 @@
+# Dependencias
+node_modules/
+.pnpm-store/
+
+# Salidas de compilación y de pruebas
+dist/
+coverage/
+dev-dist/
+*.tsbuildinfo
+
+# Variables de entorno: solo se versiona .env.example
+.env
+.env.*
+!.env.example
+
+# Registros
+*.log
+
+# Editores y sistema operativo
+.idea/
+.DS_Store
+Thumbs.db

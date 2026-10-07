@@ -1,0 +1,29 @@
+{
+  "name": "blackout-tracker",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Plataforma comunitaria para monitorear las interrupciones de agua y electricidad (piloto: Urbanización Guaparo, Valencia).",
+  "license": "MIT",
+  "packageManager": "pnpm@10.33.2",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --if-present run dev",
+    "build": "pnpm -r --if-present run build",
+    "lint": "eslint . --max-warnings 0 && prettier --check .",
+    "format": "prettier --write .",
+    "typecheck": "pnpm -r --if-present run typecheck",
+    "test": "pnpm -r --if-present run test",
+    "test:int": "pnpm -r --if-present run test:int"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.9",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.71.1"
+  }
+}

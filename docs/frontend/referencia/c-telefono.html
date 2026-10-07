@@ -1,0 +1,196 @@
+<!doctype html>
+<!--
+  Referencia de diseño de BlackoutTracker (docs/frontend/).
+  Es la maqueta exportada del lienzo de Claude Design: HTML + estilos en línea, sin dependencias
+  salvo las fuentes de Google (solo en B y C). Ábrela en el navegador para comparar con la app.
+  No la edites a mano: si el diseño cambia, se vuelve a exportar (ver docs/frontend/README.md).
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>C panel en teléfono</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</head>
+<body>
+<div style="display: flex; flex-direction: column; width: 390px; height: 844px; overflow: hidden; background: #FAFAFA; color: #18181B; font-family: 'IBM Plex Sans', system-ui, sans-serif">
+
+  <!-- Aviso de PWA: sin conexión -->
+  <div role="status" style="flex: none; height: 36px; box-sizing: border-box; padding: 0 16px; display: flex; align-items: center; gap: 8px; background: #F4F4F5; border-bottom: 1px solid #D4D4D8; font-size: 13px; font-weight: 500">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+    <span>Sin conexión · datos no actualizados (<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace">14:32</span>)</span>
+  </div>
+
+  <!-- Barra superior -->
+  <header style="flex: none; height: 60px; box-sizing: border-box; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px">
+    <div style="display: flex; align-items: center; gap: 8px">
+      <button type="button" aria-label="1 aviso pendiente de envío" style="position: relative; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border: 1px solid #946200; border-radius: 8px; background: #FDF0CE; color: #6A4700">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span style="position: absolute; right: -6px; top: -6px; min-width: 18px; height: 18px; box-sizing: border-box; padding: 0 4px; border-radius: 9px; background: #18181B; color: #FAFAFA; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; font-weight: 500; line-height: 18px; text-align: center">1</span>
+      </button>
+      <h1 style="margin: 0; font-size: 18px; font-weight: 600">Sector 1</h1>
+    </div>
+    <div role="group" aria-label="Servicio" style="display: flex; gap: 2px; padding: 3px; border-radius: 10px; background: #F4F4F5; border: 1px solid #D4D4D8">
+      <button type="button" aria-pressed="true" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 70px; height: 44px; border: 0; border-radius: 8px; background: #18181B; color: #FAFAFA; font-family: inherit; font-size: 14px; font-weight: 600">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span>Luz</span>
+      </button>
+      <button type="button" aria-pressed="false" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 70px; height: 44px; border: 0; border-radius: 8px; background: transparent; color: #3F3F46; font-family: inherit; font-size: 14px; font-weight: 600">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+        <span>Agua</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mini mapa -->
+  <svg width="390" height="220" viewBox="60 60 470 470" preserveAspectRatio="xMidYMid meet" style="flex: none; display: block; box-sizing: border-box; border-top: 1px solid #E4E4E7; border-bottom: 1px solid #E4E4E7" role="img" aria-label="Mapa de sectores: Sector 1 sin servicio, Sector 2 con servicio, Sector 3 con reportes sin confirmar, Sector 4 con servicio">
+    <defs>
+      <pattern id="trama" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <rect width="9" height="9" fill="#F5C84C" fill-opacity=".6"/>
+        <line x1="0" y1="0" x2="0" y2="9" stroke="#946200" stroke-width="3"/>
+      </pattern>
+    </defs>
+    <rect x="-600" y="-400" width="1800" height="1400" fill="#EEEEEF"/>
+    <path d="M130 330 L205 322 L218 372 L140 388 Z" fill="#E4E8E2"/>
+    <path d="M360 120 L430 112 L440 170 L368 176 Z" fill="#E4E8E2"/>
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <g stroke="#D9D9DE" stroke-width="16">
+        <path d="M-600 285 C150 275 330 268 1200 298"/>
+        <path d="M312 -400 C318 150 322 300 332 1000"/>
+      </g>
+      <g stroke="#FFFFFF" stroke-width="12">
+        <path d="M-600 285 C150 275 330 268 1200 298"/>
+        <path d="M312 -400 C318 150 322 300 332 1000"/>
+      </g>
+      <g stroke="#FFFFFF" stroke-width="5">
+        <path d="M-600 125 L1200 135"/>
+        <path d="M-600 205 C200 190 400 205 1200 215"/>
+        <path d="M-600 380 C160 372 330 378 1200 392"/>
+        <path d="M-600 470 L1200 500"/>
+        <path d="M205 -400 L212 1000"/>
+        <path d="M420 -400 C424 200 418 400 430 1000"/>
+        <path d="M115 -400 L108 1000"/>
+        <path d="M520 -400 L526 1000"/>
+        <path d="M-200 -400 L-190 1000"/>
+        <path d="M720 -400 L730 1000"/>
+      </g>
+    </g>
+    <polygon points="90,130 300,80 320,270 100,300" style="fill: #C0391A; fill-opacity: .78; stroke: #8F2A12; stroke-width: 3; stroke-linejoin: round"/>
+    <polygon points="300,80 510,140 500,290 320,270" style="fill: #5B9BD5; fill-opacity: .6; stroke: #235C94; stroke-width: 3; stroke-linejoin: round"/>
+    <polygon points="100,300 320,270 330,440 130,480" fill="url(#trama)" style="stroke: #946200; stroke-width: 3; stroke-linejoin: round"/>
+    <polygon points="320,270 500,290 480,500 330,440" style="fill: #5B9BD5; fill-opacity: .6; stroke: #235C94; stroke-width: 3; stroke-linejoin: round"/>
+    <polygon points="90,130 300,80 320,270 100,300" fill="none" style="stroke: #18181B; stroke-width: 7; stroke-linejoin: round"/>
+    <g font-size="38" font-weight="700" text-anchor="middle" fill="#18181B" style="paint-order: stroke; stroke: #FFFFFF; stroke-width: 7px; stroke-linejoin: round; font-family: 'IBM Plex Mono', ui-monospace, monospace">
+      <text x="203" y="200">1</text>
+      <text x="408" y="205">2</text>
+      <text x="222" y="385">3</text>
+      <text x="408" y="395">4</text>
+    </g>
+  </svg>
+
+  <!-- Resumen por estado -->
+  <div style="flex: none; display: flex; flex-wrap: wrap; gap: 6px; box-sizing: border-box; padding: 10px 16px">
+    <span style="display: inline-flex; align-items: center; white-space: nowrap; gap: 6px; padding: 4px 8px; border-radius: 6px; background: #FBE6DF; color: #8A2B10; font-size: 13px; font-weight: 600"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace">1</span>Sin servicio</span>
+    <span style="display: inline-flex; align-items: center; white-space: nowrap; gap: 6px; padding: 4px 8px; border-radius: 6px; background: #FDF0CE; color: #6A4700; font-size: 13px; font-weight: 600"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace">1</span>Sin confirmar</span>
+    <span style="display: inline-flex; align-items: center; white-space: nowrap; gap: 6px; padding: 4px 8px; border-radius: 6px; background: #E3EEF9; color: #18486F; font-size: 13px; font-weight: 600"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace">2</span>Con servicio</span>
+    <span style="margin-left: auto; align-self: center; font-size: 12px; color: #52525B">© OpenStreetMap contributors</span>
+  </div>
+
+  <!-- Lista de sectores -->
+  <section aria-labelledby="t-sectores" style="flex: 1; min-height: 0">
+    <div style="display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; height: 32px; padding: 0 16px; background: #F4F4F5; border-top: 1px solid #E4E4E7; border-bottom: 1px solid #E4E4E7; font-size: 12px; font-weight: 600; color: #52525B">
+      <h2 id="t-sectores" style="margin: 0; font-size: 12px; font-weight: 600">Sector</h2>
+      <span>Duración típica</span>
+    </div>
+    <ul style="list-style: none; margin: 0; padding: 0">
+      <li style="box-sizing: border-box; padding: 10px 16px; background: #FFFFFF; border-bottom: 1px solid #E4E4E7">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <span style="font-size: 15px; font-weight: 600">Sector 1</span>
+              <span style="padding: 0 6px; border: 1px solid #18181B; border-radius: 4px; font-size: 12px; font-weight: 600">Tu sector</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px">
+              <span style="display: inline-flex; align-items: center; white-space: nowrap; gap: 6px; padding: 2px 8px; border-radius: 6px; background: #FBE6DF; color: #8A2B10; font-size: 13px; font-weight: 600"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>Sin servicio</span>
+              <span style="font-size: 13px; color: #52525B">desde <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace">14:20</span></span>
+            </div>
+          </div>
+          <div style="text-align: right">
+            <div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 15px; font-weight: 500">aprox. 4 h</div>
+            <div style="margin-top: 2px; font-size: 12px; color: #52525B">12 cortes</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px; padding: 6px 8px; border-radius: 6px; background: #FDF0CE; color: #6A4700; font-size: 13px; font-weight: 500">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Tu aviso «Volvió la luz» (<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace">15:04</span>) · pendiente</span>
+        </div>
+      </li>
+      <li style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; box-sizing: border-box; padding: 10px 16px; border-bottom: 1px solid #E4E4E7">
+        <div>
+          <div style="font-size: 15px; font-weight: 600">Sector 2</div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px"><span style="display: inline-flex; align-items: center; white-space: nowrap; gap: 6px; padding: 2px 8px; border-radius: 6px; background: #E3EEF9; color: #18486F; font-size: 13px; font-weight: 600"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Con servicio</span></div>
+        </div>
+        <div style="text-align: right">
+          <div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 15px; font-weight: 500">aprox. 3 h 40 min</div>
+          <div style="margin-top: 2px; font-size: 12px; color: #52525B">9 cortes</div>
+        </div>
+      </li>
+      <li style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; box-sizing: border-box; padding: 10px 16px; border-bottom: 1px solid #E4E4E7">
+        <div>
+          <div style="font-size: 15px; font-weight: 600">Sector 3</div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px">
+            <span style="display: inline-flex; align-items: center; white-space: nowrap; gap: 6px; padding: 2px 8px; border-radius: 6px; background: #FDF0CE; color: #6A4700; font-size: 13px; font-weight: 600"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Sin confirmar</span>
+            <span style="font-size: 13px; color: #52525B"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace">2</span> de <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace">3</span> reportes</span>
+          </div>
+        </div>
+        <div style="text-align: right">
+          <div style="font-size: 14px; font-weight: 500">Datos insuficientes</div>
+          <div style="margin-top: 2px; font-size: 12px; color: #52525B">3 de 5 cortes</div>
+        </div>
+      </li>
+      <li style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; box-sizing: border-box; padding: 10px 16px; border-bottom: 1px solid #E4E4E7">
+        <div>
+          <div style="font-size: 15px; font-weight: 600">Sector 4</div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px"><span style="display: inline-flex; align-items: center; white-space: nowrap; gap: 6px; padding: 2px 8px; border-radius: 6px; background: #E3EEF9; color: #18486F; font-size: 13px; font-weight: 600"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Con servicio</span></div>
+        </div>
+        <div style="text-align: right">
+          <div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 15px; font-weight: 500">aprox. 2 h 50 min</div>
+          <div style="margin-top: 2px; font-size: 12px; color: #52525B">7 cortes</div>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <!-- Navegación inferior -->
+  <nav aria-label="Principal" style="flex: none; height: 72px; box-sizing: border-box; padding: 6px 8px 14px; display: flex; justify-content: space-around; align-items: flex-start; background: #FFFFFF; border-top: 1px solid #E4E4E7">
+    <a href="#panel" aria-current="page" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 72px; min-height: 52px; text-decoration: none; font-size: 12px; font-weight: 600; color: #18181B">
+      <span style="display: flex; align-items: center; justify-content: center; width: 56px; height: 30px; border-radius: 8px; background: #E4E4E7">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      </span>
+      <span>Panel</span>
+    </a>
+    <a href="#mapa" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 72px; min-height: 52px; text-decoration: none; font-size: 12px; font-weight: 600; color: #52525B">
+      <span style="display: flex; align-items: center; justify-content: center; width: 56px; height: 30px">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      </span>
+      <span>Mapa</span>
+    </a>
+    <a href="#reportar" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 72px; min-height: 52px; text-decoration: none; font-size: 12px; font-weight: 600; color: #18181B">
+      <span style="display: flex; align-items: center; justify-content: center; width: 56px; height: 30px; border-radius: 8px; background: #18181B; color: #FAFAFA">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </span>
+      <span>Reportar</span>
+    </a>
+    <a href="#cuenta" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 72px; min-height: 52px; text-decoration: none; font-size: 12px; font-weight: 600; color: #52525B">
+      <span style="display: flex; align-items: center; justify-content: center; width: 56px; height: 30px">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </span>
+      <span>Cuenta</span>
+    </a>
+  </nav>
+</div>
+</body>
+</html>

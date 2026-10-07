@@ -1,0 +1,86 @@
+/*
+  Puente de los tokens a Tailwind v4 (configuración en CSS). Orden de importación en la hoja
+  de estilos principal de apps/web:
+
+    @import 'tailwindcss';
+    @import './tokens/comun.css';
+    @import './tokens/a.css'; (o b.css, o c.css)
+    @import './tokens/tailwind.css';
+
+  `inline` hace que cada utilidad lea la variable en el momento de uso: el modo oscuro cambia
+  solo con la clase `dark` en <html>, sin duplicar utilidades.
+
+  Ejemplos: bg-fondo, text-secundario, border-borde, bg-estado-sin-servicio-chip,
+  text-estado-sin-servicio-tinta, rounded-tarjeta, shadow-tarjeta, font-ui.
+
+  Opcional: para que Tailwind no ofrezca otra paleta, añade antes de este archivo
+  `@theme { --color-*: initial; }`. El punto de quiebre estructural es `lg` (1024 px, el de
+  Tailwind por defecto); no se redefine ningún otro.
+*/
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  /* Superficies, bordes y texto */
+  --color-fondo: var(--fondo);
+  --color-superficie: var(--superficie);
+  --color-superficie-2: var(--superficie-2);
+  --color-borde: var(--borde);
+  --color-borde-2: var(--borde-2);
+  --color-borde-control: var(--borde-control);
+  --color-texto: var(--texto);
+  --color-texto-2: var(--texto-2);
+  --color-secundario: var(--secundario);
+
+  /* Acento y foco */
+  --color-acento: var(--acento);
+  --color-sobre-acento: var(--sobre-acento);
+  --color-acento-suave: var(--acento-suave);
+  --color-tinta-acento: var(--tinta-acento);
+  --color-foco: var(--foco);
+
+  /* Aviso inverso y barra de rango (esta última solo la usa C) */
+  --color-inverso-fondo: var(--inverso-fondo);
+  --color-inverso-texto: var(--inverso-texto);
+  --color-inverso-acento: var(--inverso-acento);
+  --color-inverso-sobre-acento: var(--inverso-sobre-acento);
+  --color-barra-rango: var(--barra-rango);
+
+  /* Estados del sector */
+  --color-estado-con-servicio-relleno: var(--estado-con-servicio-relleno);
+  --color-estado-con-servicio-trazo: var(--estado-con-servicio-trazo);
+  --color-estado-con-servicio-chip: var(--estado-con-servicio-chip);
+  --color-estado-con-servicio-tinta: var(--estado-con-servicio-tinta);
+  --color-estado-sin-servicio-relleno: var(--estado-sin-servicio-relleno);
+  --color-estado-sin-servicio-trazo: var(--estado-sin-servicio-trazo);
+  --color-estado-sin-servicio-chip: var(--estado-sin-servicio-chip);
+  --color-estado-sin-servicio-tinta: var(--estado-sin-servicio-tinta);
+  --color-estado-sin-confirmar-relleno: var(--estado-sin-confirmar-relleno);
+  --color-estado-sin-confirmar-trazo: var(--estado-sin-confirmar-trazo);
+  --color-estado-sin-confirmar-chip: var(--estado-sin-confirmar-chip);
+  --color-estado-sin-confirmar-tinta: var(--estado-sin-confirmar-tinta);
+  --color-estado-sin-datos-relleno: var(--estado-sin-datos-relleno);
+  --color-estado-sin-datos-trazo: var(--estado-sin-datos-trazo);
+  --color-estado-sin-datos-chip: var(--estado-sin-datos-chip);
+  --color-estado-sin-datos-tinta: var(--estado-sin-datos-tinta);
+
+  /* Formas */
+  --radius-etiqueta: var(--radio-etiqueta);
+  --radius-chip: var(--radio-chip);
+  --radius-control: var(--radio-control);
+  --radius-boton: var(--radio-boton);
+  --radius-bloque: var(--radio-bloque);
+  --radius-tarjeta: var(--radio-tarjeta);
+  --radius-hoja: var(--radio-hoja);
+  --radius-icono: var(--radio-icono);
+
+  /* Sombras */
+  --shadow-flotante: var(--sombra-flotante);
+  --shadow-hoja: var(--sombra-hoja);
+  --shadow-tarjeta: var(--sombra-tarjeta);
+  --shadow-aviso: var(--sombra-aviso);
+
+  /* Tipografía */
+  --font-ui: var(--fuente-ui);
+  --font-mono: var(--fuente-mono);
+}
