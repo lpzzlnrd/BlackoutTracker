@@ -72,7 +72,7 @@
 ├─ data/
 │  └─ sectores-guaparo.geojson   (provisional hasta tener el real; ver D-005)
 ├─ packages/shared/          tipos y enums sin dependencias de runtime
-│  └─ src/  enums.ts · dto.ts · errores.ts (códigos de error) · index.ts
+│  └─ src/  enums.ts · constantes.ts · dto.ts · errores.ts (códigos de error) · index.ts
 ├─ apps/api/
 │  ├─ drizzle.config.ts
 │  ├─ drizzle/               migraciones generadas + SQL a mano (RLS, realtime)

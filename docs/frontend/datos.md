@@ -1,7 +1,7 @@
 # Canon del frontend · datos
 
 > Qué datos necesita cada pantalla de las maquetas, de dónde salen según [`PLAN.md`](../PLAN.md) §4 y §5, y **qué le falta hoy a la API planificada** para mostrar exactamente lo que dibujan los diseños.
-> La forma de los datos es **provisional** hasta que exista `packages/shared` (T-002): los nombres siguen el plan (`tipoServicio`, `inicioEn`, `sectorId`…).
+> Los tipos de la API y de `estado_sector` los fija [`@blackout/shared`](../../packages/shared/src/dto.ts) (T-002): se importan, no se copian. Los nombres siguen el plan (`tipoServicio`, `inicioEn`, `sectorId`…). Las diferencias con `datos-ejemplo.json` están al final de la §1.
 
 ## 1. Datos de ejemplo
 
@@ -16,6 +16,14 @@
   | `en-linea`       | sí        | 15:06                 | vacía                                        | Los **escritorios** de A, B y C  |
 
 - Los cuatro sectores son de ejemplo (`Sector 1` … `Sector 4`): los reales dependen de D-005. La geometría no está en el JSON: viene de `GET /sectores`.
+
+**Diferencias con los tipos de `@blackout/shared`.** El JSON es la vista simplificada que necesita la interfaz; los tipos reales llevan algo más o lo escriben distinto:
+
+- `estados` son filas de `estado_sector`, y Supabase las entrega con los nombres de las columnas (`EstadoSectorFila`: `sector_id`, `tipo_servicio`, `reportes_sin_confirmar`, `evento_id`, `desde`, `actualizado_en`). El JSON las muestra ya en `camelCase`; esa traducción es cosa del frontend. `confirmaciones` es la petición P2 y todavía no existe en el tipo.
+- `eventos` son `EventoSectorDto`, que añade `duracionMin`, `confirmadoEn` y `origen`. Las maquetas calculan la duración con `inicioEn` y `finEn`, así que no los necesitan.
+- `estimaciones` repiten `sectorId` y `tipoServicio` en cada elemento porque el cliente las guarda juntas; la respuesta de `GET /estimaciones` (`EstimacionDto`) no los lleva, van en la consulta.
+- `residente` es `SectorAsignadoDto`, que añade `sectorNombre`. `sectores` son los `properties` de cada elemento del GeoJSON de `GET /sectores`.
+- `config` es la petición P1 y `cola` es el modelo de Dexie del cliente: ninguno está en `@blackout/shared`.
 
 ## 2. Qué necesita cada pantalla
 
@@ -94,6 +102,27 @@ Son **propuestas para que decidas tú** (no están en `PLAN.md` ni en `DECISIONE
 | T-032, T-035   | El estado por consenso en `estado_sector` y su llegada por Realtime                |
 | T-034          | Últimos cortes (A) e historial (B)                                                 |
 | T-042, T-043   | La estimación con su n y el resumen del sector                                     |
-| T-002          | Los tipos y los códigos de error (`CodigoError`): con ellos se completa la tabla código → mensaje en español, que aquí queda pendiente |
+| T-002          | Los tipos y los códigos de error (`CodigoError`), con la tabla código → mensaje en español de la §5 |
 
 Mientras esas tareas no existan, el frontend se construye contra `datos-ejemplo.json` en modo demostración ([`CANON.md`](CANON.md) §11).
+
+## 5. Códigos de error y mensajes
+
+Toda respuesta de error es el estándar de Nest más un campo `codigo` (`ErrorApi`, con los valores de `CodigoError`). El cliente muestra **el texto de esta tabla** y no el `message` del servidor, que puede venir en inglés o ser una lista de validaciones. Los textos son una **propuesta**: se pueden cambiar sin tocar la API. `{servicio}` es "agua" o "luz".
+
+| Código                      | HTTP | Cuándo                                                   | Texto propuesto                                                                       |
+| --------------------------- | ---- | -------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `DATOS_INVALIDOS`           | 400  | El cuerpo o los parámetros no cumplen el formato         | Algunos datos no son válidos. Revísalos e inténtalo de nuevo.                         |
+| `NO_AUTENTICADO`            | 401  | Falta el token, venció o no es válido                    | Tu sesión venció. Inicia sesión de nuevo.                                             |
+| `REGISTRO_INCOMPLETO`       | 403  | Hay cuenta, pero todavía no perfil de residente (D-014)  | Falta terminar tu registro. Marca tu vivienda en el mapa para continuar.              |
+| `SECTOR_NO_ENCONTRADO`      | 404  | El sector no existe                                      | No encontramos ese sector.                                                            |
+| `REPORTE_NO_ENCONTRADO`     | 404  | Cierre de un aviso que no existe o no es tuyo            | No hay un corte abierto que cerrar.                                                   |
+| `RESIDENTE_YA_REGISTRADO`   | 409  | `POST /residentes/me` con el perfil ya creado            | Ya tienes una vivienda registrada con esta cuenta.                                    |
+| `REPORTE_ABIERTO_DUPLICADO` | 409  | Ya hay un corte abierto del mismo servicio (REP-05)      | Ya tienes un corte de {servicio} abierto. Ciérralo antes de avisar de otro.           |
+| `REPORTE_CONFLICTO`         | 409  | El mismo id llega con otro contenido (OFF-05)            | No se pudo enviar este aviso. Vuelve a crearlo.                                       |
+| `PIN_FUERA_DE_GUAPARO`      | 422  | El pin cae fuera de todos los sectores (REG-02)          | Ese punto queda fuera de Guaparo. Mueve el pin sobre tu vivienda.                     |
+| `HORA_INVALIDA`             | 422  | Hora futura, muy antigua o fin antes del inicio (REP-07) | La hora no es válida. Revisa que no sea futura, muy antigua ni anterior al inicio.    |
+| `DEMASIADAS_SOLICITUDES`    | 429  | Se superó el límite de solicitudes                       | Demasiados intentos seguidos. Espera un momento e inténtalo otra vez.                 |
+| `ERROR_INTERNO`             | 500  | Error no previsto del servidor                           | Algo falló de nuestro lado. Inténtalo de nuevo en un momento.                         |
+
+Qué hace la **cola de avisos** con cada respuesta lo decide el estado HTTP, no el código ([`PLAN.md`](../PLAN.md) §5): 2xx lo saca de la cola; red caída, 5xx, 429 y un 404 en un cierre reintentan; 400, 409 y 422 son error permanente (se marca _Error_ y se avisa); 401 refresca la sesión y reintenta. El código solo elige el texto. El 403 `REGISTRO_INCOMPLETO` no está en esa tabla: según el plan, devuelve al usuario al paso del pin.

@@ -1,3 +1,14 @@
 packages:
   - apps/*
   - packages/*
+
+# Versiones que comparten todos los paquetes (D-016). Un paquete las usa con "typescript": "catalog:".
+# La 7.x (la que instala npm por defecto) todavía no la soportan typescript-eslint ni ts-jest.
+catalog:
+  typescript: ~5.9.3
+
+# pnpm 10 no ejecuta los scripts de instalación de las dependencias si no se autorizan. El de esbuild
+# solo cambia su shim de JS por el binario nativo (arranque más rápido): tsup y Vite funcionan igual
+# sin él, así que se ignora de forma explícita y no corre código de terceros en la instalación.
+ignoredBuiltDependencies:
+  - esbuild

@@ -7,10 +7,10 @@
 ## Estado
 
 - **Fase actual:** 0. Fundaciones (S1)
-- **Próxima tarea:** T-001
+- **Próxima tarea:** T-003
 - **Bloqueos:** ninguno para la fase 0. T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
-- **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015 (las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar).
-- **Última actualización:** 2026-10-07, plan inicial.
+- **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015, D-016, D-017, D-018 y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
+- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR).
 
 ---
 
@@ -33,22 +33,25 @@
 
 ## Fase 0 — Fundaciones (S1)
 
-- [~] **T-001 · Monorepo pnpm** (L)
+- [x] **T-001 · Monorepo pnpm** (L)
   `package.json` raíz (con `packageManager` y `engines.node >=22`), `pnpm-workspace.yaml`, `tsconfig.base.json`, ESLint (flat config) + Prettier, `.editorconfig`, `.gitattributes` (`* text=auto eol=lf`), `.nvmrc`, `.gitignore` (node, dist, coverage, `.env*` salvo `.env.example`). Scripts raíz: `dev`, `build`, `lint`, `typecheck`, `test`, `test:int`.
   *Hecho cuando:* `pnpm install && pnpm lint && pnpm typecheck` corren sin error en un repo vacío de código.
-- [ ] **T-002 · `packages/shared`** (L) — dep: T-001
+  *Nota:* `pnpm lint` es `eslint . --max-warnings 0 && prettier --check .`. TypeScript queda en 5.9 con un catálogo de pnpm (D-016) y ESLint en la 10 con flat config.
+- [x] **T-002 · `packages/shared`** (L) — dep: T-001
   `TipoServicio`, `EstadoServicio`, `CodigoError` (enum de códigos de error), interfaces de los DTO de §5 del plan y constantes por defecto (N = 3, n_min = 5). Se compila con `tsup` (ESM + CJS + d.ts) para que lo consuman Nest (CJS) y Vite.
   *Hecho cuando:* `apps/api` lo importa y compila.
+  *Nota:* el paquete es `@blackout/shared` (D-017). Además de lo pedido exporta `OrigenEvento`, todas las constantes por defecto de §7 del plan (`constantes.ts`) y `EstadoSectorFila`; los enums son objetos `as const` y `CodigoError` tiene 12 códigos (D-018). Como `apps/api` aún no existe, "lo importa y compila" se comprobó con consumidores de prueba (CJS con `nodenext`, ESM y `bundler`) en `packages/shared/test/consumo/`: **T-003 lo confirma con el consumidor real**. Se consume desde `dist/`, así que hay que compilarlo antes (`pnpm build`, o `pnpm dev`, que lo deja en modo watch). También completa `docs/frontend/datos.md` (§5: tabla código → mensaje).
 - [ ] **T-003 · Esqueleto de `apps/api`** (L) — dep: T-001, T-002
   Nest 11: `ConfigModule` con validación del `.env` (§7 del plan), `ValidationPipe` global (`whitelist`, `forbidNonWhitelisted`, `transform`), Helmet, Throttler, CORS desde el env, prefijo `/api`, Swagger en `/api/docs`, filtro de errores que agrega `codigo` y `GET /salud`.
   *Hecho cuando:* `pnpm --filter api dev` levanta, `/api/docs` abre, y hay un e2e de `/salud` en verde.
+  *Notas de T-001 y T-002:* instalar `@nestjs/*@^11` (el `latest` de npm es la 12, que `CLAUDE.md` §4 descarta). `apps/api` depende de `"@blackout/shared": "workspace:*"` y usa `"typescript": "catalog:"`. Como `shared` se consume desde `dist/`, el `dev` raíz tiene que compilarlo antes de arrancar los demás (`pnpm --filter @blackout/shared build`) y el `typecheck` del api lo necesita compilado; el filtro de errores y los DTO implementan `ErrorApi`, `CodigoError` y las interfaces de `shared`.
 - [ ] **T-004 · PostGIS local** (L) — dep: T-001
   `docker-compose.yml` con `postgis/postgis:16-3.4` en el puerto 5433 y las bases `blackout` y `blackout_test`. Scripts `db:up` y `db:down`. `apps/api/.env.example`.
 - [ ] **T-005 · Drizzle** (L) — dep: T-003, T-004
   `drizzle.config.ts` con `extensionsFilters: ['postgis']`, proveedor Drizzle (postgres-js) inyectable y migración 0000 (esquema `extensions` + PostGIS, ver §4 del plan). `customType` para `MultiPolygon`. Scripts `db:generate`, `db:migrate` y `db:studio`.
   *Hecho cuando:* la migración corre en local y un test de integración ejecuta `SELECT postgis_version()`. **Verificar** que el `search_path` funcione igual que en Supabase.
 - [ ] **T-006 · CI** (L) — dep: T-003, T-005
-  `.github/workflows/ci.yml`, que corre en los PR y en los push a `main`: pnpm con caché → lint → typecheck → test → test:int (service container PostGIS). Leonardo activa a mano la protección de `main` (o con `gh api`, previa confirmación).
+  `.github/workflows/ci.yml`, que corre en los PR y en los push a `main`: pnpm con caché (`pnpm install --frozen-lockfile`) → build → lint → typecheck → test → test:int (service container PostGIS). El `build` va primero porque `shared` se consume desde `dist/` (D-017). Leonardo activa a mano la protección de `main` (o con `gh api`, previa confirmación).
 - [ ] **T-007 · Supabase staging** (L, **lo hace Leonardo** o la sesión con su confirmación)
   Crear el proyecto de staging, activar PostGIS, **verificar que las JWT signing keys sean asimétricas** (ES256/RS256) y anotar `SUPABASE_URL` y `DATABASE_URL` (pooler en modo session) en un `.env` local, nunca en el repo. El de producción se crea en la fase 5.
 

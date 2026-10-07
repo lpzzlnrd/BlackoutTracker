@@ -95,7 +95,7 @@ Comprueba el contraste de todos los pares de color en claro y oscuro (texto al m
 - Idioma: español en la interfaz, los comentarios y los commits. Los identificadores del dominio, en español y sin tildes; los del framework, en inglés ([`PLAN.md`](../PLAN.md) §3).
 - Stack: React + Vite + TypeScript, Tailwind, `vite-plugin-pwa` (`injectManifest`), Dexie, TanStack Query, react-leaflet y Turf; `@supabase/supabase-js` solo para Auth y Realtime ([`CLAUDE.md`](../../CLAUDE.md) §4). Solo herramientas libres o de nivel gratuito. Las fuentes y los iconos de este canon son de licencia libre (OFL y MIT).
 - Git: una rama por funcionalidad, PR a `main`, no se commitea a `main`; solo Leonardo fusiona ([`CLAUDE.md`](../../CLAUDE.md) §10).
-- Los tipos y los códigos de error vienen de `packages/shared` (T-002).
+- Los tipos, los enums, los códigos de error y los valores por defecto vienen de `@blackout/shared` (`packages/shared`, T-002): se importan por su nombre, no se copian. El texto de cada código de error está en [`datos.md`](datos.md) §5.
 
 ## 8. Si el diseño cambia
 
