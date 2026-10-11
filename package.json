@@ -15,7 +15,10 @@
     "format": "prettier --write .",
     "typecheck": "pnpm -r --if-present run typecheck",
     "test": "pnpm -r --if-present run test",
-    "test:int": "pnpm -r --if-present run test:int"
+    "test:int": "pnpm -r --if-present run test:int",
+    "db:up": "docker compose up -d --wait db",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d --wait db"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
