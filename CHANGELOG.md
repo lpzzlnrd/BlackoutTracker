@@ -8,6 +8,7 @@ Secciones por versión: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**
 ## [Sin publicar]
 
 ### Añadido
+- Registro: `POST /api/registro/validar-pin` (público, con throttle), `POST /api/residentes/me` y `GET /api/residentes/me`, con `ST_Covers` y desempate por el menor id (D-002), `RegistroGuard` reutilizable (403 `REGISTRO_INCOMPLETO`) y la variable `TRUST_PROXY`. Con tests REG-01, REG-02, REG-03 y NF-06 (T-015).
 - Guard global de JWT de Supabase (`jose` + JWKS con caché de 10 min, solo ES256/RS256, verifica emisor y audiencia), `@Public()` y `@ResidenteActual()`; con tests de token válido, vencido, de otra firma, de otro emisor, de otra audiencia, HS256 y sin token (T-013).
 - Sectores provisionales de Guaparo (`data/sectores-guaparo.geojson`, 4 sectores aproximados, marcados PROVISIONAL), `pnpm db:seed` (valida geometrías y solapes, upsert idempotente y filas de `estado_sector`) y las coordenadas de control de `test/fixtures/puntos.ts` (T-012, D-005).
 - Esquema de la base (migración 0001): enums, `sectores`, `residentes`, `reportes`, `eventos_sector` y `estado_sector` con el check de duración (REP-07), los únicos parciales de reporte abierto (REP-05/06) y de evento abierto (CON-03) y el índice GIST de `sectores.geom`. Con tests de integración (T-010).

@@ -83,3 +83,7 @@ Un reporte abierto hace más de **48 h** se marca `vencido`: deja de contar para
 ### D-021 · `jose` 5.x y solo algoritmos asimétricos — **Propuesta**
 **Decisión:** la API usa `jose@^5` (no la 6) y el guard acepta únicamente `ES256` y `RS256`.
 **Por qué:** `jose` 6 es solo ESM y no corre bajo Jest en CJS; la 5.10 trae las dos versiones y sigue vigente. Limitar los algoritmos evita la confusión de algoritmo (un token HS256 firmado con la clave pública como secreto) y es coherente con `CLAUDE.md` §4 (claves asimétricas). Si el proyecto de Supabase usara HS256, T-007 lo detecta antes de llegar aquí.
+
+### D-022 · `TRUST_PROXY` y 403 en `GET /residentes/me` sin perfil — **Propuesta**
+**Decisión:** (1) `TRUST_PROXY` (número de proxies de confianza, 0 por defecto, 1 en Render) controla `trust proxy` de Express. (2) `GET /residentes/me` de un usuario de Auth sin perfil responde 403 `REGISTRO_INCOMPLETO`, igual que el resto de rutas que exigen perfil, y no 404.
+**Por qué:** (1) detrás del proxy de Render todas las peticiones llegan con la IP del proxy: sin esto el throttle de `validar-pin` bloquearía a todos a la vez o a nadie. (2) es la señal que el front ya espera para devolver al residente al paso del pin (D-014).
