@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { validarEnv } from './config/env';
+import { DbModule } from './db/db.module';
 import { SaludController } from './salud/salud.controller';
 
 @Module({
@@ -10,6 +11,7 @@ import { SaludController } from './salud/salud.controller';
     ConfigModule.forRoot({ isGlobal: true, validate: validarEnv }),
     // Límite general: 100 solicitudes por minuto y por IP. Las rutas sensibles lo ajustan (T-015, T-051).
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
+    DbModule,
   ],
   controllers: [SaludController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

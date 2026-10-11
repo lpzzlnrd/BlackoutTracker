@@ -7,10 +7,10 @@
 ## Estado
 
 - **Fase actual:** 0. Fundaciones (S1)
-- **Próxima tarea:** T-005
+- **Próxima tarea:** T-010
 - **Bloqueos:** ninguno para la fase 0. T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
 - **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015, D-016, D-017, D-018 y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
-- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR); T-003 y T-004 hechas (ramas `feat/T-003-esqueleto-api` y `feat/T-004-postgis-local`).
+- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR); T-003, T-004 y T-005 hechas (ramas `feat/T-003-esqueleto-api`, `feat/T-004-postgis-local` y `feat/T-005-drizzle`).
 
 ---
 
@@ -49,9 +49,10 @@
 - [x] **T-004 · PostGIS local** (L) — dep: T-001
   `docker-compose.yml` con `postgis/postgis:16-3.4` en el puerto 5433 y las bases `blackout` y `blackout_test`. Scripts `db:up` y `db:down`. `apps/api/.env.example`.
   *Nota (hecha):* `docker/initdb/01-bases.sql` crea `blackout_test` solo la primera vez que arranca el volumen; `pnpm db:reset` borra el volumen y lo vuelve a crear. Usuario y clave `postgres`/`postgres`. `DATABASE_URL_TEST` apunta a `blackout_test`.
-- [ ] **T-005 · Drizzle** (L) — dep: T-003, T-004
+- [x] **T-005 · Drizzle** (L) — dep: T-003, T-004
   `drizzle.config.ts` con `extensionsFilters: ['postgis']`, proveedor Drizzle (postgres-js) inyectable y migración 0000 (esquema `extensions` + PostGIS, ver §4 del plan). `customType` para `MultiPolygon`. Scripts `db:generate`, `db:migrate` y `db:studio`.
   *Hecho cuando:* la migración corre en local y un test de integración ejecuta `SELECT postgis_version()`. **Verificar** que el `search_path` funcione igual que en Supabase.
+  *Nota (hecha):* `DbModule` (global) expone `DB` (Drizzle) y `CLIENTE_PG`; la conexión fija `search_path=public,extensions` y desactiva las sentencias preparadas si la URL usa el puerto 6543 (pooler en modo transaction). `DATABASE_URL` pasa a ser obligatoria y `GET /salud` ya hace `select 1` (`baseDeDatos: 'error'` y `estado: 'degradado'` si falla). La migración 0000 es SQL a mano (`drizzle-kit generate --custom`). Los tests de integración migran `blackout_test` en un `globalSetup` y apuntan siempre a esa base (`test/setup-env.ts`). **Pendiente de verificar en T-007:** que PostGIS en el esquema `extensions` de Supabase resuelva con el mismo `search_path` (local lo trae en `public`; el test comprueba que la conexión y el SQL funcionan con los dos esquemas en el path). Scripts raíz: `db:generate`, `db:migrate`, `db:studio`.
 - [ ] **T-006 · CI** (L) — dep: T-003, T-005
   `.github/workflows/ci.yml`, que corre en los PR y en los push a `main`: pnpm con caché (`pnpm install --frozen-lockfile`) → build → lint → typecheck → test → test:int (service container PostGIS). El `build` va primero porque `shared` se consume desde `dist/` (D-017). Leonardo activa a mano la protección de `main` (o con `gh api`, previa confirmación).
 - [ ] **T-007 · Supabase staging** (L, **lo hace Leonardo** o la sesión con su confirmación)
