@@ -5,6 +5,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { validarEnv } from './config/env';
 import { DbModule } from './db/db.module';
+import { ReportesModule } from './reportes/reportes.module';
 import { ResidentesModule } from './residentes/residentes.module';
 import { SaludController } from './salud/salud.controller';
 
@@ -16,6 +17,7 @@ import { SaludController } from './salud/salud.controller';
     DbModule,
     AuthModule,
     ResidentesModule,
+    ReportesModule,
   ],
   controllers: [SaludController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

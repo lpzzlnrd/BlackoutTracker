@@ -6,6 +6,8 @@ import type { Env } from '../config/env';
 import * as schema from './schema';
 
 export type BaseDeDatos = PostgresJsDatabase<typeof schema>;
+/** El `tx` que recibe `db.transaction(...)`. */
+export type Transaccion = Parameters<Parameters<BaseDeDatos['transaction']>[0]>[0];
 
 /** Token de inyección de la base (Drizzle). */
 export const DB = Symbol('DB');
