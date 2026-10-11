@@ -7,10 +7,10 @@
 ## Estado
 
 - **Fase actual:** 0. Fundaciones (S1)
-- **Próxima tarea:** T-012
+- **Próxima tarea:** T-013
 - **Bloqueos:** ninguno para la fase 0. T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
 - **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015, D-016, D-017, D-018 y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
-- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR); T-003, T-004, T-005 y T-010 hechas (ramas `feat/T-003-esqueleto-api`, `feat/T-004-postgis-local`, `feat/T-005-drizzle` y `feat/T-010-esquema`).
+- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR); T-003, T-004, T-005, T-010 y T-012 hechas (ramas `feat/T-003-esqueleto-api`, `feat/T-004-postgis-local`, `feat/T-005-drizzle`, `feat/T-010-esquema` y `feat/T-012-sectores-seed`).
 
 ---
 
@@ -67,8 +67,9 @@
 - [ ] **T-011 · RLS y Realtime** (L) — dep: T-010
   Migración SQL a mano: RLS en todas las tablas, `SELECT` en `estado_sector` para `anon, authenticated`, `REVOKE` en las demás, y la publicación `supabase_realtime` (en un bloque `DO` condicional).
   *Tests (integración):* con `SET ROLE anon` (se crea el rol en local si no existe), leer `reportes` o `residentes` falla o devuelve 0 filas, y `estado_sector` se puede leer (NF-06).
-- [ ] **T-012 · Sectores provisionales + seed** (L) — dep: T-010
+- [x] **T-012 · Sectores provisionales + seed** (L) — dep: T-010
   `data/sectores-guaparo.geojson` provisional (Guaparo dividido en 3–4 sectores aproximados; dejarlo marcado como PROVISIONAL en `properties`). Script `db:seed` que valida `ST_IsValid` y el SRID, inserta los sectores y crea las filas de `estado_sector` (sector × servicio). Coordenadas de control en `apps/api/test/fixtures/puntos.ts`.
+  *Nota (hecha):* cuadrícula de 2 × 2 sectores (Noroeste = 1, Noreste = 2, Suroeste = 3, Sureste = 4) con `"provisional": true` en el archivo y en cada `properties`; son coordenadas aproximadas, **no** los límites reales. La lógica está en `src/db/sembrar-sectores.ts` (`leerSectores` valida la forma sin base; `sembrarSectores` hace upsert por nombre en una transacción, rechaza geometrías inválidas y sectores solapados, y crea las 8 filas de `estado_sector`); `pnpm db:seed [ruta]` la corre. Los puntos de control (dentro, fuera, borde exterior, borde entre sectores, esquina común, lat/lng intercambiados) están en `test/fixtures/puntos.ts`. `pnpm db:migrate` ahora usa un migrador propio (`src/db/migrar.ts`, D-020).
 - [ ] **T-013 · Guard JWT** (L) — dep: T-003
   `jose.createRemoteJWKSet(<SUPABASE_URL>/auth/v1/.well-known/jwks.json, { cacheMaxAge: 600_000 })`, que verifica `issuer` (`<SUPABASE_URL>/auth/v1`) y `audience`. Guard global con `@Public()` y decorador `@ResidenteActual()` (`sub`). El *getter* de claves se inyecta para poder usar un JWKS local en los tests.
   *Tests:* un token válido pasa; uno vencido, con otra firma, con otro issuer o sin token → 401.
