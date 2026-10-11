@@ -8,6 +8,7 @@ Secciones por versión: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**
 ## [Sin publicar]
 
 ### Añadido
+- `apps/api` (`@blackout/api`): esqueleto de NestJS 11 con `ConfigModule` y validación del `.env`, `ValidationPipe` global, Helmet, Throttler, CORS desde el env, prefijo `/api`, Swagger en `/api/docs`, filtro de errores que agrega `codigo` y `GET /api/salud`. Con tests unitarios y un e2e de `/salud` (T-003, D-019).
 - `packages/shared` (`@blackout/shared`): enums del dominio (`TipoServicio`, `EstadoServicio`, `OrigenEvento`), `CodigoError` con el estado HTTP de cada código, interfaces de los DTO de la API, la fila de `estado_sector` y los valores por defecto (N = 3, n_min = 5, ventanas de consenso por servicio y límites de la hora del evento). Se compila con `tsup` a ESM y CJS con sus tipos, para Vite y Nest. Con tests de valores y de consumo (CJS, ESM y `bundler`) (T-002, D-016 a D-018).
 - Monorepo pnpm: workspaces `apps/*` y `packages/*`, `tsconfig.base.json`, ESLint 10 (flat config) con Prettier, `.editorconfig`, `.gitattributes` y los scripts raíz `dev`, `build`, `lint`, `format`, `typecheck`, `test` y `test:int` (T-001).
 - Canon del frontend (`docs/frontend/`): tres diseños completos de la PWA (A mapa primero, B estado primero, C datos primero) con sus referencias HTML, tokens CSS, receta de construcción por pantalla, datos de ejemplo y guía de la PWA. Incluye `herramientas/verificar-tokens.mjs`, que comprueba contraste, daltonismo y cobertura de los colores.

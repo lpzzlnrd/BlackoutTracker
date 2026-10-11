@@ -7,10 +7,10 @@
 ## Estado
 
 - **Fase actual:** 0. Fundaciones (S1)
-- **Próxima tarea:** T-003
+- **Próxima tarea:** T-004
 - **Bloqueos:** ninguno para la fase 0. T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
 - **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015, D-016, D-017, D-018 y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
-- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR).
+- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR); T-003 hecha (rama `feat/T-003-esqueleto-api`).
 
 ---
 
@@ -41,9 +41,10 @@
   `TipoServicio`, `EstadoServicio`, `CodigoError` (enum de códigos de error), interfaces de los DTO de §5 del plan y constantes por defecto (N = 3, n_min = 5). Se compila con `tsup` (ESM + CJS + d.ts) para que lo consuman Nest (CJS) y Vite.
   *Hecho cuando:* `apps/api` lo importa y compila.
   *Nota:* el paquete es `@blackout/shared` (D-017). Además de lo pedido exporta `OrigenEvento`, todas las constantes por defecto de §7 del plan (`constantes.ts`) y `EstadoSectorFila`; los enums son objetos `as const` y `CodigoError` tiene 12 códigos (D-018). Como `apps/api` aún no existe, "lo importa y compila" se comprobó con consumidores de prueba (CJS con `nodenext`, ESM y `bundler`) en `packages/shared/test/consumo/`: **T-003 lo confirma con el consumidor real**. Se consume desde `dist/`, así que hay que compilarlo antes (`pnpm build`, o `pnpm dev`, que lo deja en modo watch). También completa `docs/frontend/datos.md` (§5: tabla código → mensaje).
-- [ ] **T-003 · Esqueleto de `apps/api`** (L) — dep: T-001, T-002
+- [x] **T-003 · Esqueleto de `apps/api`** (L) — dep: T-001, T-002
   Nest 11: `ConfigModule` con validación del `.env` (§7 del plan), `ValidationPipe` global (`whitelist`, `forbidNonWhitelisted`, `transform`), Helmet, Throttler, CORS desde el env, prefijo `/api`, Swagger en `/api/docs`, filtro de errores que agrega `codigo` y `GET /salud`.
   *Hecho cuando:* `pnpm --filter api dev` levanta, `/api/docs` abre, y hay un e2e de `/salud` en verde.
+  *Nota (hecha):* `apps/api` es `@blackout/api`; `configurarApp(app)` (`src/configurar-app.ts`) concentra prefijo, Helmet, CORS, pipe, filtro y Swagger, y lo usan `main.ts` y los e2e. El `.env` se valida con class-validator (`src/config/env.ts`); `DATABASE_URL` y `SUPABASE_URL` son opcionales hasta T-005 y T-013. `ErrorNegocio(codigo, mensaje)` es la excepción de dominio. `GET /salud` devuelve `baseDeDatos: 'ok'` fijo hasta que T-005 agregue el ping. Con el consumidor real, `@blackout/shared` compila y se importa desde CJS (`module: nodenext`): el "hecho cuando" de T-002 queda confirmado. ESLint activa `no-floating-promises` y `no-misused-promises` solo en `apps/api`.
   *Notas de T-001 y T-002:* instalar `@nestjs/*@^11` (el `latest` de npm es la 12, que `CLAUDE.md` §4 descarta). `apps/api` depende de `"@blackout/shared": "workspace:*"` y usa `"typescript": "catalog:"`. Como `shared` se consume desde `dist/`, el `dev` raíz tiene que compilarlo antes de arrancar los demás (`pnpm --filter @blackout/shared build`) y el `typecheck` del api lo necesita compilado; el filtro de errores y los DTO implementan `ErrorApi`, `CodigoError` y las interfaces de `shared`.
 - [ ] **T-004 · PostGIS local** (L) — dep: T-001
   `docker-compose.yml` con `postgis/postgis:16-3.4` en el puerto 5433 y las bases `blackout` y `blackout_test`. Scripts `db:up` y `db:down`. `apps/api/.env.example`.

@@ -6,7 +6,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 // Una sola configuración para todo el monorepo. `pnpm lint` corre `eslint .` desde la raíz.
-// Las reglas con tipos (no-floating-promises, etc.) se activan en apps/api cuando exista (T-003).
+// Las reglas con tipos (no-floating-promises, etc.) se activan solo en apps/api.
 export default defineConfig(
   globalIgnores(['**/dist/', '**/coverage/', '**/dev-dist/']),
 
@@ -23,6 +23,18 @@ export default defineConfig(
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
+    },
+  },
+
+  // Reglas con información de tipos, solo para el código de la API.
+  {
+    files: ['apps/api/**/*.ts'],
+    languageOptions: {
+      parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
+    },
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
     },
   },
 
