@@ -1,5 +1,5 @@
 import { plainToInstance, Transform } from 'class-transformer';
-import { IsInt, IsOptional, IsString, IsUrl, Max, Min, validateSync } from 'class-validator';
+import { IsInt, IsString, IsUrl, Max, Min, validateSync } from 'class-validator';
 import {
   CONSENSO_N_POR_DEFECTO,
   CONSENSO_VENTANA_MIN_POR_DEFECTO,
@@ -21,8 +21,8 @@ export class Env {
   /** Conexión a Postgres (pooler de Supabase en modo session, o el PostGIS local). */
   @IsString() DATABASE_URL!: string;
 
-  /** Origen de Supabase (JWKS e issuer). Lo exige el guard JWT (T-013). */
-  @IsOptional() @IsUrl({ require_tld: false }) SUPABASE_URL?: string;
+  /** Origen de Supabase: de aquí salen el JWKS y el issuer que verifica el guard JWT. */
+  @IsUrl({ require_tld: false }) SUPABASE_URL!: string;
 
   @IsString() JWT_AUDIENCE: string = 'authenticated';
 
