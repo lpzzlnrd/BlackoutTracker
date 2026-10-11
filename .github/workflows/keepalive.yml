@@ -1,0 +1,23 @@
+name: Keep-alive
+
+# Supabase gratis se pausa tras ~7 días sin actividad y Render gratis se duerme (docs/PLAN.md §10).
+# `GET /api/salud` toca la base, así que un ping periódico evita las dos cosas. Si la variable
+# API_URL no está definida (antes de T-053), no hace nada.
+on:
+  schedule:
+    - cron: '*/14 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      API_URL: ${{ vars.API_URL }}
+    steps:
+      - name: Ping a /api/salud
+        run: |
+          if [ -z "$API_URL" ]; then echo "Sin API_URL: nada que hacer."; exit 0; fi
+          curl --fail --silent --show-error --max-time 90 --retry 3 --retry-delay 10 "$API_URL/api/salud"
