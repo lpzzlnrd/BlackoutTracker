@@ -8,6 +8,7 @@ Secciones por versión: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**
 ## [Sin publicar]
 
 ### Añadido
+- Drizzle ORM con postgres-js: `DbModule` global, `customType` para `MultiPolygon`, `drizzle.config.ts` (`extensionsFilters: ['postgis']`), migración 0000 (esquema `extensions` + PostGIS), scripts `db:generate`, `db:migrate` y `db:studio`, ping a la base en `GET /api/salud` y tests de integración contra PostGIS (`SELECT postgis_version()`, `search_path`, orden lng/lat) (T-005).
 - PostGIS local con Docker (`postgis/postgis:16-3.4`, puerto 5433, bases `blackout` y `blackout_test`), los scripts `db:up`, `db:down` y `db:reset`, y `apps/api/.env.example` (T-004).
 - `apps/api` (`@blackout/api`): esqueleto de NestJS 11 con `ConfigModule` y validación del `.env`, `ValidationPipe` global, Helmet, Throttler, CORS desde el env, prefijo `/api`, Swagger en `/api/docs`, filtro de errores que agrega `codigo` y `GET /api/salud`. Con tests unitarios y un e2e de `/salud` (T-003, D-019).
 - `packages/shared` (`@blackout/shared`): enums del dominio (`TipoServicio`, `EstadoServicio`, `OrigenEvento`), `CodigoError` con el estado HTTP de cada código, interfaces de los DTO de la API, la fila de `estado_sector` y los valores por defecto (N = 3, n_min = 5, ventanas de consenso por servicio y límites de la hora del evento). Se compila con `tsup` a ESM y CJS con sus tipos, para Vite y Nest. Con tests de valores y de consumo (CJS, ESM y `bundler`) (T-002, D-016 a D-018).
