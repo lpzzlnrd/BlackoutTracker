@@ -7,10 +7,10 @@
 ## Estado
 
 - **Fase actual:** 0. Fundaciones (S1)
-- **Próxima tarea:** T-010
+- **Próxima tarea:** T-012
 - **Bloqueos:** ninguno para la fase 0. T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
 - **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015, D-016, D-017, D-018 y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
-- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR); T-003, T-004 y T-005 hechas (ramas `feat/T-003-esqueleto-api`, `feat/T-004-postgis-local` y `feat/T-005-drizzle`).
+- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR); T-003, T-004, T-005 y T-010 hechas (ramas `feat/T-003-esqueleto-api`, `feat/T-004-postgis-local`, `feat/T-005-drizzle` y `feat/T-010-esquema`).
 
 ---
 
@@ -60,9 +60,10 @@
 
 ## Fase 1 — Modelo de datos, auth y registro (S1–S3) → `v0.1.0`
 
-- [ ] **T-010 · Esquema** (L) — dep: T-005
+- [x] **T-010 · Esquema** (L) — dep: T-005
   Las tablas, enums, checks e índices de §4 del plan (incluidos los únicos parciales de REP-05 y de evento abierto, y el GIST en `sectores.geom`).
   *Tests:* un insert que viola `fin_en < inicio_en` falla (REP-07 a nivel BD), y un segundo reporte abierto del mismo servicio falla (REP-05 a nivel BD).
+  *Nota (hecha):* esquema en `src/db/schema/*.ts` y migración `0001_esquema.sql`. Dos ajustes a lo que genera drizzle-kit: `sectores.id` es `smallint` con identidad (`generatedByDefaultAsIdentity`) porque el `smallserial` salía entre comillas como un tipo inexistente, y `residentes.ubicacion` es un `customType` `geometry(Point, 4326)` porque el `geometry` de Drizzle no emite el SRID. Los tests (`test/esquema.e2e-spec.ts`) también cubren REP-06, CON-03 a nivel BD y las claves foráneas. Helpers en `test/bd.ts` (`abrirBd`, `limpiar`, `codigoPg`, `cuadrado`).
 - [ ] **T-011 · RLS y Realtime** (L) — dep: T-010
   Migración SQL a mano: RLS en todas las tablas, `SELECT` en `estado_sector` para `anon, authenticated`, `REVOKE` en las demás, y la publicación `supabase_realtime` (en un bloque `DO` condicional).
   *Tests (integración):* con `SET ROLE anon` (se crea el rol en local si no existe), leer `reportes` o `residentes` falla o devuelve 0 filas, y `estado_sector` se puede leer (NF-06).
