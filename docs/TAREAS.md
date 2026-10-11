@@ -6,11 +6,11 @@
 
 ## Estado
 
-- **Fase actual:** 0. Fundaciones (S1)
-- **Próxima tarea:** T-023
+- **Fase actual:** 2. Ciclo de reportes (backend hecho: T-020 a T-023). Quedan de fases anteriores T-006 (CI), T-007 (Supabase, la hace Leonardo), T-011 (RLS), T-014 (`GET /sectores`) y T-016 (barrido de privacidad)
+- **Próxima tarea:** T-030 (consenso de inicio, puro: depende solo de T-002), junto con T-006, T-011, T-014 y T-016 pendientes
 - **Bloqueos:** ninguno para la fase 0. T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
 - **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015, D-016, D-017, D-018 y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
-- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR); T-003, T-004, T-005, T-010, T-012, T-013, T-015, T-020, T-021 y T-022 hechas (ramas `feat/T-003-esqueleto-api`, `feat/T-004-postgis-local`, `feat/T-005-drizzle`, `feat/T-010-esquema` y `feat/T-012-sectores-seed` y `feat/T-013-guard-jwt` y `feat/T-015-registro` y `feat/T-020-tiempo-puro` y `feat/T-021-reporte-inicio` y `feat/T-022-reporte-cierre`).
+- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR); T-003, T-004, T-005, T-010, T-012, T-013, T-015, T-020, T-021, T-022 y T-023 hechas (ramas `feat/T-003-esqueleto-api`, `feat/T-004-postgis-local`, `feat/T-005-drizzle`, `feat/T-010-esquema` y `feat/T-012-sectores-seed` y `feat/T-013-guard-jwt` y `feat/T-015-registro` y `feat/T-020-tiempo-puro` y `feat/T-021-reporte-inicio` y `feat/T-022-reporte-cierre` y `feat/T-023-reportes-mios`). El código está en worktrees apilados, sin commitear (ver el mensaje de cierre de la sesión)
 
 ---
 
@@ -98,8 +98,9 @@
   Idempotente. Si el id es ajeno o no existe → 404 (D-003: un cierre sin inicio se bloquea). La duración se calcula y se devuelve.
   *Tests:* REP-03, REP-04, REP-07 (422), doble cierre igual → 200, doble cierre distinto → 409.
   *Nota (hecha):* `ReportesService.cerrar` lee el reporte con `SELECT … FOR UPDATE` (solo del propio residente: uno ajeno es 404 igual que uno inexistente), así dos cierres simultáneos se ponen en fila y el segundo devuelve 200 con lo que dejó el primero. Fija `cerrado_recibido_en = now()` y llama a `ConsensoService.reevaluar` en la misma transacción. Un fin igual al inicio (duración 0) se acepta. **`ocurridoEn` exige zona horaria** (`Z` o `±hh:mm`) en inicio y cierre: una fecha sin zona se interpretaría en la hora local del servidor (400 `DATOS_INVALIDOS`).
-- [ ] **T-023 · `GET /reportes/mios`** (L) — dep: T-021
+- [x] **T-023 · `GET /reportes/mios`** (L) — dep: T-021
   Con el filtro `abiertos`. Solo devuelve los reportes del propio residente.
+  *Nota (hecha):* ordenados del más reciente al más antiguo, con tope de 100. `abiertos=true` excluye los cerrados y los vencidos; solo se aceptan `true` y `false` (otra cosa → 400).
 - [ ] **F-020..F-022 · Formularios de inicio y de restablecimiento** (F) — *necesita de L:* T-021, T-022 y los códigos de error de `shared`.
 
 ## Fase 3 — Consenso e historial (S6–S7) → `v0.3.0`

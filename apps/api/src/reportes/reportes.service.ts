@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import {
   type CerrarReporteSolicitud,
   CodigoError,
@@ -19,6 +19,9 @@ import {
   validarCierre,
   validarInicio,
 } from './tiempo.puro';
+
+/** Tope de `GET /reportes/mios` sin filtro (un residente rara vez tiene tantos). */
+const LIMITE_MIOS = 100;
 
 export type FilaReporte = typeof reportes.$inferSelect;
 
@@ -160,6 +163,29 @@ export class ReportesService {
       await this.consenso.reevaluar(tx, cerrado.sectorId, cerrado.tipoServicio);
       return aReporteDto(cerrado);
     });
+  }
+
+  /**
+   * Los reportes del propio residente, el más reciente primero: para que el cliente recupere su
+   * estado en otro dispositivo. Con `abiertos`, solo los que siguen sin cierre y no vencidos. Nunca
+   * devuelve reportes ajenos.
+   */
+  async mios(perfil: PerfilResidente, soloAbiertos: boolean): Promise<ReporteDto[]> {
+    const filas = await this.db
+      .select()
+      .from(reportes)
+      .where(
+        soloAbiertos
+          ? and(
+              eq(reportes.residenteId, perfil.id),
+              isNull(reportes.finEn),
+              eq(reportes.vencido, false),
+            )
+          : eq(reportes.residenteId, perfil.id),
+      )
+      .orderBy(desc(reportes.inicioEn))
+      .limit(LIMITE_MIOS);
+    return filas.map(aReporteDto);
   }
 
   /** Un reporte por id, sin filtrar por dueño (el llamador decide qué hacer con uno ajeno). */
