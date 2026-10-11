@@ -21,7 +21,8 @@
     "db:reset": "docker compose down -v && docker compose up -d --wait db",
     "db:generate": "pnpm --filter @blackout/api db:generate",
     "db:migrate": "pnpm --filter @blackout/api db:migrate",
-    "db:studio": "pnpm --filter @blackout/api db:studio"
+    "db:studio": "pnpm --filter @blackout/api db:studio",
+    "db:seed": "pnpm --filter @blackout/api db:seed"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

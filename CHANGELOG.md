@@ -8,6 +8,7 @@ Secciones por versión: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**
 ## [Sin publicar]
 
 ### Añadido
+- Sectores provisionales de Guaparo (`data/sectores-guaparo.geojson`, 4 sectores aproximados, marcados PROVISIONAL), `pnpm db:seed` (valida geometrías y solapes, upsert idempotente y filas de `estado_sector`) y las coordenadas de control de `test/fixtures/puntos.ts` (T-012, D-005).
 - Esquema de la base (migración 0001): enums, `sectores`, `residentes`, `reportes`, `eventos_sector` y `estado_sector` con el check de duración (REP-07), los únicos parciales de reporte abierto (REP-05/06) y de evento abierto (CON-03) y el índice GIST de `sectores.geom`. Con tests de integración (T-010).
 - Drizzle ORM con postgres-js: `DbModule` global, `customType` para `MultiPolygon`, `drizzle.config.ts` (`extensionsFilters: ['postgis']`), migración 0000 (esquema `extensions` + PostGIS), scripts `db:generate`, `db:migrate` y `db:studio`, ping a la base en `GET /api/salud` y tests de integración contra PostGIS (`SELECT postgis_version()`, `search_path`, orden lng/lat) (T-005).
 - PostGIS local con Docker (`postgis/postgis:16-3.4`, puerto 5433, bases `blackout` y `blackout_test`), los scripts `db:up`, `db:down` y `db:reset`, y `apps/api/.env.example` (T-004).

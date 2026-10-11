@@ -75,3 +75,7 @@ Un reporte abierto hace más de **48 h** se marca `vencido`: deja de contar para
 ### D-019 · Esqueleto de la API: `.env`, errores y módulos CJS — **Propuesta**
 **Decisión:** (1) El `.env` se valida con una clase `Env` de class-validator (la misma librería de los DTO) y no con Joi o Zod; los valores numéricos por defecto vienen de `@blackout/shared`. (2) El filtro de errores usa el `codigo` de `ErrorNegocio` y, para excepciones de Nest sin código, `DATOS_INVALIDOS` (4xx) o `ERROR_INTERNO` (5xx); un error no controlado nunca filtra su detalle. (3) `apps/api` compila a CJS con `module: nodenext`, que resuelve `@blackout/shared` por la condición `require` (`index.cjs`).
 **Por qué:** (1) no agrega una dependencia más. (2) el front siempre recibe un código del enum, sin casos sueltos. (3) es lo que D-017 preveía para Nest.
+
+### D-020 · Las migraciones se aplican con nuestro migrador, no con `drizzle-kit migrate` — **Propuesta**
+**Decisión:** `pnpm db:migrate` y el `globalSetup` de los tests usan `migrar()` (`src/db/migrar.ts`), que conecta con `search_path=public,extensions`. `drizzle-kit` solo se usa para `generate` y `studio`.
+**Por qué:** `drizzle-kit migrate` abre su propia conexión sin ese `search_path`; con PostGIS en el esquema `extensions` (Supabase, y el local tras la migración 0000) el tipo `geometry` no se resuelve y la migración 0001 falla. Con un solo migrador, local, tests y Supabase corren exactamente el mismo SQL.
