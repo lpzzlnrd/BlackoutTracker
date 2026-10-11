@@ -1,0 +1,26 @@
+# PostGIS local para desarrollo y tests de integración (D-012). Puerto 5433 para no chocar con un
+# Postgres instalado en la máquina. Las bases `blackout` (desarrollo) y `blackout_test` (tests)
+# las crea docker/initdb/01-bases.sql la primera vez que arranca el volumen.
+name: blackout
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: blackout-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: blackout
+    ports:
+      - '5433:5432'
+    volumes:
+      - blackout-pgdata:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d blackout_test']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  blackout-pgdata:
