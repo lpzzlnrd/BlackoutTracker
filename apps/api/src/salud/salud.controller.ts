@@ -1,14 +1,26 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Inject } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { sql } from 'drizzle-orm';
 import type { SaludDto } from '@blackout/shared';
+import { type BaseDeDatos, DB } from '../db/db.module';
 
 @ApiTags('salud')
 @Controller('salud')
 export class SaludController {
+  constructor(@Inject(DB) private readonly db: BaseDeDatos) {}
+
   @Get()
-  @ApiOperation({ summary: 'Estado de la API (sirve también de keep-alive)' })
-  obtener(): SaludDto {
-    // La comprobación de la base de datos se agrega con Drizzle (T-005).
-    return { estado: 'ok', baseDeDatos: 'ok', hora: new Date().toISOString() };
+  @ApiOperation({ summary: 'Estado de la API y de la base (sirve también de keep-alive)' })
+  async obtener(): Promise<SaludDto> {
+    // Tocar la base evita que Supabase pause el proyecto por inactividad (docs/PLAN.md §10).
+    const baseDeDatos = await this.db.execute(sql`select 1`).then(
+      () => 'ok' as const,
+      () => 'error' as const,
+    );
+    return {
+      estado: baseDeDatos === 'ok' ? 'ok' : 'degradado',
+      baseDeDatos,
+      hora: new Date().toISOString(),
+    };
   }
 }

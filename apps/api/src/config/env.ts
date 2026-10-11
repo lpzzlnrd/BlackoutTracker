@@ -18,8 +18,8 @@ const aEntero = () =>
 export class Env {
   @IsInt() @Min(1) @Max(65535) @aEntero() PORT: number = 3000;
 
-  /** Conexión a Postgres. Se vuelve obligatoria con Drizzle (T-005). */
-  @IsOptional() @IsString() DATABASE_URL?: string;
+  /** Conexión a Postgres (pooler de Supabase en modo session, o el PostGIS local). */
+  @IsString() DATABASE_URL!: string;
 
   /** Origen de Supabase (JWKS e issuer). Lo exige el guard JWT (T-013). */
   @IsOptional() @IsUrl({ require_tld: false }) SUPABASE_URL?: string;
