@@ -8,6 +8,7 @@ Secciones por versión: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**
 ## [Sin publicar]
 
 ### Añadido
+- `PATCH /api/reportes/:id/cierre`: cierre idempotente que calcula la duración, bloquea un cierre sin inicio (404, D-003) y rechaza un fin anterior al inicio (422). Con tests REP-03, REP-04, REP-07 y OFF-05 (también en paralelo) (T-022).
 - `PUT /api/reportes/:id`: inicio de un corte, idempotente (el id lo genera el cliente), con la hora del evento y no la del envío, `sector_id` tomado del residente y el enganche (no-op) del consenso dentro de la transacción. Con tests REP-01, REP-02, REP-05, REP-06, OFF-03 y OFF-05 (también en paralelo) (T-021).
 - `reportes/tiempo.puro.ts`: validación de la hora de un reporte (no futuro con +2 min de tolerancia, no más antigua de 7 días, `fin ≥ inicio`) con el reloj como parámetro. Con tests REP-07, OFF-03 y los valores límite (T-020, D-013).
 - Registro: `POST /api/registro/validar-pin` (público, con throttle), `POST /api/residentes/me` y `GET /api/residentes/me`, con `ST_Covers` y desempate por el menor id (D-002), `RegistroGuard` reutilizable (403 `REGISTRO_INCOMPLETO`) y la variable `TRUST_PROXY`. Con tests REG-01, REG-02, REG-03 y NF-06 (T-015).

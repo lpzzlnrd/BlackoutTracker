@@ -1,6 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
-import { CodigoError, type IniciarReporteSolicitud, type ReporteDto } from '@blackout/shared';
+import { and, eq, sql } from 'drizzle-orm';
+import {
+  type CerrarReporteSolicitud,
+  CodigoError,
+  type IniciarReporteSolicitud,
+  type ReporteDto,
+} from '@blackout/shared';
 import { ErrorNegocio } from '../comun/error-negocio';
 import { ConsensoService } from '../consenso/consenso.service';
 import { type BaseDeDatos, DB, type Transaccion } from '../db/db.module';
@@ -11,6 +16,7 @@ import {
   leerFecha,
   mensajeHoraInvalida,
   type ResultadoHora,
+  validarCierre,
   validarInicio,
 } from './tiempo.puro';
 
@@ -104,6 +110,55 @@ export class ReportesService {
         );
       }
       return aReporteDto(existente);
+    });
+  }
+
+  /**
+   * Cierre (regreso del servicio), idempotente. Un id inexistente o ajeno es 404: un cierre sin
+   * inicio se bloquea (REP-04, D-003) y el cliente lo reintenta porque el inicio aún puede venir
+   * en camino. Cerrar de nuevo con la misma hora devuelve el reporte; con otra, 409. La duración
+   * se calcula aquí y nunca es negativa (REP-07).
+   */
+  async cerrar(
+    perfil: PerfilResidente,
+    id: string,
+    solicitud: CerrarReporteSolicitud,
+  ): Promise<ReporteDto> {
+    const fin = fechaOError(solicitud.ocurridoEn);
+
+    return this.db.transaction(async (tx) => {
+      // FOR UPDATE: dos cierres simultáneos del mismo reporte se ponen en fila y el segundo ve el
+      // resultado del primero.
+      const [fila] = await tx
+        .select()
+        .from(reportes)
+        .where(and(eq(reportes.id, id), eq(reportes.residenteId, perfil.id)))
+        .for('update')
+        .limit(1);
+      if (!fila) {
+        throw new ErrorNegocio(
+          CodigoError.ReporteNoEncontrado,
+          'No hay un reporte abierto con ese id',
+        );
+      }
+
+      if (fila.finEn) {
+        if (fila.finEn.getTime() === fin.getTime()) return aReporteDto(fila);
+        throw new ErrorNegocio(
+          CodigoError.ReporteConflicto,
+          'Ese reporte ya se cerró con otra hora',
+        );
+      }
+
+      exigirHora(validarCierre(fin, fila.inicioEn, this.reloj()));
+
+      const [cerrado] = await tx
+        .update(reportes)
+        .set({ finEn: fin, cerradoRecibidoEn: sql`now()` })
+        .where(eq(reportes.id, id))
+        .returning();
+      await this.consenso.reevaluar(tx, cerrado.sectorId, cerrado.tipoServicio);
+      return aReporteDto(cerrado);
     });
   }
 
