@@ -7,10 +7,10 @@
 ## Estado
 
 - **Fase actual:** 0. Fundaciones (S1)
-- **Próxima tarea:** T-015
+- **Próxima tarea:** T-020
 - **Bloqueos:** ninguno para la fase 0. T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
 - **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015, D-016, D-017, D-018 y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
-- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR); T-003, T-004, T-005, T-010, T-012 y T-013 hechas (ramas `feat/T-003-esqueleto-api`, `feat/T-004-postgis-local`, `feat/T-005-drizzle`, `feat/T-010-esquema` y `feat/T-012-sectores-seed` y `feat/T-013-guard-jwt`).
+- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR); T-003, T-004, T-005, T-010, T-012, T-013 y T-015 hechas (ramas `feat/T-003-esqueleto-api`, `feat/T-004-postgis-local`, `feat/T-005-drizzle`, `feat/T-010-esquema` y `feat/T-012-sectores-seed` y `feat/T-013-guard-jwt` y `feat/T-015-registro`).
 
 ---
 
@@ -76,9 +76,10 @@
   *Nota (hecha):* módulo `src/auth/` (`JwtGuard` global, `@Public()`, `@ResidenteActual()`, `CLAVES_JWT` inyectable). Solo acepta `ES256` y `RS256` (un token HS256 se rechaza) y exige que el `sub` sea un UUID. Los tests (`test/auth.e2e-spec.ts`) cubren además otra audiencia, sin `sub`, HS256, basura en el encabezado y las rutas públicas; firman con un par ES256 local (`test/jwt.ts`, clase `EmisorJwt`). `SUPABASE_URL` pasa a ser obligatoria. Se usa `jose@^5` (D-021). `GET /salud` quedó con `@Public()`. **Pendiente de verificar en T-007:** que el JWKS real de staging devuelva claves asimétricas y que el `kid` de los tokens coincida.
 - [ ] **T-014 · `GET /sectores`** (L) — dep: T-012
   Un FeatureCollection GeoJSON (`ST_AsGeoJSON`) con `Cache-Control: public, max-age=3600`.
-- [ ] **T-015 · Registro** (L) — dep: T-012, T-013
+- [x] **T-015 · Registro** (L) — dep: T-012, T-013
   `POST /registro/validar-pin` (público, con throttle estricto), `POST /residentes/me` y `GET /residentes/me`. Usa `ST_Covers` y el desempate por el menor `sector.id` (D-002). Un usuario autenticado sin perfil recibe 403 `REGISTRO_INCOMPLETO` en las rutas que lo requieren (un guard o interceptor reutilizable).
   *Tests:* REG-01, REG-02, REG-03 (borde exterior y borde entre sectores, siempre el mismo resultado), registrarse dos veces → 409, y lat/lng intercambiados (punto asimétrico).
+  *Nota (hecha):* módulo `src/residentes/`. `RegistroGuard` (`@UseGuards`) + `@PerfilActual()` es la pieza reutilizable: 403 `REGISTRO_INCOMPLETO` sin perfil, y deja `{ id, sectorId, sectorNombre }` (nunca la ubicación) en la solicitud; **T-021 a T-023 lo usan** para sacar el `sector_id`. `POST /residentes/me` es atómico (`ON CONFLICT DO NOTHING`), así que dos registros simultáneos dan un 201 y un 409. `validar-pin` tiene throttle de 10/min por IP. Nueva variable `TRUST_PROXY` (1 en Render): sin ella el throttle vería la IP del proxy (D-022). Tests en `test/registro.e2e-spec.ts` (REG-01/02/03 y NF-06; REG-04 y REG-07 los resuelve Supabase Auth).
 - [ ] **T-016 · Barrido de privacidad** (L) — dep: T-015
   Un e2e que llama a todos los endpoints con datos sembrados y verifica que ninguna respuesta contenga `ubicacion`, ni las coordenadas de los residentes de prueba (NF-06). Se amplía en cada fase.
 - [ ] **F-001..F-012 · Front de la fase 1** (F) — scaffold Vite + PWA, Leaflet + pin + Turf (`booleanPointInPolygon` **sin** `ignoreBoundary`, que es coherente con D-002), y el flujo de registro de dos pasos (D-014). *Necesita de L:* T-014, T-015 y los tipos de `shared`.

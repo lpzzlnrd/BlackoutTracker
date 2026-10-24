@@ -9,6 +9,9 @@ import type { Env } from './config/env';
 export function configurarApp(app: INestApplication): void {
   const config = app.get<ConfigService<Env, true>>(ConfigService);
 
+  const proxies = config.get('TRUST_PROXY', { infer: true });
+  if (proxies > 0) app.getHttpAdapter().getInstance().set('trust proxy', proxies);
+
   app.setGlobalPrefix('api');
   app.use(helmet());
   app.enableCors({

@@ -29,6 +29,9 @@ export class Env {
   /** Orígenes CORS separados por coma. */
   @IsString() CORS_ORIGINS: string = 'http://localhost:5173';
 
+  /** Proxies de confianza delante de la API (1 en Render). Sin esto el throttle ve la IP del proxy. */
+  @IsInt() @Min(0) @Max(5) @aEntero() TRUST_PROXY: number = 0;
+
   @IsInt() @Min(1) @aEntero() CONSENSO_N: number = CONSENSO_N_POR_DEFECTO;
   @IsInt() @Min(1) @aEntero() CONSENSO_VENTANA_MIN_ELECTRICIDAD: number =
     CONSENSO_VENTANA_MIN_POR_DEFECTO.electricidad;
