@@ -11,6 +11,7 @@ Secciones por versión: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**
 - `overrides` en `pnpm-workspace.yaml` que suben `body-parser` a 2.4.0 y `multer` a 2.5.0, dependencias de `@nestjs/platform-express` con avisos altos de DoS (GHSA-27r3-jxmh-p828, GHSA-q7qp-rjg7-q26m). Con esto `pnpm audit --prod --audit-level high` vuelve a pasar (T-006).
 
 ### Añadido
+- Contrato de sincronización de la cola offline: `accionDeRespuesta` y `AccionCola` en `@blackout/shared` (2xx éxito; sin respuesta, 5xx y 429 reintentar; 404 de un cierre reintentar; 401 refrescar sesión; 400, 409 y 422 error permanente), la tabla en la descripción de Swagger y los 400, 401 y 429 en los endpoints de reportes. Con tests OFF-04 (cola en orden y con el cierre por delante del inicio) y OFF-05 (corte del socket con el cambio ya en la base, en inicio y en cierre) (T-040).
 - `GET /api/reportes/mios?abiertos=`: los reportes del propio residente (nunca ajenos), el más reciente primero, para recuperar el estado en otro dispositivo (T-023).
 - `PATCH /api/reportes/:id/cierre`: cierre idempotente que calcula la duración, bloquea un cierre sin inicio (404, D-003) y rechaza un fin anterior al inicio (422). Con tests REP-03, REP-04, REP-07 y OFF-05 (también en paralelo) (T-022).
 - `PUT /api/reportes/:id`: inicio de un corte, idempotente (el id lo genera el cliente), con la hora del evento y no la del envío, `sector_id` tomado del residente y el enganche (no-op) del consenso dentro de la transacción. Con tests REP-01, REP-02, REP-05, REP-06, OFF-03 y OFF-05 (también en paralelo) (T-021).
