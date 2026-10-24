@@ -6,11 +6,11 @@
 
 ## Estado
 
-- **Fase actual:** 0. Fundaciones (S1)
-- **Próxima tarea:** T-013
+- **Fase actual:** 2. Ciclo de reportes (backend hecho: T-020 a T-023). Quedan de fases anteriores T-007 (Supabase, la hace Leonardo), T-011 (RLS), T-014 (`GET /sectores`) y T-016 (barrido de privacidad)
+- **Próxima tarea:** T-030 (consenso de inicio, puro: depende solo de T-002), junto con T-011, T-014 y T-016 pendientes
 - **Bloqueos:** ninguno para la fase 0. T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
 - **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015, D-016, D-017, D-018 y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
-- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR); T-003, T-004, T-005, T-010 y T-012 hechas (ramas `feat/T-003-esqueleto-api`, `feat/T-004-postgis-local`, `feat/T-005-drizzle`, `feat/T-010-esquema` y `feat/T-012-sectores-seed`).
+- **Última actualización:** 2026-10-11, T-001 y T-002 hechas; T-003, T-004, T-005, T-006, T-010, T-012, T-013, T-015, T-020, T-021, T-022 y T-023 hechas (ramas `feat/T-003-esqueleto-api`, `feat/T-004-postgis-local`, `feat/T-005-drizzle`, `feat/T-010-esquema` y `feat/T-012-sectores-seed` y `feat/T-013-guard-jwt` y `feat/T-015-registro` y `feat/T-020-tiempo-puro` y `feat/T-021-reporte-inicio` y `feat/T-022-reporte-cierre` y `feat/T-023-reportes-mios`). El código está en worktrees apilados, sin commitear (ver el mensaje de cierre de la sesión)
 
 ---
 
@@ -53,8 +53,9 @@
   `drizzle.config.ts` con `extensionsFilters: ['postgis']`, proveedor Drizzle (postgres-js) inyectable y migración 0000 (esquema `extensions` + PostGIS, ver §4 del plan). `customType` para `MultiPolygon`. Scripts `db:generate`, `db:migrate` y `db:studio`.
   *Hecho cuando:* la migración corre en local y un test de integración ejecuta `SELECT postgis_version()`. **Verificar** que el `search_path` funcione igual que en Supabase.
   *Nota (hecha):* `DbModule` (global) expone `DB` (Drizzle) y `CLIENTE_PG`; la conexión fija `search_path=public,extensions` y desactiva las sentencias preparadas si la URL usa el puerto 6543 (pooler en modo transaction). `DATABASE_URL` pasa a ser obligatoria y `GET /salud` ya hace `select 1` (`baseDeDatos: 'error'` y `estado: 'degradado'` si falla). La migración 0000 es SQL a mano (`drizzle-kit generate --custom`). Los tests de integración migran `blackout_test` en un `globalSetup` y apuntan siempre a esa base (`test/setup-env.ts`). **Pendiente de verificar en T-007:** que PostGIS en el esquema `extensions` de Supabase resuelva con el mismo `search_path` (local lo trae en `public`; el test comprueba que la conexión y el SQL funcionan con los dos esquemas en el path). Scripts raíz: `db:generate`, `db:migrate`, `db:studio`.
-- [ ] **T-006 · CI** (L) — dep: T-003, T-005
+- [x] **T-006 · CI** (L) — dep: T-003, T-005
   `.github/workflows/ci.yml`, que corre en los PR y en los push a `main`: pnpm con caché (`pnpm install --frozen-lockfile`) → build → lint → typecheck → test → test:int (service container PostGIS). El `build` va primero porque `shared` se consume desde `dist/` (D-017). Leonardo activa a mano la protección de `main` (o con `gh api`, previa confirmación).
+  *Nota (hecha):* `.github/workflows/`: **`ci.yml`** (job `verificar`: build → lint → typecheck → test → test:int con PostGIS como service container en el puerto 5433; corre en los PR y en los push a `main` y `staging`; job `auditoria` informativo, no bloquea), **`deploy-api.yml`** (CD a Render por *deploy hook* tras un CI verde en `main` o a mano; se salta sin fallar si falta el secreto), **`keepalive.yml`** (ping a `/api/salud` cada 14 min; no hace nada sin la variable) y `dependabot.yml` (semanal, con Nest 11, TypeScript 5.9 y jose 5 fijados). También `pull_request_template.md`. Se probaron los mismos pasos en local desde una instalación limpia y se validó el YAML. Para activar el CD (T-053): secreto `RENDER_DEPLOY_HOOK_URL` y variable `API_URL` (ej. `https://<servicio>.onrender.com`) en el entorno `produccion` del repo; `API_URL` también activa el keep-alive. No hay workflow de despliegue del front: `apps/web` es de Freddy. Al proteger `main` y `staging`, marcar como requerido el check `verificar`.
 - [ ] **T-007 · Supabase staging** (L, **lo hace Leonardo** o la sesión con su confirmación)
   Crear el proyecto de staging, activar PostGIS, **verificar que las JWT signing keys sean asimétricas** (ES256/RS256) y anotar `SUPABASE_URL` y `DATABASE_URL` (pooler en modo session) en un `.env` local, nunca en el repo. El de producción se crea en la fase 5.
 
@@ -70,31 +71,37 @@
 - [x] **T-012 · Sectores provisionales + seed** (L) — dep: T-010
   `data/sectores-guaparo.geojson` provisional (Guaparo dividido en 3–4 sectores aproximados; dejarlo marcado como PROVISIONAL en `properties`). Script `db:seed` que valida `ST_IsValid` y el SRID, inserta los sectores y crea las filas de `estado_sector` (sector × servicio). Coordenadas de control en `apps/api/test/fixtures/puntos.ts`.
   *Nota (hecha):* cuadrícula de 2 × 2 sectores (Noroeste = 1, Noreste = 2, Suroeste = 3, Sureste = 4) con `"provisional": true` en el archivo y en cada `properties`; son coordenadas aproximadas, **no** los límites reales. La lógica está en `src/db/sembrar-sectores.ts` (`leerSectores` valida la forma sin base; `sembrarSectores` hace upsert por nombre en una transacción, rechaza geometrías inválidas y sectores solapados, y crea las 8 filas de `estado_sector`); `pnpm db:seed [ruta]` la corre. Los puntos de control (dentro, fuera, borde exterior, borde entre sectores, esquina común, lat/lng intercambiados) están en `test/fixtures/puntos.ts`. `pnpm db:migrate` ahora usa un migrador propio (`src/db/migrar.ts`, D-020).
-- [ ] **T-013 · Guard JWT** (L) — dep: T-003
+- [x] **T-013 · Guard JWT** (L) — dep: T-003
   `jose.createRemoteJWKSet(<SUPABASE_URL>/auth/v1/.well-known/jwks.json, { cacheMaxAge: 600_000 })`, que verifica `issuer` (`<SUPABASE_URL>/auth/v1`) y `audience`. Guard global con `@Public()` y decorador `@ResidenteActual()` (`sub`). El *getter* de claves se inyecta para poder usar un JWKS local en los tests.
   *Tests:* un token válido pasa; uno vencido, con otra firma, con otro issuer o sin token → 401.
+  *Nota (hecha):* módulo `src/auth/` (`JwtGuard` global, `@Public()`, `@ResidenteActual()`, `CLAVES_JWT` inyectable). Solo acepta `ES256` y `RS256` (un token HS256 se rechaza) y exige que el `sub` sea un UUID. Los tests (`test/auth.e2e-spec.ts`) cubren además otra audiencia, sin `sub`, HS256, basura en el encabezado y las rutas públicas; firman con un par ES256 local (`test/jwt.ts`, clase `EmisorJwt`). `SUPABASE_URL` pasa a ser obligatoria. Se usa `jose@^5` (D-021). `GET /salud` quedó con `@Public()`. **Pendiente de verificar en T-007:** que el JWKS real de staging devuelva claves asimétricas y que el `kid` de los tokens coincida.
 - [ ] **T-014 · `GET /sectores`** (L) — dep: T-012
   Un FeatureCollection GeoJSON (`ST_AsGeoJSON`) con `Cache-Control: public, max-age=3600`.
-- [ ] **T-015 · Registro** (L) — dep: T-012, T-013
+- [x] **T-015 · Registro** (L) — dep: T-012, T-013
   `POST /registro/validar-pin` (público, con throttle estricto), `POST /residentes/me` y `GET /residentes/me`. Usa `ST_Covers` y el desempate por el menor `sector.id` (D-002). Un usuario autenticado sin perfil recibe 403 `REGISTRO_INCOMPLETO` en las rutas que lo requieren (un guard o interceptor reutilizable).
   *Tests:* REG-01, REG-02, REG-03 (borde exterior y borde entre sectores, siempre el mismo resultado), registrarse dos veces → 409, y lat/lng intercambiados (punto asimétrico).
+  *Nota (hecha):* módulo `src/residentes/`. `RegistroGuard` (`@UseGuards`) + `@PerfilActual()` es la pieza reutilizable: 403 `REGISTRO_INCOMPLETO` sin perfil, y deja `{ id, sectorId, sectorNombre }` (nunca la ubicación) en la solicitud; **T-021 a T-023 lo usan** para sacar el `sector_id`. `POST /residentes/me` es atómico (`ON CONFLICT DO NOTHING`), así que dos registros simultáneos dan un 201 y un 409. `validar-pin` tiene throttle de 10/min por IP. Nueva variable `TRUST_PROXY` (1 en Render): sin ella el throttle vería la IP del proxy (D-022). Tests en `test/registro.e2e-spec.ts` (REG-01/02/03 y NF-06; REG-04 y REG-07 los resuelve Supabase Auth).
 - [ ] **T-016 · Barrido de privacidad** (L) — dep: T-015
   Un e2e que llama a todos los endpoints con datos sembrados y verifica que ninguna respuesta contenga `ubicacion`, ni las coordenadas de los residentes de prueba (NF-06). Se amplía en cada fase.
 - [ ] **F-001..F-012 · Front de la fase 1** (F) — scaffold Vite + PWA, Leaflet + pin + Turf (`booleanPointInPolygon` **sin** `ignoreBoundary`, que es coherente con D-002), y el flujo de registro de dos pasos (D-014). *Necesita de L:* T-014, T-015 y los tipos de `shared`.
 
 ## Fase 2 — Ciclo de reportes (S4–S5) → `v0.2.0`
 
-- [ ] **T-020 · Validación de horas, pura** (L) — dep: T-003
+- [x] **T-020 · Validación de horas, pura** (L) — dep: T-003
   `reportes/tiempo.puro.ts`: no al futuro (+2 min de tolerancia), no más antiguo que `REPORTE_MAX_ANTIGUEDAD_DIAS`, `fin ≥ inicio`. Recibe `ahora` como parámetro (nada de `Date.now()` adentro).
   *Tests:* REP-07, OFF-03 (unitarios) y los valores límite (exactamente +2 min y exactamente 7 días).
-- [ ] **T-021 · `PUT /reportes/:id` (inicio)** (L) — dep: T-010, T-015, T-020
+  *Nota (hecha):* `validarInicio(inicio, ahora, limites?)` y `validarCierre(fin, inicio, ahora, limites?)` devuelven `{ valida: true }` o `{ valida: false, motivo }` (`FUTURO`, `ANTIGUA`, `FIN_ANTES_DE_INICIO`, `FECHA_ILEGIBLE`); `leerFecha`, `duracionMin` y `mensajeHoraInvalida` completan el módulo. Los límites son **inclusivos** (exactamente +2 min y exactamente 7 días se aceptan; un milisegundo más, no). El cierre aplica la tolerancia de futuro pero no el máximo de antigüedad: ya está acotado por `fin ≥ inicio`. Un fin igual al inicio (duración cero) se acepta. El servicio mapea el motivo a 422 `HORA_INVALIDA`.
+- [x] **T-021 · `PUT /reportes/:id` (inicio)** (L) — dep: T-010, T-015, T-020
   Upsert idempotente según §5 del plan; `sector_id` sale del residente. Se guarda `inicio_en = ocurridoEn` (nunca `now()`). Deja listo el punto de enganche del consenso (un *no-op* hasta T-032), dentro de la misma transacción.
   *Tests:* REP-01, REP-02, REP-05 (409 `REPORTE_ABIERTO_DUPLICADO`), REP-06, OFF-03 (se envía a las 12:00 con `ocurridoEn` 10:30 → se guarda 10:30), OFF-05 (el mismo PUT ×2 en paralelo → 1 fila, 2 respuestas 200) y el mismo id con otro payload → 409.
-- [ ] **T-022 · `PATCH /reportes/:id/cierre`** (L) — dep: T-021
+  *Nota (hecha):* `ReportesService.iniciar` hace un `INSERT … ON CONFLICT DO NOTHING` sin objetivo, dentro de una transacción: si no inserta, relee por id; si el id no existe, el choque fue el único parcial → 409 `REPORTE_ABIERTO_DUPLICADO`; si existe con el mismo residente, tipo y hora → 200 con el reporte; si no → 409 `REPORTE_CONFLICTO` (también para el id de otro residente, sin revelar de quién es). Siempre responde 200, también al crear. El enganche del consenso es `ConsensoService.reevaluar(tx, sectorId, tipoServicio)` (no-op, se llama solo al crear): **T-032 reemplaza ese cuerpo**. El reloj es inyectable (`RELOJ`). Harness de los e2e de reportes y consenso en `test/contexto.ts` (`Contexto`).
+- [x] **T-022 · `PATCH /reportes/:id/cierre`** (L) — dep: T-021
   Idempotente. Si el id es ajeno o no existe → 404 (D-003: un cierre sin inicio se bloquea). La duración se calcula y se devuelve.
   *Tests:* REP-03, REP-04, REP-07 (422), doble cierre igual → 200, doble cierre distinto → 409.
-- [ ] **T-023 · `GET /reportes/mios`** (L) — dep: T-021
+  *Nota (hecha):* `ReportesService.cerrar` lee el reporte con `SELECT … FOR UPDATE` (solo del propio residente: uno ajeno es 404 igual que uno inexistente), así dos cierres simultáneos se ponen en fila y el segundo devuelve 200 con lo que dejó el primero. Fija `cerrado_recibido_en = now()` y llama a `ConsensoService.reevaluar` en la misma transacción. Un fin igual al inicio (duración 0) se acepta. **`ocurridoEn` exige zona horaria** (`Z` o `±hh:mm`) en inicio y cierre: una fecha sin zona se interpretaría en la hora local del servidor (400 `DATOS_INVALIDOS`).
+- [x] **T-023 · `GET /reportes/mios`** (L) — dep: T-021
   Con el filtro `abiertos`. Solo devuelve los reportes del propio residente.
+  *Nota (hecha):* ordenados del más reciente al más antiguo, con tope de 100. `abiertos=true` excluye los cerrados y los vencidos; solo se aceptan `true` y `false` (otra cosa → 400).
 - [ ] **F-020..F-022 · Formularios de inicio y de restablecimiento** (F) — *necesita de L:* T-021, T-022 y los códigos de error de `shared`.
 
 ## Fase 3 — Consenso e historial (S6–S7) → `v0.3.0`

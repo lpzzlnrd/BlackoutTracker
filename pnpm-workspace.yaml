@@ -12,3 +12,10 @@ catalog:
 # sin él, así que se ignora de forma explícita y no corre código de terceros en la instalación.
 ignoredBuiltDependencies:
   - esbuild
+
+# Dependencias transitivas de @nestjs/platform-express con avisos altos de DoS (body-parser
+# GHSA-27r3-jxmh-p828, multer GHSA-q7qp-rjg7-q26m). Se suben a la versión parcheada; se pueden
+# quitar cuando platform-express las traiga por su cuenta.
+overrides:
+  body-parser: ^2.4.0
+  multer: ^2.5.0

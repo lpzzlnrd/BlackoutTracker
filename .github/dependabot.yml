@@ -1,0 +1,24 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # Un solo PR por semana para las actualizaciones menores y de parche.
+      menores:
+        update-types: [minor, patch]
+    ignore:
+      # Versiones fijadas a propósito: Nest 11 (CLAUDE.md §4), TypeScript 5.9 (D-016) y jose 5 (D-021).
+      - dependency-name: '@nestjs/*'
+        update-types: [version-update:semver-major]
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
+      - dependency-name: jose
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

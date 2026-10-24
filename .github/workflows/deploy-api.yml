@@ -1,0 +1,54 @@
+name: Deploy API
+
+# CD de la API a Render (plan gratis). Se dispara cuando el CI termina en verde sobre main, o a
+# mano. Usa el *deploy hook* de Render: si el secreto RENDER_DEPLOY_HOOK_URL no existe, el job se
+# salta sin fallar (el servicio de Render todavía no está creado: T-053).
+on:
+  workflow_run:
+    workflows: [CI]
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-api
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  desplegar:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: produccion
+    env:
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      API_URL: ${{ vars.API_URL }}
+    steps:
+      - name: Comprobar configuración
+        id: config
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "Sin RENDER_DEPLOY_HOOK_URL: se omite el despliegue."
+            echo "configurado=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configurado=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Disparar el despliegue en Render
+        if: steps.config.outputs.configurado == 'true'
+        run: curl --fail --silent --show-error -X POST "$RENDER_DEPLOY_HOOK_URL"
+
+      - name: Esperar a que la API responda
+        if: steps.config.outputs.configurado == 'true' && env.API_URL != ''
+        run: |
+          # Render gratis tarda en arrancar en frío: hasta ~5 minutos.
+          for i in $(seq 1 30); do
+            if curl --fail --silent "$API_URL/api/salud" | grep -q '"estado":"ok"'; then
+              echo "API arriba."; exit 0
+            fi
+            sleep 10
+          done
+          echo "La API no respondió ok a tiempo." >&2; exit 1

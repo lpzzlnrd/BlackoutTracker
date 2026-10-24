@@ -1,5 +1,5 @@
 import { plainToInstance, Transform } from 'class-transformer';
-import { IsInt, IsOptional, IsString, IsUrl, Max, Min, validateSync } from 'class-validator';
+import { IsInt, IsString, IsUrl, Max, Min, validateSync } from 'class-validator';
 import {
   CONSENSO_N_POR_DEFECTO,
   CONSENSO_VENTANA_MIN_POR_DEFECTO,
@@ -21,13 +21,16 @@ export class Env {
   /** Conexión a Postgres (pooler de Supabase en modo session, o el PostGIS local). */
   @IsString() DATABASE_URL!: string;
 
-  /** Origen de Supabase (JWKS e issuer). Lo exige el guard JWT (T-013). */
-  @IsOptional() @IsUrl({ require_tld: false }) SUPABASE_URL?: string;
+  /** Origen de Supabase: de aquí salen el JWKS y el issuer que verifica el guard JWT. */
+  @IsUrl({ require_tld: false }) SUPABASE_URL!: string;
 
   @IsString() JWT_AUDIENCE: string = 'authenticated';
 
   /** Orígenes CORS separados por coma. */
   @IsString() CORS_ORIGINS: string = 'http://localhost:5173';
+
+  /** Proxies de confianza delante de la API (1 en Render). Sin esto el throttle ve la IP del proxy. */
+  @IsInt() @Min(0) @Max(5) @aEntero() TRUST_PROXY: number = 0;
 
   @IsInt() @Min(1) @aEntero() CONSENSO_N: number = CONSENSO_N_POR_DEFECTO;
   @IsInt() @Min(1) @aEntero() CONSENSO_VENTANA_MIN_ELECTRICIDAD: number =
