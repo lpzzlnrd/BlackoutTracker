@@ -7,10 +7,10 @@
 ## Estado
 
 - **Fase actual:** 0. Fundaciones (S1)
-- **Próxima tarea:** T-021
+- **Próxima tarea:** T-022
 - **Bloqueos:** ninguno para la fase 0. T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
 - **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015, D-016, D-017, D-018 y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
-- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR); T-003, T-004, T-005, T-010, T-012, T-013, T-015 y T-020 hechas (ramas `feat/T-003-esqueleto-api`, `feat/T-004-postgis-local`, `feat/T-005-drizzle`, `feat/T-010-esquema` y `feat/T-012-sectores-seed` y `feat/T-013-guard-jwt` y `feat/T-015-registro` y `feat/T-020-tiempo-puro`).
+- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR); T-003, T-004, T-005, T-010, T-012, T-013, T-015, T-020 y T-021 hechas (ramas `feat/T-003-esqueleto-api`, `feat/T-004-postgis-local`, `feat/T-005-drizzle`, `feat/T-010-esquema` y `feat/T-012-sectores-seed` y `feat/T-013-guard-jwt` y `feat/T-015-registro` y `feat/T-020-tiempo-puro` y `feat/T-021-reporte-inicio`).
 
 ---
 
@@ -90,9 +90,10 @@
   `reportes/tiempo.puro.ts`: no al futuro (+2 min de tolerancia), no más antiguo que `REPORTE_MAX_ANTIGUEDAD_DIAS`, `fin ≥ inicio`. Recibe `ahora` como parámetro (nada de `Date.now()` adentro).
   *Tests:* REP-07, OFF-03 (unitarios) y los valores límite (exactamente +2 min y exactamente 7 días).
   *Nota (hecha):* `validarInicio(inicio, ahora, limites?)` y `validarCierre(fin, inicio, ahora, limites?)` devuelven `{ valida: true }` o `{ valida: false, motivo }` (`FUTURO`, `ANTIGUA`, `FIN_ANTES_DE_INICIO`, `FECHA_ILEGIBLE`); `leerFecha`, `duracionMin` y `mensajeHoraInvalida` completan el módulo. Los límites son **inclusivos** (exactamente +2 min y exactamente 7 días se aceptan; un milisegundo más, no). El cierre aplica la tolerancia de futuro pero no el máximo de antigüedad: ya está acotado por `fin ≥ inicio`. Un fin igual al inicio (duración cero) se acepta. El servicio mapea el motivo a 422 `HORA_INVALIDA`.
-- [ ] **T-021 · `PUT /reportes/:id` (inicio)** (L) — dep: T-010, T-015, T-020
+- [x] **T-021 · `PUT /reportes/:id` (inicio)** (L) — dep: T-010, T-015, T-020
   Upsert idempotente según §5 del plan; `sector_id` sale del residente. Se guarda `inicio_en = ocurridoEn` (nunca `now()`). Deja listo el punto de enganche del consenso (un *no-op* hasta T-032), dentro de la misma transacción.
   *Tests:* REP-01, REP-02, REP-05 (409 `REPORTE_ABIERTO_DUPLICADO`), REP-06, OFF-03 (se envía a las 12:00 con `ocurridoEn` 10:30 → se guarda 10:30), OFF-05 (el mismo PUT ×2 en paralelo → 1 fila, 2 respuestas 200) y el mismo id con otro payload → 409.
+  *Nota (hecha):* `ReportesService.iniciar` hace un `INSERT … ON CONFLICT DO NOTHING` sin objetivo, dentro de una transacción: si no inserta, relee por id; si el id no existe, el choque fue el único parcial → 409 `REPORTE_ABIERTO_DUPLICADO`; si existe con el mismo residente, tipo y hora → 200 con el reporte; si no → 409 `REPORTE_CONFLICTO` (también para el id de otro residente, sin revelar de quién es). Siempre responde 200, también al crear. El enganche del consenso es `ConsensoService.reevaluar(tx, sectorId, tipoServicio)` (no-op, se llama solo al crear): **T-032 reemplaza ese cuerpo**. El reloj es inyectable (`RELOJ`). Harness de los e2e de reportes y consenso en `test/contexto.ts` (`Contexto`).
 - [ ] **T-022 · `PATCH /reportes/:id/cierre`** (L) — dep: T-021
   Idempotente. Si el id es ajeno o no existe → 404 (D-003: un cierre sin inicio se bloquea). La duración se calcula y se devuelve.
   *Tests:* REP-03, REP-04, REP-07 (422), doble cierre igual → 200, doble cierre distinto → 409.

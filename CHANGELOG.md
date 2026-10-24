@@ -8,6 +8,7 @@ Secciones por versión: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**
 ## [Sin publicar]
 
 ### Añadido
+- `PUT /api/reportes/:id`: inicio de un corte, idempotente (el id lo genera el cliente), con la hora del evento y no la del envío, `sector_id` tomado del residente y el enganche (no-op) del consenso dentro de la transacción. Con tests REP-01, REP-02, REP-05, REP-06, OFF-03 y OFF-05 (también en paralelo) (T-021).
 - `reportes/tiempo.puro.ts`: validación de la hora de un reporte (no futuro con +2 min de tolerancia, no más antigua de 7 días, `fin ≥ inicio`) con el reloj como parámetro. Con tests REP-07, OFF-03 y los valores límite (T-020, D-013).
 - Registro: `POST /api/registro/validar-pin` (público, con throttle), `POST /api/residentes/me` y `GET /api/residentes/me`, con `ST_Covers` y desempate por el menor id (D-002), `RegistroGuard` reutilizable (403 `REGISTRO_INCOMPLETO`) y la variable `TRUST_PROXY`. Con tests REG-01, REG-02, REG-03 y NF-06 (T-015).
 - Guard global de JWT de Supabase (`jose` + JWKS con caché de 10 min, solo ES256/RS256, verifica emisor y audiencia), `@Public()` y `@ResidenteActual()`; con tests de token válido, vencido, de otra firma, de otro emisor, de otra audiencia, HS256 y sin token (T-013).
