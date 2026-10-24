@@ -15,6 +15,13 @@
       "when": 1791730814473,
       "tag": "0001_esquema",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792856118937,
+      "tag": "0002_rls_realtime",
+      "breakpoints": true
     }
   ]
 }
