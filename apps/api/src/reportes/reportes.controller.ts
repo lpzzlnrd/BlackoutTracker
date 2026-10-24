@@ -20,6 +20,9 @@ import { ReportesService } from './reportes.service';
 
 @ApiTags('reportes')
 @ApiBearerAuth()
+@ApiResponse({ status: 400, description: 'DATOS_INVALIDOS (cuerpo o id mal formados)' })
+@ApiResponse({ status: 401, description: 'NO_AUTENTICADO (sin token, vencido o firma inválida)' })
+@ApiResponse({ status: 429, description: 'DEMASIADAS_SOLICITUDES' })
 @UseGuards(RegistroGuard)
 @Controller('reportes')
 export class ReportesController {
