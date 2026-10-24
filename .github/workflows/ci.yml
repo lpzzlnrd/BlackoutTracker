@@ -1,0 +1,84 @@
+name: CI
+
+# Corre en cada PR y en cada push a main y a staging. El `build` va primero porque `@blackout/shared` se consume
+# desde `dist/` (D-017): sin compilarlo, ni el typecheck ni los tests de la API lo encuentran.
+on:
+  pull_request:
+  push:
+    branches: [main, staging]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      # PostGIS para los tests de integración (D-012). La base `blackout_test` se crea sola.
+      db:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: blackout_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d blackout_test"
+          --health-interval 3s
+          --health-timeout 3s
+          --health-retries 20
+
+    env:
+      DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5433/blackout_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # La versión de pnpm sale de `packageManager` en package.json.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Tests unitarios
+        run: pnpm test
+
+      - name: Tests de integración
+        run: pnpm test:int
+
+  auditoria:
+    # Informativo: no bloquea el PR (una vulnerabilidad nueva no debería romper una rama que no la causó).
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: pnpm audit (solo dependencias de producción, nivel alto)
+        run: pnpm audit --prod --audit-level high
