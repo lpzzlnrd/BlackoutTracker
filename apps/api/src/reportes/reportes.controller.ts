@@ -1,10 +1,21 @@
-import { Body, Controller, Param, ParseUUIDPipe, Patch, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { ReporteDto } from '@blackout/shared';
 import { PerfilActual, RegistroGuard } from '../residentes/registro.guard';
 import type { PerfilResidente } from '../residentes/residentes.service';
 import { CerrarReporteDto } from './dto/cerrar-reporte.dto';
 import { IniciarReporteDto, ReporteRespuesta } from './dto/iniciar-reporte.dto';
+import { MiosQueryDto } from './dto/mios-query.dto';
 import { ReportesService } from './reportes.service';
 
 @ApiTags('reportes')
@@ -13,6 +24,20 @@ import { ReportesService } from './reportes.service';
 @Controller('reportes')
 export class ReportesController {
   constructor(private readonly reportes: ReportesService) {}
+
+  @Get('mios')
+  @ApiOperation({
+    summary: 'Mis reportes (para recuperar el estado en otro dispositivo)',
+    description:
+      'Solo los del residente autenticado. Con `abiertos=true`, los que siguen abiertos.',
+  })
+  @ApiResponse({ status: 200, type: [ReporteRespuesta] })
+  mios(
+    @PerfilActual() perfil: PerfilResidente,
+    @Query() query: MiosQueryDto,
+  ): Promise<ReporteDto[]> {
+    return this.reportes.mios(perfil, query.abiertos ?? false);
+  }
 
   @Put(':id')
   @ApiOperation({
