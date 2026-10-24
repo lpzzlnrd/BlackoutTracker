@@ -7,10 +7,10 @@
 ## Estado
 
 - **Fase actual:** 0. Fundaciones (S1)
-- **Próxima tarea:** T-020
+- **Próxima tarea:** T-021
 - **Bloqueos:** ninguno para la fase 0. T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
 - **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015, D-016, D-017, D-018 y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
-- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR); T-003, T-004, T-005, T-010, T-012, T-013 y T-015 hechas (ramas `feat/T-003-esqueleto-api`, `feat/T-004-postgis-local`, `feat/T-005-drizzle`, `feat/T-010-esquema` y `feat/T-012-sectores-seed` y `feat/T-013-guard-jwt` y `feat/T-015-registro`).
+- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR); T-003, T-004, T-005, T-010, T-012, T-013, T-015 y T-020 hechas (ramas `feat/T-003-esqueleto-api`, `feat/T-004-postgis-local`, `feat/T-005-drizzle`, `feat/T-010-esquema` y `feat/T-012-sectores-seed` y `feat/T-013-guard-jwt` y `feat/T-015-registro` y `feat/T-020-tiempo-puro`).
 
 ---
 
@@ -86,9 +86,10 @@
 
 ## Fase 2 — Ciclo de reportes (S4–S5) → `v0.2.0`
 
-- [ ] **T-020 · Validación de horas, pura** (L) — dep: T-003
+- [x] **T-020 · Validación de horas, pura** (L) — dep: T-003
   `reportes/tiempo.puro.ts`: no al futuro (+2 min de tolerancia), no más antiguo que `REPORTE_MAX_ANTIGUEDAD_DIAS`, `fin ≥ inicio`. Recibe `ahora` como parámetro (nada de `Date.now()` adentro).
   *Tests:* REP-07, OFF-03 (unitarios) y los valores límite (exactamente +2 min y exactamente 7 días).
+  *Nota (hecha):* `validarInicio(inicio, ahora, limites?)` y `validarCierre(fin, inicio, ahora, limites?)` devuelven `{ valida: true }` o `{ valida: false, motivo }` (`FUTURO`, `ANTIGUA`, `FIN_ANTES_DE_INICIO`, `FECHA_ILEGIBLE`); `leerFecha`, `duracionMin` y `mensajeHoraInvalida` completan el módulo. Los límites son **inclusivos** (exactamente +2 min y exactamente 7 días se aceptan; un milisegundo más, no). El cierre aplica la tolerancia de futuro pero no el máximo de antigüedad: ya está acotado por `fin ≥ inicio`. Un fin igual al inicio (duración cero) se acepta. El servicio mapea el motivo a 422 `HORA_INVALIDA`.
 - [ ] **T-021 · `PUT /reportes/:id` (inicio)** (L) — dep: T-010, T-015, T-020
   Upsert idempotente según §5 del plan; `sector_id` sale del residente. Se guarda `inicio_en = ocurridoEn` (nunca `now()`). Deja listo el punto de enganche del consenso (un *no-op* hasta T-032), dentro de la misma transacción.
   *Tests:* REP-01, REP-02, REP-05 (409 `REPORTE_ABIERTO_DUPLICADO`), REP-06, OFF-03 (se envía a las 12:00 con `ocurridoEn` 10:30 → se guarda 10:30), OFF-05 (el mismo PUT ×2 en paralelo → 1 fila, 2 respuestas 200) y el mismo id con otro payload → 409.
