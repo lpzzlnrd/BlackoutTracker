@@ -109,8 +109,8 @@
 - [x] **T-030 · `evaluarInicio`, pura** (L) — dep: T-002
   `consenso/consenso.puro.ts` según §6.1 del plan. Configura el `coverageThreshold` de `src/consenso/`.
   *Tests:* CON-01, CON-02, CON-03, CON-04, CON-05 (como entradas separadas), CON-07 (justo dentro y justo fuera de W) y el cálculo de la mediana del inicio del evento.
-- [ ] **T-031 · `evaluarRestablecimiento`, pura** (L) — dep: T-030
-  Según §6.2 del plan. *Tests:* CON-06, el cierre por "ya no quedan reportes abiertos", y N − 1 cierres que no cierran el evento.
+- [x] **T-031 · `evaluarRestablecimiento`, pura** (L) — dep: T-030
+  Según §6.2 del plan, en `consenso/consenso.puro.ts` y reutilizando de T-030 la deduplicación por residente y la ventana. Recibe los cierres `{residenteId, finEn}`, `inicioEvento` (ignora los cierres anteriores) y `reportesAbiertos`; devuelve `{cerrado, finEvento, motivo: 'consenso' | 'sin_abiertos' | null}`. Con N cierres en una ventana el fin es la mediana de esos N; con "sin abiertos" (y al menos un cierre) es la mediana de los cierres, uno por residente (el más antiguo). T-032 aporta `reportesAbiertos` desde la base. *Tests:* CON-06, el cierre por "ya no quedan reportes abiertos", y N − 1 cierres que no cierran el evento.
 - [ ] **T-032 · `ConsensoService`** (L) — dep: T-021, T-022, T-030, T-031
   Transacción + `pg_advisory_xact_lock` + crear o cerrar el evento + upsert de `estado_sector`, que solo escribe si hubo cambios. Reemplaza el *no-op* de T-021.
   *Tests (integración):* CON-02, CON-03 (4 PUT concurrentes → 1 evento), CON-05, CON-06, y `reportes_sin_confirmar` = 2 con N − 1 (CON-01).
