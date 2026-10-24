@@ -6,7 +6,7 @@
 
 ## Estado
 
-- **Fase actual:** 3. Consenso (T-030 a T-032 hechas; siguen T-033 y T-034). Fase 2 (reportes) hecha: T-020 a T-023. Quedan de fases anteriores T-007 (Supabase, la hace Leonardo), T-011 (RLS), T-014 (`GET /sectores`) y T-016 (barrido de privacidad)
+- **Fase actual:** 3. Consenso (T-030 a T-033 hechas; sigue T-034). Fase 2 (reportes) hecha: T-020 a T-023. Quedan de fases anteriores T-007 (Supabase, la hace Leonardo), T-011 (RLS), T-014 (`GET /sectores`) y T-016 (barrido de privacidad)
 - **Próxima tarea:** T-030 (consenso de inicio, puro: depende solo de T-002), junto con T-011, T-014 y T-016 pendientes
 - **Bloqueos:** ninguno para la fase 0. T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
 - **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015, D-016, D-017, D-018 y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
@@ -115,8 +115,9 @@
   Transacción + `pg_advisory_xact_lock` + crear o cerrar el evento + upsert de `estado_sector`, que solo escribe si hubo cambios. Reemplaza el *no-op* de T-021.
   *Tests (integración):* CON-02, CON-03 (4 PUT concurrentes → 1 evento), CON-05, CON-06, y `reportes_sin_confirmar` = 2 con N − 1 (CON-01).
   *Nota (hecha):* `ConsensoService.reevaluar(tx, sectorId, tipo)` lo llaman el PUT y el PATCH de cierre dentro de su transacción: lock `pg_advisory_xact_lock(sector, índice del servicio)`, lee el evento abierto y los reportes del par, y llama a las funciones puras con N y W del env y el reloj `RELOJ`. Sin evento abierto evalúa el inicio (crea el evento con `inicio_en` = mediana); con evento abierto evalúa el restablecimiento (cierra con `fin_en` = mediana y `restablecido_en` = ahora). `estado_sector` solo se escribe si cambian estado, `reportes_sin_confirmar`, `evento_id` o `desde` (inicio del evento, o su fin al restablecerse). `RELOJ` se movió a `comun/reloj.ts` (se reexporta desde `reportes.service`) y lo provee `ConsensoModule`. Tests en `test/consenso.e2e-spec.ts`. Límite conocido: tras cerrar un evento por consenso, los reportes del corte anterior que sigan abiertos pueden abrir un evento nuevo si son ≥ N dentro de una ventana; es raro y lo cubre T-051 (ciclos incompletos).
-- [ ] **T-033 · Cron de las ventanas** (L) — dep: T-032
+- [x] **T-033 · Cron de las ventanas** (L) — dep: T-032
   `@nestjs/schedule` cada minuto + el recálculo al leer si el estado quedó viejo (§6.3 del plan). *Test:* al vencer la ventana, `reportes_sin_confirmar` vuelve a 0 (CON-07); se usa un reloj inyectable.
+  *Nota (hecha):* `ConsensoCron` (`@Cron(EVERY_MINUTE)`, apagable con `CRON_ACTIVO=false`; los tests lo apagan) llama a `ConsensoService.reevaluarVencidos()`: reevalúa solo los pares de `estado_sector` con `reportes_sin_confirmar > 0` (lo único que cambia solo con el tiempo hasta T-050), cada uno en su transacción, con log y sin lanzar si uno falla; una bandera evita pasadas solapadas. `ConsensoService.refrescarSiViejo(sector, tipo)` hace el recálculo al leer, pero aún no hay endpoint de lectura que lo llame: lo debe invocar el primer `GET` que sirva `estado_sector` (T-014/`/resumen`). Tests: `consenso.cron.spec.ts` (unitario) y CON-07 en `test/consenso.e2e-spec.ts` con el reloj controlado.
 - [ ] **T-034 · `GET /sectores/:id/historial`** (L) — dep: T-032
   Los eventos cerrados, paginados por cursor y filtrables por servicio.
 - [ ] **T-035 · Humo de Realtime en staging** (L) — dep: T-011, T-032, T-007
