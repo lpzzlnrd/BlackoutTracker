@@ -7,10 +7,10 @@
 ## Estado
 
 - **Fase actual:** 0. Fundaciones (S1)
-- **Próxima tarea:** T-005
+- **Próxima tarea:** T-013
 - **Bloqueos:** ninguno para la fase 0. T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
 - **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015, D-016, D-017, D-018 y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
-- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR); T-003 y T-004 hechas (ramas `feat/T-003-esqueleto-api` y `feat/T-004-postgis-local`).
+- **Última actualización:** 2026-10-07, T-001 y T-002 hechas (en PR); T-003, T-004, T-005, T-010 y T-012 hechas (ramas `feat/T-003-esqueleto-api`, `feat/T-004-postgis-local`, `feat/T-005-drizzle`, `feat/T-010-esquema` y `feat/T-012-sectores-seed`).
 
 ---
 
@@ -49,9 +49,10 @@
 - [x] **T-004 · PostGIS local** (L) — dep: T-001
   `docker-compose.yml` con `postgis/postgis:16-3.4` en el puerto 5433 y las bases `blackout` y `blackout_test`. Scripts `db:up` y `db:down`. `apps/api/.env.example`.
   *Nota (hecha):* `docker/initdb/01-bases.sql` crea `blackout_test` solo la primera vez que arranca el volumen; `pnpm db:reset` borra el volumen y lo vuelve a crear. Usuario y clave `postgres`/`postgres`. `DATABASE_URL_TEST` apunta a `blackout_test`.
-- [ ] **T-005 · Drizzle** (L) — dep: T-003, T-004
+- [x] **T-005 · Drizzle** (L) — dep: T-003, T-004
   `drizzle.config.ts` con `extensionsFilters: ['postgis']`, proveedor Drizzle (postgres-js) inyectable y migración 0000 (esquema `extensions` + PostGIS, ver §4 del plan). `customType` para `MultiPolygon`. Scripts `db:generate`, `db:migrate` y `db:studio`.
   *Hecho cuando:* la migración corre en local y un test de integración ejecuta `SELECT postgis_version()`. **Verificar** que el `search_path` funcione igual que en Supabase.
+  *Nota (hecha):* `DbModule` (global) expone `DB` (Drizzle) y `CLIENTE_PG`; la conexión fija `search_path=public,extensions` y desactiva las sentencias preparadas si la URL usa el puerto 6543 (pooler en modo transaction). `DATABASE_URL` pasa a ser obligatoria y `GET /salud` ya hace `select 1` (`baseDeDatos: 'error'` y `estado: 'degradado'` si falla). La migración 0000 es SQL a mano (`drizzle-kit generate --custom`). Los tests de integración migran `blackout_test` en un `globalSetup` y apuntan siempre a esa base (`test/setup-env.ts`). **Pendiente de verificar en T-007:** que PostGIS en el esquema `extensions` de Supabase resuelva con el mismo `search_path` (local lo trae en `public`; el test comprueba que la conexión y el SQL funcionan con los dos esquemas en el path). Scripts raíz: `db:generate`, `db:migrate`, `db:studio`.
 - [ ] **T-006 · CI** (L) — dep: T-003, T-005
   `.github/workflows/ci.yml`, que corre en los PR y en los push a `main`: pnpm con caché (`pnpm install --frozen-lockfile`) → build → lint → typecheck → test → test:int (service container PostGIS). El `build` va primero porque `shared` se consume desde `dist/` (D-017). Leonardo activa a mano la protección de `main` (o con `gh api`, previa confirmación).
 - [ ] **T-007 · Supabase staging** (L, **lo hace Leonardo** o la sesión con su confirmación)
@@ -59,14 +60,16 @@
 
 ## Fase 1 — Modelo de datos, auth y registro (S1–S3) → `v0.1.0`
 
-- [ ] **T-010 · Esquema** (L) — dep: T-005
+- [x] **T-010 · Esquema** (L) — dep: T-005
   Las tablas, enums, checks e índices de §4 del plan (incluidos los únicos parciales de REP-05 y de evento abierto, y el GIST en `sectores.geom`).
   *Tests:* un insert que viola `fin_en < inicio_en` falla (REP-07 a nivel BD), y un segundo reporte abierto del mismo servicio falla (REP-05 a nivel BD).
+  *Nota (hecha):* esquema en `src/db/schema/*.ts` y migración `0001_esquema.sql`. Dos ajustes a lo que genera drizzle-kit: `sectores.id` es `smallint` con identidad (`generatedByDefaultAsIdentity`) porque el `smallserial` salía entre comillas como un tipo inexistente, y `residentes.ubicacion` es un `customType` `geometry(Point, 4326)` porque el `geometry` de Drizzle no emite el SRID. Los tests (`test/esquema.e2e-spec.ts`) también cubren REP-06, CON-03 a nivel BD y las claves foráneas. Helpers en `test/bd.ts` (`abrirBd`, `limpiar`, `codigoPg`, `cuadrado`).
 - [ ] **T-011 · RLS y Realtime** (L) — dep: T-010
   Migración SQL a mano: RLS en todas las tablas, `SELECT` en `estado_sector` para `anon, authenticated`, `REVOKE` en las demás, y la publicación `supabase_realtime` (en un bloque `DO` condicional).
   *Tests (integración):* con `SET ROLE anon` (se crea el rol en local si no existe), leer `reportes` o `residentes` falla o devuelve 0 filas, y `estado_sector` se puede leer (NF-06).
-- [ ] **T-012 · Sectores provisionales + seed** (L) — dep: T-010
+- [x] **T-012 · Sectores provisionales + seed** (L) — dep: T-010
   `data/sectores-guaparo.geojson` provisional (Guaparo dividido en 3–4 sectores aproximados; dejarlo marcado como PROVISIONAL en `properties`). Script `db:seed` que valida `ST_IsValid` y el SRID, inserta los sectores y crea las filas de `estado_sector` (sector × servicio). Coordenadas de control en `apps/api/test/fixtures/puntos.ts`.
+  *Nota (hecha):* cuadrícula de 2 × 2 sectores (Noroeste = 1, Noreste = 2, Suroeste = 3, Sureste = 4) con `"provisional": true` en el archivo y en cada `properties`; son coordenadas aproximadas, **no** los límites reales. La lógica está en `src/db/sembrar-sectores.ts` (`leerSectores` valida la forma sin base; `sembrarSectores` hace upsert por nombre en una transacción, rechaza geometrías inválidas y sectores solapados, y crea las 8 filas de `estado_sector`); `pnpm db:seed [ruta]` la corre. Los puntos de control (dentro, fuera, borde exterior, borde entre sectores, esquina común, lat/lng intercambiados) están en `test/fixtures/puntos.ts`. `pnpm db:migrate` ahora usa un migrador propio (`src/db/migrar.ts`, D-020).
 - [ ] **T-013 · Guard JWT** (L) — dep: T-003
   `jose.createRemoteJWKSet(<SUPABASE_URL>/auth/v1/.well-known/jwks.json, { cacheMaxAge: 600_000 })`, que verifica `issuer` (`<SUPABASE_URL>/auth/v1`) y `audience`. Guard global con `@Public()` y decorador `@ResidenteActual()` (`sub`). El *getter* de claves se inyecta para poder usar un JWKS local en los tests.
   *Tests:* un token válido pasa; uno vencido, con otra firma, con otro issuer o sin token → 401.
