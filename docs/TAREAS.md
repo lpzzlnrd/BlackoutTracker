@@ -106,7 +106,7 @@
 
 ## Fase 3 — Consenso e historial (S6–S7) → `v0.3.0`
 
-- [ ] **T-030 · `evaluarInicio`, pura** (L) — dep: T-002
+- [x] **T-030 · `evaluarInicio`, pura** (L) — dep: T-002
   `consenso/consenso.puro.ts` según §6.1 del plan. Configura el `coverageThreshold` de `src/consenso/`.
   *Tests:* CON-01, CON-02, CON-03, CON-04, CON-05 (como entradas separadas), CON-07 (justo dentro y justo fuera de W) y el cálculo de la mediana del inicio del evento.
 - [ ] **T-031 · `evaluarRestablecimiento`, pura** (L) — dep: T-030
