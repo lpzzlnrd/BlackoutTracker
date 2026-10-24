@@ -8,6 +8,7 @@ import { DbModule } from './db/db.module';
 import { ReportesModule } from './reportes/reportes.module';
 import { ResidentesModule } from './residentes/residentes.module';
 import { SaludController } from './salud/salud.controller';
+import { SectoresModule } from './sectores/sectores.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { SaludController } from './salud/salud.controller';
     AuthModule,
     ResidentesModule,
     ReportesModule,
+    SectoresModule,
   ],
   controllers: [SaludController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

@@ -11,6 +11,7 @@ Secciones por versión: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**
 - `overrides` en `pnpm-workspace.yaml` que suben `body-parser` a 2.4.0 y `multer` a 2.5.0, dependencias de `@nestjs/platform-express` con avisos altos de DoS (GHSA-27r3-jxmh-p828, GHSA-q7qp-rjg7-q26m). Con esto `pnpm audit --prod --audit-level high` vuelve a pasar (T-006).
 
 ### Añadido
+- `GET /api/sectores` (público): los sectores como FeatureCollection GeoJSON (`id`, `nombre` y polígono con `ST_AsGeoJSON`), con `Cache-Control: public, max-age=3600` y sin datos de residentes. Con tests VIS-01 y NF-06 (T-014).
 - `GET /api/reportes/mios?abiertos=`: los reportes del propio residente (nunca ajenos), el más reciente primero, para recuperar el estado en otro dispositivo (T-023).
 - `PATCH /api/reportes/:id/cierre`: cierre idempotente que calcula la duración, bloquea un cierre sin inicio (404, D-003) y rechaza un fin anterior al inicio (422). Con tests REP-03, REP-04, REP-07 y OFF-05 (también en paralelo) (T-022).
 - `PUT /api/reportes/:id`: inicio de un corte, idempotente (el id lo genera el cliente), con la hora del evento y no la del envío, `sector_id` tomado del residente y el enganche (no-op) del consenso dentro de la transacción. Con tests REP-01, REP-02, REP-05, REP-06, OFF-03 y OFF-05 (también en paralelo) (T-021).
