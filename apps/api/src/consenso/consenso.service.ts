@@ -1,10 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { and, eq, isNotNull, isNull, sql } from 'drizzle-orm';
+import { and, eq, gt, isNotNull, isNull, sql } from 'drizzle-orm';
 import { EstadoServicio, TIPOS_SERVICIO, type TipoServicio } from '@blackout/shared';
 import { RELOJ, type Reloj } from '../comun/reloj';
 import type { Env } from '../config/env';
-import type { Transaccion } from '../db/db.module';
+import { DB, type BaseDeDatos, type Transaccion } from '../db/db.module';
 import { estadoSector, eventosSector, reportes } from '../db/schema';
 import { evaluarInicio, evaluarRestablecimiento } from './consenso.puro';
 
@@ -23,10 +23,49 @@ interface EstadoDeseado {
  */
 @Injectable()
 export class ConsensoService {
+  private readonly log = new Logger(ConsensoService.name);
+
   constructor(
     private readonly config: ConfigService<Env, true>,
     @Inject(RELOJ) private readonly reloj: Reloj,
+    @Inject(DB) private readonly db: BaseDeDatos,
   ) {}
+
+  /**
+   * Reevalúa los pares cuyo estado pudo cambiar solo por el paso del tiempo: los que muestran
+   * reportes sin confirmar, que dejan de contar al vencer la ventana (CON-07). Cada par va en su
+   * propia transacción y un fallo se registra sin cortar el resto. Devuelve cuántos pares revisó.
+   */
+  async reevaluarVencidos(): Promise<number> {
+    const pares = await this.db
+      .select({ sectorId: estadoSector.sectorId, tipoServicio: estadoSector.tipoServicio })
+      .from(estadoSector)
+      .where(gt(estadoSector.reportesSinConfirmar, 0));
+    for (const { sectorId, tipoServicio } of pares) {
+      try {
+        await this.db.transaction((tx) => this.reevaluar(tx, sectorId, tipoServicio));
+      } catch (e) {
+        this.log.error(
+          `No se pudo reevaluar el sector ${sectorId} (${tipoServicio}): ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+    }
+    return pares.length;
+  }
+
+  /**
+   * Recálculo al leer (PLAN §6.3): si el par puede tener un estado viejo (muestra reportes sin
+   * confirmar), lo reevalúa. Sirve cuando el cron no corrió (Render gratis se duerme).
+   */
+  async refrescarSiViejo(sectorId: number, tipoServicio: TipoServicio): Promise<void> {
+    const [actual] = await this.db
+      .select({ sinConfirmar: estadoSector.reportesSinConfirmar })
+      .from(estadoSector)
+      .where(and(eq(estadoSector.sectorId, sectorId), eq(estadoSector.tipoServicio, tipoServicio)))
+      .limit(1);
+    if (!actual || actual.sinConfirmar === 0) return;
+    await this.db.transaction((tx) => this.reevaluar(tx, sectorId, tipoServicio));
+  }
 
   /** Recalcula el estado del par (sector, servicio): abre o cierra el evento y actualiza `estado_sector`. */
   async reevaluar(tx: Transaccion, sectorId: number, tipoServicio: TipoServicio): Promise<void> {

@@ -1,5 +1,5 @@
 import { plainToInstance, Transform } from 'class-transformer';
-import { IsInt, IsString, IsUrl, Max, Min, validateSync } from 'class-validator';
+import { IsBoolean, IsInt, IsString, IsUrl, Max, Min, validateSync } from 'class-validator';
 import {
   CONSENSO_N_POR_DEFECTO,
   CONSENSO_VENTANA_MIN_POR_DEFECTO,
@@ -41,6 +41,11 @@ export class Env {
   @IsInt() @Min(1) @aEntero() REPORTE_MAX_ANTIGUEDAD_DIAS: number =
     REPORTE_MAX_ANTIGUEDAD_DIAS_POR_DEFECTO;
   @IsInt() @Min(1) @aEntero() REPORTE_VENCE_HORAS: number = REPORTE_VENCE_HORAS_POR_DEFECTO;
+
+  /** Activa el cron de las ventanas de consenso (T-033). Los tests lo apagan y lo invocan a mano. */
+  @IsBoolean()
+  @Transform(({ value }) => (value === '' || value == null ? undefined : String(value) !== 'false'))
+  CRON_ACTIVO: boolean = true;
 }
 
 /** Para `ConfigModule.forRoot({ validate })`. */
