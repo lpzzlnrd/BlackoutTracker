@@ -8,6 +8,7 @@
     "build": "nest build",
     "dev": "pnpm --filter @blackout/shared build && nest start --watch",
     "start": "node dist/main.js",
+    "openapi:export": "ts-node --transpile-only scripts/exportar-openapi.ts",
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:int": "jest --config test/jest-e2e.config.ts --runInBand",

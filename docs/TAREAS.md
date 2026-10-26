@@ -6,11 +6,11 @@
 
 ## Estado
 
-- **Fase actual:** 4-5. Fases 0 a 3 hechas en el backend salvo T-007 (Supabase, la hace Leonardo) y T-035 (humo de Realtime, espera a T-007). De la fase 4 están T-040, T-041 y T-042; de la fase 5, T-051 en parte.
-- **Próxima tarea:** el resto de T-051, T-054, T-044 (el importador; los datos de campo aún no existen), T-060 y T-061.
+- **Fase actual:** 5-6. Fases 0 a 4 hechas en el backend salvo T-007 (Supabase, la hace Leonardo) y T-035 (humo de Realtime, espera a T-007); T-044 tiene el importador, pero no los datos de campo. De la fase 5 están T-050 y T-054, y T-051 en parte; de la fase 6, T-060.
+- **Próxima tarea:** T-061 (demo: seed con `data/campo.ejemplo.csv` y checklist) y el resto de T-051 (`/security-review`; la prueba de RLS con la clave anon espera a T-007). Después, T-052 (cobertura).
 - **Bloqueos:** T-007 (Supabase staging) bloquea T-035 y la parte de RLS con la clave anon de T-051; T-044 espera los datos de la campaña; T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
-- **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015 a D-022 (D-023 va en el PR #30 del frontend) y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
-- **Última actualización:** 2026-10-25, integración de los PR #19 a #29 (T-030 a T-034, T-040 a T-042, T-011, T-014, T-016 y T-051 parcial) en la rama `chore/integracion-pr-19-29`.
+- **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015 a D-022, D-024 a D-026 (D-023 va en el PR #30 del frontend) y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
+- **Última actualización:** 2026-10-25. Pila de PR a `staging`, a mergear en orden: #31 (integra los PR #19 a #29), #32 T-043, #33 T-050, #34 T-054, #35 T-044 y #36 T-060. #30 (F-001, frontend) va aparte.
 
 ---
 
@@ -169,7 +169,8 @@
 
 ## Fase 6 — Documentación y defensa (S14–S15) → `v1.0.0`
 
-- [ ] **T-060 · Documentación técnica** (L)
+- [x] **T-060 · Documentación técnica** (L)
   README (cómo correrlo), `docs/arquitectura.md` (diagrama + TGS ↔ módulos), OpenAPI exportado (`docs/openapi.json`) y `docs/trazabilidad.md`, generado por un script que busca los IDs en los tests.
+  *Nota (hecha):* `README.md`; `docs/arquitectura.md` con diagramas Mermaid (componentes, entidad-relación y secuencia del inicio), módulos de la API, flujo de un reporte (consenso, restablecimiento, cron y vencimiento), estimación, contrato offline, privacidad, seguridad, tabla TGS ↔ módulos y despliegue; `pnpm docs:openapi` (`apps/api/scripts/exportar-openapi.ts`, sin base ni puerto) y `pnpm docs:trazabilidad` (`scripts/trazabilidad.mjs`, con tests `node --test` dentro de `pnpm test`) (D-026). Va al final de la pila de PR #31 a #35: `docs/openapi.json` (10 rutas) y `docs/trazabilidad.md` (31 de 53 casos con test; los que faltan son de la interfaz, de aceptación o manuales) se generaron con todo eso dentro. Se regeneran con `pnpm docs:openapi && pnpm docs:trazabilidad` cada vez que cambie una ruta o un test.
 - [ ] **T-061 · Preparar la demo** (L)
   Seed de demo (sectores con historial suficiente para mostrar "aprox. X h según n cortes"), checklist previo a la defensa (despausar Supabase, despertar Render, cuentas de demo) y un tag `v1.0.0`.

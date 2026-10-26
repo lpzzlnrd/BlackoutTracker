@@ -14,7 +14,7 @@
     "lint": "eslint . --max-warnings 0 && prettier --check .",
     "format": "prettier --write .",
     "typecheck": "pnpm -r --if-present run typecheck",
-    "test": "pnpm -r --if-present run test",
+    "test": "pnpm -r --if-present run test && node --test \"scripts/*.test.mjs\"",
     "test:int": "pnpm -r --if-present run test:int",
     "db:up": "docker compose up -d --wait db",
     "db:down": "docker compose down",
@@ -23,7 +23,9 @@
     "db:migrate": "pnpm --filter @blackout/api db:migrate",
     "db:studio": "pnpm --filter @blackout/api db:studio",
     "db:seed": "pnpm --filter @blackout/api db:seed",
-    "db:seed:campo": "pnpm --filter @blackout/api db:seed:campo"
+    "db:seed:campo": "pnpm --filter @blackout/api db:seed:campo",
+    "docs:openapi": "pnpm --filter @blackout/api openapi:export",
+    "docs:trazabilidad": "node scripts/trazabilidad.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -30,7 +30,9 @@ const DESCRIPCION_API = [
 ].join('\n');
 
 /** Configuración común de `main.ts` y de los e2e: así las pruebas ejercitan lo mismo que producción. */
-export function configurarApp(app: INestApplication): void {
+export function configurarApp(
+  app: INestApplication,
+): ReturnType<typeof SwaggerModule.createDocument> {
   const config = app.get<ConfigService<Env, true>>(ConfigService);
 
   const proxies = config.get('TRUST_PROXY', { infer: true });
@@ -68,4 +70,6 @@ export function configurarApp(app: INestApplication): void {
       .build(),
   );
   SwaggerModule.setup('api/docs', app, documento);
+  // Lo usa scripts/exportar-openapi.ts para escribir docs/openapi.json (T-060).
+  return documento;
 }
