@@ -1,12 +1,16 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { HistorialDto } from '@blackout/shared';
+import { THROTTLE_LECTURA } from '../comun/limites';
 import { HistorialQueryDto, HistorialRespuesta, SectorParamDto } from './dto/historial.dto';
 import { HistorialService } from './historial.service';
 
 // Solo JWT (guard global): no pide perfil de residente, porque no devuelve nada de residentes.
 @ApiTags('sectores')
 @ApiBearerAuth()
+@Throttle(THROTTLE_LECTURA)
+@ApiResponse({ status: 429, description: 'DEMASIADAS_SOLICITUDES' })
 @Controller('sectores')
 export class HistorialController {
   constructor(private readonly historial: HistorialService) {}
