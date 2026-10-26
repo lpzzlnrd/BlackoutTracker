@@ -10,6 +10,7 @@ import { EstimacionModule } from './estimacion/estimacion.module';
 import { HistorialModule } from './historial/historial.module';
 import { ReportesModule } from './reportes/reportes.module';
 import { ResidentesModule } from './residentes/residentes.module';
+import { ResumenModule } from './resumen/resumen.module';
 import { SaludController } from './salud/salud.controller';
 import { SectoresModule } from './sectores/sectores.module';
 
@@ -26,6 +27,7 @@ import { SectoresModule } from './sectores/sectores.module';
     HistorialModule,
     EstimacionModule,
     SectoresModule,
+    ResumenModule,
   ],
   controllers: [SaludController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
