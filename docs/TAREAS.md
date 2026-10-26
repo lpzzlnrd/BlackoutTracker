@@ -131,11 +131,13 @@
 
 ## Fase 4 — Offline (servidor) y estadística (S8–S9) → `v0.4.0`
 
-- [ ] **T-040 · Contrato de sincronización** (L) — dep: T-022
+- [x] **T-040 · Contrato de sincronización** (L) — dep: T-022
   Implementar y probar la tabla de códigos de §5 del plan, y documentarla en Swagger.
   *Tests e2e:* OFF-04 (inicio y cierre enviados en orden, el ciclo queda completo), el cierre antes que el inicio → 404 y luego, tras el inicio, el cierre → 200, y OFF-05 con un corte simulado (la petición llega a la BD pero el cliente no recibe la respuesta, y reintenta).
 - [x] **T-041 · `estadistica.puro.ts`** (L) — dep: T-002
   `estimacion/estadistica.puro.ts`: `mediana`, `cuartiles` y `resumir(datos, nMin)`. Configura el `coverageThreshold` de `src/estimacion/`.
+  *Nota (hecha):* la tabla es `accionDeRespuesta(estado | null, 'inicio' | 'cierre')` en `packages/shared/src/sincronizacion.ts` (función pura, la usará también la cola Dexie del front): 2xx → `exito`; sin respuesta, 5xx y 429 → `reintentar`; 404 en un cierre → `reintentar` (en un inicio, permanente); 401 → `refrescar_sesion`; el resto de los 4xx (400, 409, 422, 403…) → `error_permanente`. Swagger lleva la tabla en la descripción de la API y los 400, 401 y 429 en `reportes`. El e2e `test/sincronizacion.e2e-spec.ts` vacía una cola simulada con esa función (incluido el cierre por delante del inicio), corta el socket cuando el cambio ya está en la base y reintenta (OFF-05, inicio y cierre), y comprueba que las respuestas reales de la API caen en la acción que fija la tabla. No cambió el comportamiento de los endpoints.
+  `mediana`, `cuartiles` y `resumir(n_min)`. Configura el `coverageThreshold` de `src/estimacion/`.
   *Tests:* EST-01, EST-02, EST-03 (sin umbral), EST-04 (n = 0 y n = n_min − 1 → insuficiente; n = n_min → cifra).
 - [x] **T-042 · `GET /estimaciones`** (L) — dep: T-032, T-041
   SQL con `percentile_cont` sobre los eventos cerrados (D-008). *Tests (integración):* EST-05 (agua y luz separadas), EST-06 (se cierra un evento → la mediana cambia) y SQL ≡ TS en el mismo dataset.
