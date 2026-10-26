@@ -11,6 +11,7 @@ import { HistorialModule } from './historial/historial.module';
 import { ReportesModule } from './reportes/reportes.module';
 import { ResidentesModule } from './residentes/residentes.module';
 import { SaludController } from './salud/salud.controller';
+import { SectoresModule } from './sectores/sectores.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { SaludController } from './salud/salud.controller';
     ReportesModule,
     HistorialModule,
     EstimacionModule,
+    SectoresModule,
   ],
   controllers: [SaludController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
