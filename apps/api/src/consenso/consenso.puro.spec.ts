@@ -224,8 +224,20 @@ describe('evaluarRestablecimiento', () => {
     expect(r).toEqual({ cerrado: true, finEvento: hace(5), motivo: 'sin_abiertos' });
   });
 
-  it('sin cierres no se cierra por "sin abiertos" (no hay nadie que haya dicho que volvió)', () => {
-    expect(volvio([], 0).cerrado).toBe(false);
+  it('T-050: sin cierres ni reportes vivos (todos vencieron) se cierra como incompleto, sin fin', () => {
+    expect(volvio([], 0)).toEqual({ cerrado: true, finEvento: null, motivo: 'incompleto' });
+  });
+
+  it('T-050: los cierres anteriores al evento no cuentan; sin otros, el ciclo es incompleto', () => {
+    expect(volvio([cerr('a', 200)], 0)).toEqual({
+      cerrado: true,
+      finEvento: null,
+      motivo: 'incompleto',
+    });
+  });
+
+  it('T-050: con algún reporte vivo y sin cierres no hay nada que cerrar', () => {
+    expect(volvio([], 1)).toEqual({ cerrado: false, finEvento: null, motivo: null });
   });
 
   it('el consenso de N tiene prioridad sobre "sin abiertos" y usa solo los de la ventana', () => {

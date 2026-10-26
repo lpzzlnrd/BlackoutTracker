@@ -120,17 +120,26 @@ export interface ParametrosRestablecimiento {
   ventanaMin: number;
   /** Hora de inicio del evento abierto: los cierres anteriores a ella no pertenecen a este corte. */
   inicioEvento: Date;
-  /** Reportes que siguen abiertos en el (sector, servicio): quienes aún no dicen que volvió. */
+  /**
+   * Reportes que siguen abiertos y sin vencer en el (sector, servicio): quienes aún no dicen que
+   * volvió. Los vencidos no cuentan (D-015).
+   */
   reportesAbiertos: number;
 }
 
-export type MotivoCierre = 'consenso' | 'sin_abiertos';
+export type MotivoCierre = 'consenso' | 'sin_abiertos' | 'incompleto';
 
 export interface ResultadoRestablecimiento {
   cerrado: boolean;
-  /** Mediana de los `fin_en` que dispararon el cierre (CON-06, D-007); `null` si el evento sigue abierto. */
+  /**
+   * Mediana de los `fin_en` que dispararon el cierre (CON-06, D-007); `null` si el evento sigue
+   * abierto o si se cerró como incompleto (nadie dijo cuándo volvió).
+   */
   finEvento: Date | null;
-  /** Por qué se cerró: N cierres en una ventana, o ya no queda ningún reporte abierto. */
+  /**
+   * Por qué se cerró: N cierres en una ventana, ya no queda ningún reporte abierto, o todos los
+   * reportes vencieron sin ningún cierre (ciclo incompleto, T-050).
+   */
   motivo: MotivoCierre | null;
 }
 
@@ -140,6 +149,10 @@ export interface ResultadoRestablecimiento {
  * ningún reporte abierto y hay al menos un cierre: todos los que reportaron dijeron que volvió.
  * Eso evita que un evento quede abierto para siempre cuando solo hubo N reportantes y cerraron en
  * momentos distintos. Un residente cuenta una vez, con su cierre más antiguo (CON-04).
+ *
+ * Si no queda ningún reporte vivo y nadie cerró, todos vencieron (D-015): el evento termina como
+ * **incompleto** y sin hora de fin (T-050, D-024). Inventarle un fin metería en la mediana una
+ * duración que nadie observó; dejarlo abierto sumaría el próximo corte a este.
  */
 export function evaluarRestablecimiento(
   cerrados: readonly ReporteCerrado[],
@@ -162,6 +175,9 @@ export function evaluarRestablecimiento(
       finEvento: medianaDeHoras(unicas.map((m) => m.hora)),
       motivo: 'sin_abiertos',
     };
+  }
+  if (reportesAbiertos === 0) {
+    return { cerrado: true, finEvento: null, motivo: 'incompleto' };
   }
   return { cerrado: false, finEvento: null, motivo: null };
 }
