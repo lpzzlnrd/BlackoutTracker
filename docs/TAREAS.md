@@ -160,8 +160,9 @@
   Consenso y estimación en ≥ 70 % (esperado ≫ 70), cerrar los huecos y llevar el reporte de cobertura al CI como artefacto.
 - [ ] **T-053 · Producción** (L, con confirmación de Leonardo)
   Proyecto Supabase de prod, migraciones, seed de sectores reales, API en Render (o Coolify), variables de entorno, health check, keep-alive y `docs/despliegue.md`.
-- [ ] **T-054 · Apoyo a NF-04** (L)
+- [x] **T-054 · Apoyo a NF-04** (L)
   Un script que simula 10 min de red intermitente contra la API (reintentos aleatorios del mismo id): 0 duplicados y 0 pérdidas.
+  *Nota (hecha):* `apps/api/scripts/red-intermitente/`: un proxy HTTP local (`proxy.ts`) que, al azar, corta la petición antes de llegar, a mitad del cuerpo o **después de que la API guardó** (la respuesta se pierde: OFF-05 de verdad), la demora más allá del timeout del cliente y tira la red entera por ratos; residentes simulados (`simulacion.ts`) con su cola cronológica de inicios y cierres de agua y luz (sin violar REP-05), que reintentan con el mismo id y la misma `ocurridoEn` hasta el 200, reenvían a veces algo ya confirmado y drenan la cola cuando la red vuelve; y `verificacion.ts`, que compara con `reportes`: 0 pérdidas, 0 duplicados (ids no generados o el mismo evento dos veces) y la hora del evento intacta (OFF-03). *Versión corta:* `test/red-intermitente.e2e-spec.ts` (25 s en `test:int`, `RED_DURACION_S` la cambia; ≈ 210 reportes, ≈ 1000 peticiones, ≈ 120 cortadas después de guardar) y un test del verificador. *Versión larga (NF-04, 10 min):* `pnpm --filter api red:intermitente` con `RED_API_URL`, `RED_TOKENS` (residentes ya registrados y sin abiertos) y `DATABASE_URL`; el encabezado del script explica las opciones. Para T-053, con 3-4 cuentas de prueba (el throttle por IP de T-051 aplica; los 429 y 5xx se reintentan).
 - [ ] **T-055 · Soporte en las pruebas de campo** (L) — corrección de defectos según la severidad del plan de pruebas.
 - [ ] **F-050..F-054 · Filtro agua/luz, Playwright, Lighthouse, pruebas con residentes** (F)
 
