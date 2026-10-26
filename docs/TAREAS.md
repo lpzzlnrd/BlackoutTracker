@@ -6,16 +6,11 @@
 
 ## Estado
 
-- **Fase actual:** 3. Consenso (T-030 a T-033 hechas; sigue T-034). Fase 2 (reportes) hecha: T-020 a T-023. Quedan de fases anteriores T-007 (Supabase, la hace Leonardo), T-011 (RLS), T-014 (`GET /sectores`) y T-016 (barrido de privacidad)
-- **Fase actual:** 3. Consenso (T-030 a T-032 y T-034 hechas; sigue T-033). Fase 2 (reportes) hecha: T-020 a T-023. Quedan de fases anteriores T-007 (Supabase, la hace Leonardo), T-011 (RLS), T-014 (`GET /sectores`) y T-016 (barrido de privacidad)
-- **Próxima tarea:** T-030 (consenso de inicio, puro: depende solo de T-002), junto con T-011, T-014 y T-016 pendientes
-- **Fase actual:** 3. Consenso (T-030 a T-032 hechas; siguen T-033 y T-034) y, adelantada de la fase 4, la estimación (T-041 y T-042 hechas; sigue T-043, que espera a T-034). Fase 2 (reportes) hecha: T-020 a T-023. Quedan de fases anteriores T-007 (Supabase, la hace Leonardo), T-011 (RLS), T-014 (`GET /sectores`) y T-016 (barrido de privacidad)
-- **Próxima tarea:** T-033 y T-034 (consenso: cron e historial), junto con T-011, T-014 y T-016 pendientes
-- **Fase actual:** 2. Ciclo de reportes (backend hecho: T-020 a T-023). Quedan de fases anteriores T-007 (Supabase, la hace Leonardo), T-011 (RLS) y T-016 (barrido de privacidad)
-- **Próxima tarea:** T-030 (consenso de inicio, puro: depende solo de T-002), junto con T-011 y T-016 pendientes
-- **Bloqueos:** ninguno para la fase 0. T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
-- **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015, D-016, D-017, D-018 y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
-- **Última actualización:** 2026-10-11, T-001 y T-002 hechas; T-003, T-004, T-005, T-006, T-010, T-012, T-013, T-015, T-020, T-021, T-022 y T-023 hechas (ramas `feat/T-003-esqueleto-api`, `feat/T-004-postgis-local`, `feat/T-005-drizzle`, `feat/T-010-esquema` y `feat/T-012-sectores-seed` y `feat/T-013-guard-jwt` y `feat/T-015-registro` y `feat/T-020-tiempo-puro` y `feat/T-021-reporte-inicio` y `feat/T-022-reporte-cierre` y `feat/T-023-reportes-mios`). El código está en worktrees apilados, sin commitear (ver el mensaje de cierre de la sesión)
+- **Fase actual:** 4-5. Fases 0 a 3 hechas en el backend salvo T-007 (Supabase, la hace Leonardo) y T-035 (humo de Realtime, espera a T-007). De la fase 4 están T-040, T-041 y T-042; de la fase 5, T-051 en parte.
+- **Próxima tarea:** T-043 (resumen) y T-050 (ciclos incompletos), en curso en sus ramas; después, el resto de T-051, T-054, T-044 (el importador; los datos de campo aún no existen), T-060 y T-061.
+- **Bloqueos:** T-007 (Supabase staging) bloquea T-035 y la parte de RLS con la clave anon de T-051; T-044 espera los datos de la campaña; T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
+- **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015 a D-022 (D-023 va en el PR #30 del frontend) y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
+- **Última actualización:** 2026-10-25, integración de los PR #19 a #29 (T-030 a T-034, T-040 a T-042, T-011, T-014, T-016 y T-051 parcial) en la rama `chore/integracion-pr-19-29`.
 
 ---
 
@@ -156,9 +151,9 @@
 
 - [ ] **T-050 · Ciclos incompletos** (L) — dep: T-033
   El cron marca `vencido` los reportes abiertos hace más de `REPORTE_VENCE_HORAS` (D-015). Los vencidos no cuentan para el consenso ni para REP-05. Se revisan los eventos abiertos que se quedaron sin reportes vivos.
-- [ ] **T-051 · Seguridad** (L)
+- [~] **T-051 · Seguridad** (L)
   Throttle por ruta, límite de tamaño del body, CORS estricto, `pnpm audit`, `/security-review`, NF-06 completo (T-016 ampliado) y RLS contra staging con la clave anon.
-  *Nota (parcial):* hechos el throttle por ruta, el límite del body, el CORS estricto y `pnpm audit` (sin avisos altos). Faltan `/security-review`, NF-06 completo (espera a T-016) y la prueba de RLS contra staging con la clave anon (esperan a T-007 y T-011).
+  *Nota (parcial):* hechos el throttle por ruta, el límite del body, el CORS estricto y `pnpm audit` (sin avisos altos). Al integrar T-016 con T-014, T-034 y T-042, el barrido NF-06 cubre también `GET /sectores` (los polígonos de los sectores son públicos: solo esas claves `geometry`/`coordinates` quedan exentas; el chequeo por valor sigue), `GET /sectores/:id/historial` y `GET /estimaciones`, con sus errores 404 y 400. Faltan `/security-review` y la prueba de RLS contra staging con la clave anon (esperan a T-007).
 - [ ] **T-052 · Cobertura y regresión** (L)
   Consenso y estimación en ≥ 70 % (esperado ≫ 70), cerrar los huecos y llevar el reporte de cobertura al CI como artefacto.
 - [ ] **T-053 · Producción** (L, con confirmación de Leonardo)

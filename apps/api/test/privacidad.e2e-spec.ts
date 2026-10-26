@@ -87,8 +87,8 @@ describe('Barrido de privacidad (NF-06, T-016)', () => {
 
   /**
    * Un caso por cada operación publicada, más los errores que podrían repetir datos del cuerpo.
-   * Cuando llegue una ruta nueva (T-014 `/sectores`, T-034 `/sectores/:id/historial`, T-042…),
-   * se agrega aquí: el test «cubre todas las rutas» falla hasta que se haga.
+   * Cuando llega una ruta nueva se agrega aquí: el test «cubre todas las rutas» falla hasta que
+   * se haga (T-051 sumó `/sectores`, `/sectores/:id/historial` y `/estimaciones`).
    */
   const casos = async (): Promise<Caso[]> => {
     const a = await sembrar(A, 1);
@@ -141,8 +141,35 @@ describe('Barrido de privacidad (NF-06, T-016)', () => {
         estado: 200,
         llamada: () => llamar('get', '/api/reportes/mios', a.token),
       },
+      {
+        swagger: 'GET /api/sectores',
+        estado: 200,
+        llamada: () => llamar('get', '/api/sectores', a.token),
+      },
+      {
+        swagger: 'GET /api/sectores/{id}/historial',
+        estado: 200,
+        llamada: () => llamar('get', '/api/sectores/4/historial', a.token),
+      },
+      {
+        swagger: 'GET /api/estimaciones',
+        estado: 200,
+        llamada: () => llamar('get', '/api/estimaciones?sectorId=1&tipoServicio=agua', a.token),
+      },
     ];
   };
+
+  /**
+   * `GET /sectores` devuelve los polígonos de los sectores en GeoJSON: son límites públicos de la
+   * urbanización, no ubicaciones de residentes (D-005). Solo esas claves quedan exentas; el chequeo
+   * por valor (las coordenadas de los residentes) sigue aplicándose a toda la respuesta.
+   */
+  const POLIGONO_DE_SECTOR = /^\$\.features\[\d+\]\.geometry(\.coordinates)?$/;
+  const SCHEMA_DE_SECTOR = /^GET \/api\/sectores 200: SectoresGeoJsonRespuesta\.SectorFeature\./;
+  const clavesDe = (caso: string, cuerpo: unknown) =>
+    clavesProhibidas(cuerpo).filter(
+      (c) => !(caso === 'GET /api/sectores' && POLIGONO_DE_SECTOR.test(c)),
+    );
 
   const documento = (): OpenAPIObject =>
     SwaggerModule.createDocument(ctx.app, new DocumentBuilder().build());
@@ -154,7 +181,7 @@ describe('Barrido de privacidad (NF-06, T-016)', () => {
         caso: caso.swagger,
         estado: caso.estado,
       });
-      expect({ caso: caso.swagger, claves: clavesProhibidas(res.body) }).toEqual({
+      expect({ caso: caso.swagger, claves: clavesDe(caso.swagger, res.body) }).toEqual({
         caso: caso.swagger,
         claves: [],
       });
@@ -212,6 +239,16 @@ describe('Barrido de privacidad (NF-06, T-016)', () => {
           llamar('patch', `/api/reportes/${randomUUID()}/cierre`, a.token, {
             ocurridoEn: ctx.hace(-5),
           }),
+      ],
+      [
+        '404 historial de un sector inexistente',
+        404,
+        () => llamar('get', '/api/sectores/999/historial', a.token),
+      ],
+      [
+        '400 estimación con servicio inválido',
+        400,
+        () => llamar('get', '/api/estimaciones?sectorId=1&tipoServicio=gas', a.token),
       ],
       ['401 sin token', 401, () => llamar('get', '/api/residentes/me')],
       ['404 ruta inexistente', 404, () => llamar('get', '/api/residentes')],
@@ -277,7 +314,8 @@ describe('Barrido de privacidad (NF-06, T-016)', () => {
           for (const medio of Object.values(contenido ?? {})) {
             vistos.clear();
             for (const p of propiedadesDe(medio.schema)) {
-              infracciones.push(`${metodo.toUpperCase()} ${ruta} ${estado}: ${p}`);
+              const infraccion = `${metodo.toUpperCase()} ${ruta} ${estado}: ${p}`;
+              if (!SCHEMA_DE_SECTOR.test(infraccion)) infracciones.push(infraccion);
             }
           }
         }
