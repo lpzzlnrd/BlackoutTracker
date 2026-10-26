@@ -33,6 +33,16 @@ describe('seguridad HTTP (T-051)', () => {
     expect(res.body).toMatchObject({ statusCode: 413, codigo: 'DATOS_INVALIDOS' });
   });
 
+  it('un formulario (urlencoded) de más de 16 kB también es un 413: no salta el límite', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/api/registro/validar-pin')
+      .set('X-Forwarded-For', ip())
+      .type('form')
+      .send(`lat=10.2&lng=-68&relleno=${'x'.repeat(20_000)}`)
+      .expect(413);
+    expect(res.body).toMatchObject({ statusCode: 413, codigo: 'DATOS_INVALIDOS' });
+  });
+
   it('un JSON mal formado es un 400, no un 500', async () => {
     const res = await request(app.getHttpServer())
       .post('/api/registro/validar-pin')

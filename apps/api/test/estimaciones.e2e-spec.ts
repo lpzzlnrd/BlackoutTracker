@@ -141,4 +141,13 @@ describe('Estimación estadística — GET /estimaciones (T-042)', () => {
     await ctx.get('/api/estimaciones?tipoServicio=agua', token).expect(400);
     await estimar(1, 'agua', false).expect(401);
   });
+
+  it('T-051: un sectorId fuera del rango de smallint es un 400, no un 500', async () => {
+    for (const id of [32_768, 10_000_000_000]) {
+      const res = await ctx
+        .get(`/api/estimaciones?sectorId=${id}&tipoServicio=agua`, token)
+        .expect(400);
+      expect(res.body).toMatchObject({ codigo: 'DATOS_INVALIDOS' });
+    }
+  });
 });
