@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "types": ["vite/client", "vite-plugin-pwa/client"],
+    "paths": {
+      "@docs/*": ["../../docs/*"],
+      "@data/*": ["../../data/*"]
+    }
+  },
+  "include": ["src", "*.ts"],
+  "exclude": ["src/pwa/sw.ts"]
+}

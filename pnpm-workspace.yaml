@@ -10,8 +10,14 @@ catalog:
 # pnpm 10 no ejecuta los scripts de instalación de las dependencias si no se autorizan. El de esbuild
 # solo cambia su shim de JS por el binario nativo (arranque más rápido): tsup y Vite funcionan igual
 # sin él, así que se ignora de forma explícita y no corre código de terceros en la instalación.
+#
+# Lo mismo con @parcel/watcher y unrs-resolver (binarios nativos opcionales: sus paquetes de
+# plataforma ya los traen compilados) y con @scarf/scarf (solo telemetría de instalación).
 ignoredBuiltDependencies:
+  - '@parcel/watcher'
+  - '@scarf/scarf'
   - esbuild
+  - unrs-resolver
 
 # Dependencias transitivas de @nestjs/platform-express con avisos altos de DoS (body-parser
 # GHSA-27r3-jxmh-p828, multer GHSA-q7qp-rjg7-q26m). Se suben a la versión parcheada; se pueden
