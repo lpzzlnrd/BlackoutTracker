@@ -1,4 +1,6 @@
 import { randomUUID } from 'node:crypto';
+import { ConsensoCron } from '../src/consenso/consenso.cron';
+import { ConsensoService } from '../src/consenso/consenso.service';
 import { Contexto, type ResidentePrueba } from './contexto';
 
 describe('Consenso de sector — ConsensoService (T-032)', () => {
@@ -124,6 +126,51 @@ describe('Consenso de sector — ConsensoService (T-032)', () => {
     await iniciar(b, 'electricidad', -40);
     await iniciar(c, 'electricidad', -10);
     expect(await eventos()).toHaveLength(0);
+  });
+
+  it('CON-07: al vencer la ventana, reportes_sin_confirmar vuelve a 0 (cron, reloj controlado)', async () => {
+    const [a, b] = await vecinos(2);
+    await iniciar(a, 'electricidad', -10);
+    await iniciar(b, 'electricidad', -8);
+    expect((await estado(1, 'electricidad')).reportes_sin_confirmar).toBe(2);
+
+    // Dentro de la ventana (30 min) el barrido no cambia nada.
+    ctx.ahora = new Date(ctx.ahora.getTime() + 15 * 60_000);
+    await ctx.app.get(ConsensoCron).ejecutar();
+    expect((await estado(1, 'electricidad')).reportes_sin_confirmar).toBe(2);
+
+    // Pasada la ventana, los reportes dejan de contar. Sin evento ni cambio de estado.
+    ctx.ahora = new Date(ctx.ahora.getTime() + 20 * 60_000);
+    await ctx.app.get(ConsensoCron).ejecutar();
+    expect(await estado(1, 'electricidad')).toMatchObject({
+      estado: 'con_servicio',
+      reportes_sin_confirmar: 0,
+      evento_id: null,
+    });
+    expect(await eventos()).toHaveLength(0);
+  });
+
+  it('CON-07: leer un par con estado viejo lo recalcula (sin depender del cron)', async () => {
+    const [a] = await vecinos(1);
+    await iniciar(a, 'agua', -10);
+    expect((await estado(1, 'agua')).reportes_sin_confirmar).toBe(1);
+
+    // Ventana de agua: 180 min.
+    ctx.ahora = new Date(ctx.ahora.getTime() + 200 * 60_000);
+    await ctx.app.get(ConsensoService).refrescarSiViejo(1, 'agua');
+    expect((await estado(1, 'agua')).reportes_sin_confirmar).toBe(0);
+  });
+
+  it('CON-07: el barrido no toca los pares sin reportes sin confirmar', async () => {
+    const [a, b, c] = await vecinos(3);
+    await iniciar(a, 'electricidad', -20);
+    await iniciar(b, 'electricidad', -15);
+    await iniciar(c, 'electricidad', -10);
+    const antes = await estado(1, 'electricidad');
+
+    ctx.ahora = new Date(ctx.ahora.getTime() + 60 * 60_000);
+    expect(await ctx.app.get(ConsensoService).reevaluarVencidos()).toBe(0);
+    expect(await estado(1, 'electricidad')).toEqual(antes);
   });
 
   it('CON-06: N cierres confirman el restablecimiento y cierran el evento', async () => {
