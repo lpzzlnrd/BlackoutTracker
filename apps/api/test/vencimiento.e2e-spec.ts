@@ -120,6 +120,21 @@ describe('Ciclos incompletos: reportes vencidos (T-050, D-015)', () => {
     });
   });
 
+  it('VIS-04: el resumen del sector no lista un ciclo incompleto como corte en curso', async () => {
+    const [a, b, c] = await vecinos(3);
+    await iniciar(a, 'electricidad', -20);
+    await iniciar(b, 'electricidad', -15);
+    await iniciar(c, 'electricidad', -10);
+    adelantar(49);
+    await barrer();
+
+    const res = await ctx.get('/api/sectores/1/resumen', a.token).expect(200);
+    const luz = res.body.servicios.find(
+      (s: { tipoServicio: string }) => s.tipoServicio === 'electricidad',
+    );
+    expect(luz).toMatchObject({ estado: 'con_servicio', desde: null, ultimosEventos: [] });
+  });
+
   it('EST-06: un ciclo incompleto no entra en el universo de la estimación (eventos con fin)', async () => {
     const [a, b, c] = await vecinos(3);
     await iniciar(a, 'agua', -20);

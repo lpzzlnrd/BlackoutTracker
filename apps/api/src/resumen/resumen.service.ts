@@ -63,8 +63,14 @@ export class ResumenService {
       this.db
         .select()
         .from(eventosSector)
+        // Un ciclo incompleto (T-050) no tiene fin ni duración: listarlo lo haría pasar por un corte
+        // en curso, así que el panel solo muestra los cerrados y el abierto de verdad.
         .where(
-          and(eq(eventosSector.sectorId, sectorId), eq(eventosSector.tipoServicio, tipoServicio)),
+          and(
+            eq(eventosSector.sectorId, sectorId),
+            eq(eventosSector.tipoServicio, tipoServicio),
+            eq(eventosSector.incompleto, false),
+          ),
         )
         .orderBy(desc(eventosSector.inicioEn), desc(eventosSector.id))
         .limit(RESUMEN_EVENTOS),

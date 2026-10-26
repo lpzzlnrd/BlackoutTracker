@@ -7,7 +7,7 @@
 ## Estado
 
 - **Fase actual:** 4-5. Fases 0 a 3 hechas en el backend salvo T-007 (Supabase, la hace Leonardo) y T-035 (humo de Realtime, espera a T-007). De la fase 4 están T-040, T-041 y T-042; de la fase 5, T-051 en parte.
-- **Próxima tarea:** T-050 (ciclos incompletos), en curso en su rama; después, el resto de T-051, T-054, T-044 (el importador; los datos de campo aún no existen), T-060 y T-061.
+- **Próxima tarea:** el resto de T-051, T-054, T-044 (el importador; los datos de campo aún no existen), T-060 y T-061.
 - **Bloqueos:** T-007 (Supabase staging) bloquea T-035 y la parte de RLS con la clave anon de T-051; T-044 espera los datos de la campaña; T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
 - **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015 a D-022 (D-023 va en el PR #30 del frontend) y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
 - **Última actualización:** 2026-10-25, integración de los PR #19 a #29 (T-030 a T-034, T-040 a T-042, T-011, T-014, T-016 y T-051 parcial) en la rama `chore/integracion-pr-19-29`.
