@@ -132,8 +132,8 @@
 - [ ] **T-040 · Contrato de sincronización** (L) — dep: T-022
   Implementar y probar la tabla de códigos de §5 del plan, y documentarla en Swagger.
   *Tests e2e:* OFF-04 (inicio y cierre enviados en orden, el ciclo queda completo), el cierre antes que el inicio → 404 y luego, tras el inicio, el cierre → 200, y OFF-05 con un corte simulado (la petición llega a la BD pero el cliente no recibe la respuesta, y reintenta).
-- [ ] **T-041 · `estadistica.puro.ts`** (L) — dep: T-002
-  `mediana`, `cuartiles` y `resumir(n_min)`. Configura el `coverageThreshold` de `src/estimacion/`.
+- [x] **T-041 · `estadistica.puro.ts`** (L) — dep: T-002
+  `estimacion/estadistica.puro.ts`: `mediana`, `cuartiles` y `resumir(datos, nMin)`. Configura el `coverageThreshold` de `src/estimacion/`.
   *Tests:* EST-01, EST-02, EST-03 (sin umbral), EST-04 (n = 0 y n = n_min − 1 → insuficiente; n = n_min → cifra).
 - [ ] **T-042 · `GET /estimaciones`** (L) — dep: T-032, T-041
   SQL con `percentile_cont` sobre los eventos cerrados (D-008). *Tests (integración):* EST-05 (agua y luz separadas), EST-06 (se cierra un evento → la mediana cambia) y SQL ≡ TS en el mismo dataset.

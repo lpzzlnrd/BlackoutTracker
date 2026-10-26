@@ -14,10 +14,11 @@ const config: Config = {
   testEnvironment: 'node',
   collectCoverageFrom: ['**/*.ts', '!main.ts', '!**/*.module.ts'],
   coverageDirectory: '../coverage',
-  // CLAUDE.md §7: cobertura ≥ 70 % en el consenso (y, cuando exista, en la estimación).
+  // CLAUDE.md §7: cobertura ≥ 70 % en el consenso y en la estimación.
   coverageThreshold: {
     global: {}, // el tipo de Jest lo exige; sin cifras no exige nada en el total
     './src/consenso/': { lines: 70, branches: 70 },
+    './src/estimacion/': { lines: 70, branches: 70 },
   },
 };
 
