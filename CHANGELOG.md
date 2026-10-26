@@ -9,6 +9,7 @@ Secciones por versión: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**
 
 ### Seguridad
 - Migración 0002: RLS activada en las cinco tablas, `REVOKE ALL` (tablas y secuencias) a `anon` y `authenticated`, lectura de `estado_sector` por una política `SELECT`, y `estado_sector` en la publicación `supabase_realtime` cuando existe. Los roles se crean solo en el PostGIS local. Con tests NF-06 y de la publicación (T-011).
+- Parte de T-051: límite de 16 kB al body JSON (413 con el formato de error y `DATOS_INVALIDOS`; un JSON mal formado es un 400 y no un 500), CORS estricto (solo los orígenes listados, métodos `GET/POST/PUT/PATCH`, cabeceras `Authorization` y `Content-Type`, sin credenciales, y `CORS_ORIGINS` rechaza `*`) y throttle propio en cada ruta de reportes y de residentes (`comun/limites.ts`). Con tests unitarios y e2e (`seguridad.e2e-spec.ts`) (T-051, parcial).
 - `overrides` en `pnpm-workspace.yaml` que suben `body-parser` a 2.4.0 y `multer` a 2.5.0, dependencias de `@nestjs/platform-express` con avisos altos de DoS (GHSA-27r3-jxmh-p828, GHSA-q7qp-rjg7-q26m). Con esto `pnpm audit --prod --audit-level high` vuelve a pasar (T-006).
 
 ### Añadido

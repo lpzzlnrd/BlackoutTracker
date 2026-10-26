@@ -1,8 +1,10 @@
 import { type INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { FiltroErrores } from './comun/filtro-errores';
+import { LIMITE_BODY } from './comun/limites';
 import type { Env } from './config/env';
 
 /** Texto de Swagger. La tabla de la cola es la de docs/PLAN.md §5 y la implementa `accionDeRespuesta`. */
@@ -36,12 +38,20 @@ export function configurarApp(app: INestApplication): void {
 
   app.setGlobalPrefix('api');
   app.use(helmet());
+  // Reemplaza el body parser por defecto (100 kB) por uno más estricto; el exceso es un 413.
+  (app as NestExpressApplication).useBodyParser('json', { limit: LIMITE_BODY });
+  // CORS estricto: solo los orígenes de la lista, los métodos y cabeceras que usa la API y sin
+  // cookies (la autenticación va en `Authorization`).
   app.enableCors({
     origin: config
       .get('CORS_ORIGINS', { infer: true })
       .split(',')
       .map((o) => o.trim())
       .filter(Boolean),
+    methods: ['GET', 'POST', 'PUT', 'PATCH'],
+    allowedHeaders: ['Authorization', 'Content-Type'],
+    credentials: false,
+    maxAge: 600,
   });
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),

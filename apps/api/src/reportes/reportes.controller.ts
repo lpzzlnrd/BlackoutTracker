@@ -10,7 +10,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { ReporteDto } from '@blackout/shared';
+import { THROTTLE_ESCRITURA, THROTTLE_LECTURA } from '../comun/limites';
 import { PerfilActual, RegistroGuard } from '../residentes/registro.guard';
 import type { PerfilResidente } from '../residentes/residentes.service';
 import { CerrarReporteDto } from './dto/cerrar-reporte.dto';
@@ -28,6 +30,7 @@ import { ReportesService } from './reportes.service';
 export class ReportesController {
   constructor(private readonly reportes: ReportesService) {}
 
+  @Throttle(THROTTLE_LECTURA)
   @Get('mios')
   @ApiOperation({
     summary: 'Mis reportes (para recuperar el estado en otro dispositivo)',
@@ -42,6 +45,7 @@ export class ReportesController {
     return this.reportes.mios(perfil, query.abiertos ?? false);
   }
 
+  @Throttle(THROTTLE_ESCRITURA)
   @Put(':id')
   @ApiOperation({
     summary: 'Inicio de un corte (idempotente)',
@@ -65,6 +69,7 @@ export class ReportesController {
     return this.reportes.iniciar(perfil, id, cuerpo);
   }
 
+  @Throttle(THROTTLE_ESCRITURA)
   @Patch(':id/cierre')
   @ApiOperation({
     summary: 'Cierre de un corte: volvió el servicio (idempotente)',

@@ -158,6 +158,7 @@
   El cron marca `vencido` los reportes abiertos hace más de `REPORTE_VENCE_HORAS` (D-015). Los vencidos no cuentan para el consenso ni para REP-05. Se revisan los eventos abiertos que se quedaron sin reportes vivos.
 - [ ] **T-051 · Seguridad** (L)
   Throttle por ruta, límite de tamaño del body, CORS estricto, `pnpm audit`, `/security-review`, NF-06 completo (T-016 ampliado) y RLS contra staging con la clave anon.
+  *Nota (parcial):* hechos el throttle por ruta, el límite del body, el CORS estricto y `pnpm audit` (sin avisos altos). Faltan `/security-review`, NF-06 completo (espera a T-016) y la prueba de RLS contra staging con la clave anon (esperan a T-007 y T-011).
 - [ ] **T-052 · Cobertura y regresión** (L)
   Consenso y estimación en ≥ 70 % (esperado ≫ 70), cerrar los huecos y llevar el reporte de cobertura al CI como artefacto.
 - [ ] **T-053 · Producción** (L, con confirmación de Leonardo)
