@@ -46,7 +46,9 @@ export async function importarCampo(
                  and fin_en = ${fin}::timestamptz) as igual
         from eventos_sector
         where sector_id = ${f.sectorId} and tipo_servicio = ${f.tipoServicio}
-          and tstzrange(inicio_en, coalesce(fin_en, 'infinity'))
+          -- Sin fin: el abierto llega hasta hoy (infinito); el incompleto (T-050), hasta que se
+          -- detectó que nadie lo cerró, para que no bloquee para siempre los ciclos posteriores.
+          and tstzrange(inicio_en, coalesce(fin_en, case when incompleto then restablecido_en end, 'infinity'))
               && tstzrange(${inicio}::timestamptz, ${fin}::timestamptz)
         order by igual desc, id
         limit 1`;

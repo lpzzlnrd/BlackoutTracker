@@ -112,6 +112,24 @@ describe('importación del dataset de campo (T-044)', () => {
     ]);
   });
 
+  it('un ciclo incompleto (T-050) solo bloquea hasta que se detectó, no los ciclos posteriores', async () => {
+    await bd.sql`
+      insert into eventos_sector
+        (sector_id, tipo_servicio, inicio_en, confirmado_en, restablecido_en, incompleto)
+      values (${ID_SECTOR.sureste}, 'agua', '2026-10-20T08:00Z', '2026-10-20T08:30Z',
+              '2026-10-22T09:00Z', true)`;
+    const res = await importarCampo(
+      bd.sql,
+      csv(
+        'Guaparo Sureste,agua,2026-10-21T10:00Z,2026-10-21T12:00Z',
+        'Guaparo Sureste,agua,2026-10-23T10:00Z,2026-10-23T12:00Z',
+      ),
+      AHORA,
+    );
+    expect(res.insertadas).toBe(1);
+    expect(res.invalidas.map((i) => i.linea)).toEqual([2]);
+  });
+
   it('sin sectores sembrados, falla con un mensaje claro y no guarda nada', async () => {
     await limpiar(bd.sql);
     await expect(importarCampo(bd.sql, EJEMPLO, AHORA)).rejects.toThrow(/db:seed/);
