@@ -6,11 +6,11 @@
 
 ## Estado
 
-- **Fase actual:** 2. Ciclo de reportes (backend hecho: T-020 a T-023). Quedan de fases anteriores T-007 (Supabase, la hace Leonardo), T-011 (RLS), T-014 (`GET /sectores`) y T-016 (barrido de privacidad)
-- **Próxima tarea:** T-030 (consenso de inicio, puro: depende solo de T-002), junto con T-011, T-014 y T-016 pendientes
-- **Bloqueos:** ninguno para la fase 0. T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
-- **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015, D-016, D-017, D-018 y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
-- **Última actualización:** 2026-10-11, T-001 y T-002 hechas; T-003, T-004, T-005, T-006, T-010, T-012, T-013, T-015, T-020, T-021, T-022 y T-023 hechas (ramas `feat/T-003-esqueleto-api`, `feat/T-004-postgis-local`, `feat/T-005-drizzle`, `feat/T-010-esquema` y `feat/T-012-sectores-seed` y `feat/T-013-guard-jwt` y `feat/T-015-registro` y `feat/T-020-tiempo-puro` y `feat/T-021-reporte-inicio` y `feat/T-022-reporte-cierre` y `feat/T-023-reportes-mios`). El código está en worktrees apilados, sin commitear (ver el mensaje de cierre de la sesión)
+- **Fase actual:** 4-5. Fases 0 a 3 hechas en el backend salvo T-007 (Supabase, la hace Leonardo) y T-035 (humo de Realtime, espera a T-007). De la fase 4 están T-040, T-041 y T-042; de la fase 5, T-051 en parte.
+- **Próxima tarea:** T-043 (resumen) y T-050 (ciclos incompletos), en curso en sus ramas; después, el resto de T-051, T-054, T-044 (el importador; los datos de campo aún no existen), T-060 y T-061.
+- **Bloqueos:** T-007 (Supabase staging) bloquea T-035 y la parte de RLS con la clave anon de T-051; T-044 espera los datos de la campaña; T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
+- **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015 a D-022 (D-023 va en el PR #30 del frontend) y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
+- **Última actualización:** 2026-10-25, integración de los PR #19 a #29 (T-030 a T-034, T-040 a T-042, T-011, T-014, T-016 y T-051 parcial) en la rama `chore/integracion-pr-19-29`.
 
 ---
 
@@ -65,9 +65,10 @@
   Las tablas, enums, checks e índices de §4 del plan (incluidos los únicos parciales de REP-05 y de evento abierto, y el GIST en `sectores.geom`).
   *Tests:* un insert que viola `fin_en < inicio_en` falla (REP-07 a nivel BD), y un segundo reporte abierto del mismo servicio falla (REP-05 a nivel BD).
   *Nota (hecha):* esquema en `src/db/schema/*.ts` y migración `0001_esquema.sql`. Dos ajustes a lo que genera drizzle-kit: `sectores.id` es `smallint` con identidad (`generatedByDefaultAsIdentity`) porque el `smallserial` salía entre comillas como un tipo inexistente, y `residentes.ubicacion` es un `customType` `geometry(Point, 4326)` porque el `geometry` de Drizzle no emite el SRID. Los tests (`test/esquema.e2e-spec.ts`) también cubren REP-06, CON-03 a nivel BD y las claves foráneas. Helpers en `test/bd.ts` (`abrirBd`, `limpiar`, `codigoPg`, `cuadrado`).
-- [ ] **T-011 · RLS y Realtime** (L) — dep: T-010
+- [x] **T-011 · RLS y Realtime** (L) — dep: T-010
   Migración SQL a mano: RLS en todas las tablas, `SELECT` en `estado_sector` para `anon, authenticated`, `REVOKE` en las demás, y la publicación `supabase_realtime` (en un bloque `DO` condicional).
   *Tests (integración):* con `SET ROLE anon` (se crea el rol en local si no existe), leer `reportes` o `residentes` falla o devuelve 0 filas, y `estado_sector` se puede leer (NF-06).
+  *Nota (hecha):* migración `0002_rls_realtime.sql` (generada con `drizzle-kit generate --custom`). Crea `anon` y `authenticated` solo si no existen (en Supabase ya están), activa RLS en las cinco tablas, hace `REVOKE ALL` de tablas y secuencias a ambos roles, `GRANT SELECT` + una política `SELECT USING (true)` en `estado_sector`, y agrega `estado_sector` a `supabase_realtime` solo si la publicación existe y la tabla aún no está. No se usa `FORCE ROW LEVEL SECURITY`: el rol de Nest es el dueño y debe saltarse RLS. Tests en `test/rls.e2e-spec.ts`: sin privilegio (42501) en las cuatro tablas privadas, incluida la columna `ubicacion`; escritura denegada en `estado_sector`; secuencias sin `USAGE`; con `SELECT` concedido en una transacción que se revierte, RLS sin política da 0 filas; y la publicación (con una creada y revertida dentro de la prueba). **Pendiente, va en T-035/T-007:** comprobar RLS con la clave anon y Realtime reales en el Supabase de staging.
 - [x] **T-012 · Sectores provisionales + seed** (L) — dep: T-010
   `data/sectores-guaparo.geojson` provisional (Guaparo dividido en 3–4 sectores aproximados; dejarlo marcado como PROVISIONAL en `properties`). Script `db:seed` que valida `ST_IsValid` y el SRID, inserta los sectores y crea las filas de `estado_sector` (sector × servicio). Coordenadas de control en `apps/api/test/fixtures/puntos.ts`.
   *Nota (hecha):* cuadrícula de 2 × 2 sectores (Noroeste = 1, Noreste = 2, Suroeste = 3, Sureste = 4) con `"provisional": true` en el archivo y en cada `properties`; son coordenadas aproximadas, **no** los límites reales. La lógica está en `src/db/sembrar-sectores.ts` (`leerSectores` valida la forma sin base; `sembrarSectores` hace upsert por nombre en una transacción, rechaza geometrías inválidas y sectores solapados, y crea las 8 filas de `estado_sector`); `pnpm db:seed [ruta]` la corre. Los puntos de control (dentro, fuera, borde exterior, borde entre sectores, esquina común, lat/lng intercambiados) están en `test/fixtures/puntos.ts`. `pnpm db:migrate` ahora usa un migrador propio (`src/db/migrar.ts`, D-020).
@@ -75,14 +76,16 @@
   `jose.createRemoteJWKSet(<SUPABASE_URL>/auth/v1/.well-known/jwks.json, { cacheMaxAge: 600_000 })`, que verifica `issuer` (`<SUPABASE_URL>/auth/v1`) y `audience`. Guard global con `@Public()` y decorador `@ResidenteActual()` (`sub`). El *getter* de claves se inyecta para poder usar un JWKS local en los tests.
   *Tests:* un token válido pasa; uno vencido, con otra firma, con otro issuer o sin token → 401.
   *Nota (hecha):* módulo `src/auth/` (`JwtGuard` global, `@Public()`, `@ResidenteActual()`, `CLAVES_JWT` inyectable). Solo acepta `ES256` y `RS256` (un token HS256 se rechaza) y exige que el `sub` sea un UUID. Los tests (`test/auth.e2e-spec.ts`) cubren además otra audiencia, sin `sub`, HS256, basura en el encabezado y las rutas públicas; firman con un par ES256 local (`test/jwt.ts`, clase `EmisorJwt`). `SUPABASE_URL` pasa a ser obligatoria. Se usa `jose@^5` (D-021). `GET /salud` quedó con `@Public()`. **Pendiente de verificar en T-007:** que el JWKS real de staging devuelva claves asimétricas y que el `kid` de los tokens coincida.
-- [ ] **T-014 · `GET /sectores`** (L) — dep: T-012
+- [x] **T-014 · `GET /sectores`** (L) — dep: T-012
   Un FeatureCollection GeoJSON (`ST_AsGeoJSON`) con `Cache-Control: public, max-age=3600`.
+  *Nota (hecha):* módulo `src/sectores/` (público, sin throttle propio). La geometría sale de `ST_AsGeoJSON` y cada feature lleva `id` y `properties: { id, nombre }`, el tipo es `SectoresGeoJsonDto` de `shared`. Tests VIS-01 (4 sectores, `[lng, lat]`, `Cache-Control`) y NF-06 (nada de residentes) en `test/sectores.e2e-spec.ts`.
 - [x] **T-015 · Registro** (L) — dep: T-012, T-013
   `POST /registro/validar-pin` (público, con throttle estricto), `POST /residentes/me` y `GET /residentes/me`. Usa `ST_Covers` y el desempate por el menor `sector.id` (D-002). Un usuario autenticado sin perfil recibe 403 `REGISTRO_INCOMPLETO` en las rutas que lo requieren (un guard o interceptor reutilizable).
   *Tests:* REG-01, REG-02, REG-03 (borde exterior y borde entre sectores, siempre el mismo resultado), registrarse dos veces → 409, y lat/lng intercambiados (punto asimétrico).
   *Nota (hecha):* módulo `src/residentes/`. `RegistroGuard` (`@UseGuards`) + `@PerfilActual()` es la pieza reutilizable: 403 `REGISTRO_INCOMPLETO` sin perfil, y deja `{ id, sectorId, sectorNombre }` (nunca la ubicación) en la solicitud; **T-021 a T-023 lo usan** para sacar el `sector_id`. `POST /residentes/me` es atómico (`ON CONFLICT DO NOTHING`), así que dos registros simultáneos dan un 201 y un 409. `validar-pin` tiene throttle de 10/min por IP. Nueva variable `TRUST_PROXY` (1 en Render): sin ella el throttle vería la IP del proxy (D-022). Tests en `test/registro.e2e-spec.ts` (REG-01/02/03 y NF-06; REG-04 y REG-07 los resuelve Supabase Auth).
-- [ ] **T-016 · Barrido de privacidad** (L) — dep: T-015
+- [x] **T-016 · Barrido de privacidad** (L) — dep: T-015
   Un e2e que llama a todos los endpoints con datos sembrados y verifica que ninguna respuesta contenga `ubicacion`, ni las coordenadas de los residentes de prueba (NF-06). Se amplía en cada fase.
+  *Nota (hecha):* `test/privacidad.e2e-spec.ts` recorre cada operación de Swagger (éxito y errores), busca claves de ubicación y las coordenadas sembradas en el texto, y revisa los esquemas de respuesta. Falla si aparece una ruta nueva que no esté en `casos()`. **Al integrar T-014 hay que agregar `GET /api/sectores` a `casos()`**: ahí `geometry`/`coordinates` son legítimos (polígonos de sector), así que para esa ruta solo se comprueba que no salgan las coordenadas sembradas ni `ubicacion`. Cada tarea con endpoint nuevo (T-034, T-042, T-043) agrega su caso.
 - [ ] **F-001..F-012 · Front de la fase 1** (F) — scaffold Vite + PWA, Leaflet + pin + Turf (`booleanPointInPolygon` **sin** `ignoreBoundary`, que es coherente con D-002), y el flujo de registro de dos pasos (D-014). *Necesita de L:* T-014, T-015 y los tipos de `shared`.
 
 ## Fase 2 — Ciclo de reportes (S4–S5) → `v0.2.0`
@@ -106,32 +109,38 @@
 
 ## Fase 3 — Consenso e historial (S6–S7) → `v0.3.0`
 
-- [ ] **T-030 · `evaluarInicio`, pura** (L) — dep: T-002
+- [x] **T-030 · `evaluarInicio`, pura** (L) — dep: T-002
   `consenso/consenso.puro.ts` según §6.1 del plan. Configura el `coverageThreshold` de `src/consenso/`.
   *Tests:* CON-01, CON-02, CON-03, CON-04, CON-05 (como entradas separadas), CON-07 (justo dentro y justo fuera de W) y el cálculo de la mediana del inicio del evento.
-- [ ] **T-031 · `evaluarRestablecimiento`, pura** (L) — dep: T-030
-  Según §6.2 del plan. *Tests:* CON-06, el cierre por "ya no quedan reportes abiertos", y N − 1 cierres que no cierran el evento.
-- [ ] **T-032 · `ConsensoService`** (L) — dep: T-021, T-022, T-030, T-031
+- [x] **T-031 · `evaluarRestablecimiento`, pura** (L) — dep: T-030
+  Según §6.2 del plan, en `consenso/consenso.puro.ts` y reutilizando de T-030 la deduplicación por residente y la ventana. Recibe los cierres `{residenteId, finEn}`, `inicioEvento` (ignora los cierres anteriores) y `reportesAbiertos`; devuelve `{cerrado, finEvento, motivo: 'consenso' | 'sin_abiertos' | null}`. Con N cierres en una ventana el fin es la mediana de esos N; con "sin abiertos" (y al menos un cierre) es la mediana de los cierres, uno por residente (el más antiguo). T-032 aporta `reportesAbiertos` desde la base. *Tests:* CON-06, el cierre por "ya no quedan reportes abiertos", y N − 1 cierres que no cierran el evento.
+- [x] **T-032 · `ConsensoService`** (L) — dep: T-021, T-022, T-030, T-031
   Transacción + `pg_advisory_xact_lock` + crear o cerrar el evento + upsert de `estado_sector`, que solo escribe si hubo cambios. Reemplaza el *no-op* de T-021.
   *Tests (integración):* CON-02, CON-03 (4 PUT concurrentes → 1 evento), CON-05, CON-06, y `reportes_sin_confirmar` = 2 con N − 1 (CON-01).
-- [ ] **T-033 · Cron de las ventanas** (L) — dep: T-032
+  *Nota (hecha):* `ConsensoService.reevaluar(tx, sectorId, tipo)` lo llaman el PUT y el PATCH de cierre dentro de su transacción: lock `pg_advisory_xact_lock(sector, índice del servicio)`, lee el evento abierto y los reportes del par, y llama a las funciones puras con N y W del env y el reloj `RELOJ`. Sin evento abierto evalúa el inicio (crea el evento con `inicio_en` = mediana); con evento abierto evalúa el restablecimiento (cierra con `fin_en` = mediana y `restablecido_en` = ahora). `estado_sector` solo se escribe si cambian estado, `reportes_sin_confirmar`, `evento_id` o `desde` (inicio del evento, o su fin al restablecerse). `RELOJ` se movió a `comun/reloj.ts` (se reexporta desde `reportes.service`) y lo provee `ConsensoModule`. Tests en `test/consenso.e2e-spec.ts`. Límite conocido: tras cerrar un evento por consenso, los reportes del corte anterior que sigan abiertos pueden abrir un evento nuevo si son ≥ N dentro de una ventana; es raro y lo cubre T-051 (ciclos incompletos).
+- [x] **T-033 · Cron de las ventanas** (L) — dep: T-032
   `@nestjs/schedule` cada minuto + el recálculo al leer si el estado quedó viejo (§6.3 del plan). *Test:* al vencer la ventana, `reportes_sin_confirmar` vuelve a 0 (CON-07); se usa un reloj inyectable.
-- [ ] **T-034 · `GET /sectores/:id/historial`** (L) — dep: T-032
+  *Nota (hecha):* `ConsensoCron` (`@Cron(EVERY_MINUTE)`, apagable con `CRON_ACTIVO=false`; los tests lo apagan) llama a `ConsensoService.reevaluarVencidos()`: reevalúa solo los pares de `estado_sector` con `reportes_sin_confirmar > 0` (lo único que cambia solo con el tiempo hasta T-050), cada uno en su transacción, con log y sin lanzar si uno falla; una bandera evita pasadas solapadas. `ConsensoService.refrescarSiViejo(sector, tipo)` hace el recálculo al leer, pero aún no hay endpoint de lectura que lo llame: lo debe invocar el primer `GET` que sirva `estado_sector` (T-014/`/resumen`). Tests: `consenso.cron.spec.ts` (unitario) y CON-07 en `test/consenso.e2e-spec.ts` con el reloj controlado.
+- [x] **T-034 · `GET /sectores/:id/historial`** (L) — dep: T-032
   Los eventos cerrados, paginados por cursor y filtrables por servicio.
+  *Nota (hecha):* módulo propio `historial/` (controlador `sectores` con solo `:id/historial`, sin chocar con `GET /sectores` de T-014). Devuelve `HistorialDto` de `shared`. Parámetros: `tipoServicio` opcional, `cursor` opaco (base64url de `fin_en|id`, orden `fin_en desc, id desc` a milisegundos) y `limite` (20 por defecto, 50 máximo; el plan no lo nombra). Solo exige JWT (sin perfil de residente). 404 `SECTOR_NO_ENCONTRADO`; 400 `DATOS_INVALIDOS` para id, filtro, límite o cursor mal formados. Tests en `test/historial.e2e-spec.ts` y `src/historial/cursor.puro.spec.ts`.
 - [ ] **T-035 · Humo de Realtime en staging** (L) — dep: T-011, T-032, T-007
   `scripts/probar-realtime.ts`: suscribirse a `estado_sector` con la clave anon, provocar el consenso por la API y ver llegar el cambio (mitad back de VIS-03). Confirma además que la clave anon **no** puede leer `reportes` (NF-06).
 - [ ] **F-030..F-032 · Coropleta + Realtime + prueba de usabilidad** (F) — *necesita de L:* T-014, T-032 y T-035.
 
 ## Fase 4 — Offline (servidor) y estadística (S8–S9) → `v0.4.0`
 
-- [ ] **T-040 · Contrato de sincronización** (L) — dep: T-022
+- [x] **T-040 · Contrato de sincronización** (L) — dep: T-022
   Implementar y probar la tabla de códigos de §5 del plan, y documentarla en Swagger.
   *Tests e2e:* OFF-04 (inicio y cierre enviados en orden, el ciclo queda completo), el cierre antes que el inicio → 404 y luego, tras el inicio, el cierre → 200, y OFF-05 con un corte simulado (la petición llega a la BD pero el cliente no recibe la respuesta, y reintenta).
-- [ ] **T-041 · `estadistica.puro.ts`** (L) — dep: T-002
+- [x] **T-041 · `estadistica.puro.ts`** (L) — dep: T-002
+  `estimacion/estadistica.puro.ts`: `mediana`, `cuartiles` y `resumir(datos, nMin)`. Configura el `coverageThreshold` de `src/estimacion/`.
+  *Nota (hecha):* la tabla es `accionDeRespuesta(estado | null, 'inicio' | 'cierre')` en `packages/shared/src/sincronizacion.ts` (función pura, la usará también la cola Dexie del front): 2xx → `exito`; sin respuesta, 5xx y 429 → `reintentar`; 404 en un cierre → `reintentar` (en un inicio, permanente); 401 → `refrescar_sesion`; el resto de los 4xx (400, 409, 422, 403…) → `error_permanente`. Swagger lleva la tabla en la descripción de la API y los 400, 401 y 429 en `reportes`. El e2e `test/sincronizacion.e2e-spec.ts` vacía una cola simulada con esa función (incluido el cierre por delante del inicio), corta el socket cuando el cambio ya está en la base y reintenta (OFF-05, inicio y cierre), y comprueba que las respuestas reales de la API caen en la acción que fija la tabla. No cambió el comportamiento de los endpoints.
   `mediana`, `cuartiles` y `resumir(n_min)`. Configura el `coverageThreshold` de `src/estimacion/`.
   *Tests:* EST-01, EST-02, EST-03 (sin umbral), EST-04 (n = 0 y n = n_min − 1 → insuficiente; n = n_min → cifra).
-- [ ] **T-042 · `GET /estimaciones`** (L) — dep: T-032, T-041
+- [x] **T-042 · `GET /estimaciones`** (L) — dep: T-032, T-041
   SQL con `percentile_cont` sobre los eventos cerrados (D-008). *Tests (integración):* EST-05 (agua y luz separadas), EST-06 (se cierra un evento → la mediana cambia) y SQL ≡ TS en el mismo dataset.
+  *Nota (hecha):* `GET /api/estimaciones?sectorId&tipoServicio` (ambos obligatorios; 400 si faltan o no valen, 404 `SECTOR_NO_ENCONTRADO`) devuelve el `EstimacionDto` de `shared`. `EstimacionService` agrega en SQL (`count`, `percentile_cont` 0,5/0,25/0,75 sobre `fin_en − inicio_en` en minutos, solo eventos con `fin_en`) y deja a `resumir` (T-041) aplicar `ESTIMACION_N_MIN` del env. Se calcula en cada consulta, sin caché ni tabla intermedia, así que un cierre nuevo entra solo (EST-06). Exige JWT (guard global) pero no el perfil de residente: el dato es agregado. Tests en `test/estimaciones.e2e-spec.ts` (EST-01, 03, 04, 05, 06 y SQL ≡ TS con n par, impar, atípico y fracciones). Las peticiones P1 a P4 no se tocaron.
 - [ ] **T-043 · `GET /sectores/:id/resumen`** (L) — dep: T-042, T-034
   Estado por servicio, estimación (con el n) y los últimos 5 eventos (mitad back de VIS-04).
 - [ ] **T-044 · Importar el dataset de campo** (L) — dep: T-010; *bloqueada por los datos de la campaña*
@@ -142,8 +151,9 @@
 
 - [ ] **T-050 · Ciclos incompletos** (L) — dep: T-033
   El cron marca `vencido` los reportes abiertos hace más de `REPORTE_VENCE_HORAS` (D-015). Los vencidos no cuentan para el consenso ni para REP-05. Se revisan los eventos abiertos que se quedaron sin reportes vivos.
-- [ ] **T-051 · Seguridad** (L)
+- [~] **T-051 · Seguridad** (L)
   Throttle por ruta, límite de tamaño del body, CORS estricto, `pnpm audit`, `/security-review`, NF-06 completo (T-016 ampliado) y RLS contra staging con la clave anon.
+  *Nota (parcial):* hechos el throttle por ruta, el límite del body, el CORS estricto y `pnpm audit` (sin avisos altos). Al integrar T-016 con T-014, T-034 y T-042, el barrido NF-06 cubre también `GET /sectores` (los polígonos de los sectores son públicos: solo esas claves `geometry`/`coordinates` quedan exentas; el chequeo por valor sigue), `GET /sectores/:id/historial` y `GET /estimaciones`, con sus errores 404 y 400. Faltan `/security-review` y la prueba de RLS contra staging con la clave anon (esperan a T-007).
 - [ ] **T-052 · Cobertura y regresión** (L)
   Consenso y estimación en ≥ 70 % (esperado ≫ 70), cerrar los huecos y llevar el reporte de cobertura al CI como artefacto.
 - [ ] **T-053 · Producción** (L, con confirmación de Leonardo)

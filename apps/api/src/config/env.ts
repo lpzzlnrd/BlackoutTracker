@@ -1,5 +1,5 @@
 import { plainToInstance, Transform } from 'class-transformer';
-import { IsInt, IsString, IsUrl, Max, Min, validateSync } from 'class-validator';
+import { IsBoolean, IsInt, IsString, IsUrl, Matches, Max, Min, validateSync } from 'class-validator';
 import {
   CONSENSO_N_POR_DEFECTO,
   CONSENSO_VENTANA_MIN_POR_DEFECTO,
@@ -26,8 +26,10 @@ export class Env {
 
   @IsString() JWT_AUDIENCE: string = 'authenticated';
 
-  /** Orígenes CORS separados por coma. */
-  @IsString() CORS_ORIGINS: string = 'http://localhost:5173';
+  /** Orígenes CORS separados por coma. Nunca `*`: cada origen se lista de forma explícita. */
+  @Matches(/^[^*]*$/, { message: 'CORS_ORIGINS no admite "*": lista cada origen' })
+  @IsString()
+  CORS_ORIGINS: string = 'http://localhost:5173';
 
   /** Proxies de confianza delante de la API (1 en Render). Sin esto el throttle ve la IP del proxy. */
   @IsInt() @Min(0) @Max(5) @aEntero() TRUST_PROXY: number = 0;
@@ -41,6 +43,11 @@ export class Env {
   @IsInt() @Min(1) @aEntero() REPORTE_MAX_ANTIGUEDAD_DIAS: number =
     REPORTE_MAX_ANTIGUEDAD_DIAS_POR_DEFECTO;
   @IsInt() @Min(1) @aEntero() REPORTE_VENCE_HORAS: number = REPORTE_VENCE_HORAS_POR_DEFECTO;
+
+  /** Activa el cron de las ventanas de consenso (T-033). Los tests lo apagan y lo invocan a mano. */
+  @IsBoolean()
+  @Transform(({ value }) => (value === '' || value == null ? undefined : String(value) !== 'false'))
+  CRON_ACTIVO: boolean = true;
 }
 
 /** Para `ConfigModule.forRoot({ validate })`. */
