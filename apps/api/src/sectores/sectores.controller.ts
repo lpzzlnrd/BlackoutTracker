@@ -1,12 +1,16 @@
 import { Controller, Get, Header } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { SectoresGeoJsonDto } from '@blackout/shared';
 import { Public } from '../auth/publico.decorator';
+import { THROTTLE_LECTURA } from '../comun/limites';
 import { SectoresGeoJsonRespuesta } from './dto/sectores.dto';
 import { SectoresService } from './sectores.service';
 
 @ApiTags('sectores')
 @Public()
+@Throttle(THROTTLE_LECTURA)
+@ApiResponse({ status: 429, description: 'DEMASIADAS_SOLICITUDES' })
 @Controller('sectores')
 export class SectoresController {
   constructor(private readonly sectores: SectoresService) {}

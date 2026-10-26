@@ -1,11 +1,15 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { EstimacionDto } from '@blackout/shared';
+import { THROTTLE_LECTURA } from '../comun/limites';
 import { EstimacionQueryDto, EstimacionRespuesta } from './dto/estimacion-query.dto';
 import { EstimacionService } from './estimacion.service';
 
 @ApiTags('estimaciones')
 @ApiBearerAuth()
+@Throttle(THROTTLE_LECTURA)
+@ApiResponse({ status: 429, description: 'DEMASIADAS_SOLICITUDES' })
 @Controller('estimaciones')
 export class EstimacionController {
   constructor(private readonly estimacion: EstimacionService) {}

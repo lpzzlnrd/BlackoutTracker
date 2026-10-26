@@ -1,6 +1,8 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { ResumenSectorDto } from '@blackout/shared';
+import { THROTTLE_LECTURA } from '../comun/limites';
 import { SectorParamDto } from '../historial/dto/historial.dto';
 import { ResumenSectorRespuesta } from './dto/resumen.dto';
 import { ResumenService } from './resumen.service';
@@ -8,6 +10,8 @@ import { ResumenService } from './resumen.service';
 // Solo JWT (guard global): no pide perfil de residente, porque no devuelve nada de residentes.
 @ApiTags('sectores')
 @ApiBearerAuth()
+@Throttle(THROTTLE_LECTURA)
+@ApiResponse({ status: 429, description: 'DEMASIADAS_SOLICITUDES' })
 @Controller('sectores')
 export class ResumenController {
   constructor(private readonly resumen: ResumenService) {}

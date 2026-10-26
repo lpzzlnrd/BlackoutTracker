@@ -88,7 +88,7 @@ describe('Barrido de privacidad (NF-06, T-016)', () => {
   /**
    * Un caso por cada operación publicada, más los errores que podrían repetir datos del cuerpo.
    * Cuando llega una ruta nueva se agrega aquí: el test «cubre todas las rutas» falla hasta que
-   * se haga (T-051 sumó `/sectores`, `/sectores/:id/historial` y `/estimaciones`).
+   * se haga (T-051 sumó `/sectores`, `/sectores/:id/historial` y `/estimaciones`; T-043, `/resumen`).
    */
   const casos = async (): Promise<Caso[]> => {
     const a = await sembrar(A, 1);
@@ -155,6 +155,11 @@ describe('Barrido de privacidad (NF-06, T-016)', () => {
         swagger: 'GET /api/estimaciones',
         estado: 200,
         llamada: () => llamar('get', '/api/estimaciones?sectorId=1&tipoServicio=agua', a.token),
+      },
+      {
+        swagger: 'GET /api/sectores/{id}/resumen',
+        estado: 200,
+        llamada: () => llamar('get', '/api/sectores/1/resumen', a.token),
       },
     ];
   };
@@ -239,6 +244,11 @@ describe('Barrido de privacidad (NF-06, T-016)', () => {
           llamar('patch', `/api/reportes/${randomUUID()}/cierre`, a.token, {
             ocurridoEn: ctx.hace(-5),
           }),
+      ],
+      [
+        '404 resumen de un sector inexistente',
+        404,
+        () => llamar('get', '/api/sectores/999/resumen', a.token),
       ],
       [
         '404 historial de un sector inexistente',
