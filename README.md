@@ -46,6 +46,7 @@ cp apps/api/.env.example apps/api/.env   # y completar SUPABASE_URL
 pnpm db:migrate                 # aplica las migraciones de apps/api/drizzle/
 pnpm db:seed                    # sectores (data/sectores-guaparo.geojson) y filas de estado_sector
 pnpm db:seed:campo data/campo.ejemplo.csv   # opcional: ciclos históricos (CSV de campo, docs/dataset-campo.md)
+pnpm db:seed:demo               # opcional: datos de demo, con un corte en curso (docs/demo.md)
 
 pnpm dev                        # API en http://localhost:3000/api (Swagger en /api/docs) y la web
 ```
@@ -74,6 +75,7 @@ Cada test lleva en su nombre el ID del caso del plan de pruebas (`REG-01`, `CON-
 | [`docs/arquitectura.md`](docs/arquitectura.md) | Componentes, módulos de la API, flujo de un reporte, privacidad, modo sin conexión y lectura desde la TGS |
 | [`docs/openapi.json`](docs/openapi.json) | Contrato de la API (OpenAPI 3). Se regenera con `pnpm docs:openapi`; en vivo, en `/api/docs` |
 | [`docs/trazabilidad.md`](docs/trazabilidad.md) | Casos de prueba ↔ tests. Se regenera con `pnpm docs:trazabilidad` |
+| [`docs/demo.md`](docs/demo.md) | Seed de demo (`pnpm db:seed:demo`), guion de la demo y checklist previo a la defensa |
 | [`docs/PLAN.md`](docs/PLAN.md) | Modelo de datos, API, algoritmos y estrategia de pruebas |
 | [`docs/DECISIONES.md`](docs/DECISIONES.md) | Registro de decisiones de diseño |
 | [`docs/casos-de-prueba.md`](docs/casos-de-prueba.md) | Plan de pruebas (ISO/IEC/IEEE 29119-3) resumido |

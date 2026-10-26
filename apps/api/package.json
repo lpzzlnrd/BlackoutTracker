@@ -17,7 +17,8 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "ts-node --transpile-only scripts/seed-sectores.ts",
     "red:intermitente": "ts-node --transpile-only scripts/red-intermitente/index.ts",
-    "db:seed:campo": "ts-node --transpile-only scripts/seed-campo.ts"
+    "db:seed:campo": "ts-node --transpile-only scripts/seed-campo.ts",
+    "db:seed:demo": "ts-node --transpile-only scripts/seed-demo.ts"
   },
   "dependencies": {
     "@blackout/shared": "workspace:*",

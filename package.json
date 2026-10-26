@@ -24,6 +24,7 @@
     "db:studio": "pnpm --filter @blackout/api db:studio",
     "db:seed": "pnpm --filter @blackout/api db:seed",
     "db:seed:campo": "pnpm --filter @blackout/api db:seed:campo",
+    "db:seed:demo": "pnpm --filter @blackout/api db:seed:demo",
     "docs:openapi": "pnpm --filter @blackout/api openapi:export",
     "docs:trazabilidad": "node scripts/trazabilidad.mjs"
   },

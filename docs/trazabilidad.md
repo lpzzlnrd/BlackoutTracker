@@ -46,8 +46,8 @@
 
 | ID | Caso | P | Tests | Dónde |
 |---|---|---|---|---|
-| CON-01 | N − 1 | A | 3 | `apps/api/src/consenso/consenso.puro.spec.ts` (1), `apps/api/test/consenso.e2e-spec.ts` (1), `apps/api/test/resumen.e2e-spec.ts` (1) |
-| CON-02 | N | A | 2 | `apps/api/src/consenso/consenso.puro.spec.ts` (1), `apps/api/test/consenso.e2e-spec.ts` (1) |
+| CON-01 | N − 1 | A | 4 | `apps/api/src/consenso/consenso.puro.spec.ts` (1), `apps/api/test/consenso.e2e-spec.ts` (1), `apps/api/test/demo-seed.e2e-spec.ts` (1), `apps/api/test/resumen.e2e-spec.ts` (1) |
+| CON-02 | N | A | 3 | `apps/api/src/consenso/consenso.puro.spec.ts` (1), `apps/api/test/consenso.e2e-spec.ts` (1), `apps/api/test/demo-seed.e2e-spec.ts` (1) |
 | CON-03 | N + 1 | M | 4 | `apps/api/src/consenso/consenso.puro.spec.ts` (1), `apps/api/test/consenso.e2e-spec.ts` (2), `apps/api/test/esquema.e2e-spec.ts` (1) |
 | CON-04 | Mismo usuario ×3 | A | 6 | `apps/api/src/consenso/consenso.puro.spec.ts` (5), `apps/api/test/consenso.e2e-spec.ts` (1) |
 | CON-05 | Sectores distintos | A | 3 | `apps/api/src/consenso/consenso.puro.spec.ts` (1), `apps/api/test/consenso.e2e-spec.ts` (2) |
@@ -70,10 +70,10 @@
 
 | ID | Caso | P | Tests | Dónde |
 |---|---|---|---|---|
-| EST-01 | Cantidad impar | A | 3 | `apps/api/src/estimacion/estadistica.puro.spec.ts` (1), `apps/api/test/estimaciones.e2e-spec.ts` (1), `apps/api/test/resumen.e2e-spec.ts` (1) |
+| EST-01 | Cantidad impar | A | 4 | `apps/api/src/estimacion/estadistica.puro.spec.ts` (1), `apps/api/test/demo-seed.e2e-spec.ts` (1), `apps/api/test/estimaciones.e2e-spec.ts` (1), `apps/api/test/resumen.e2e-spec.ts` (1) |
 | EST-02 | Cantidad par | A | 1 | `apps/api/src/estimacion/estadistica.puro.spec.ts` (1) |
-| EST-03 | Valor atípico | M | 2 | `apps/api/src/estimacion/estadistica.puro.spec.ts` (1), `apps/api/test/estimaciones.e2e-spec.ts` (1) |
-| EST-04 | Sin historial | A | 6 | `apps/api/src/estimacion/estadistica.puro.spec.ts` (3), `apps/api/test/estimaciones.e2e-spec.ts` (2), `apps/api/test/resumen.e2e-spec.ts` (1) |
+| EST-03 | Valor atípico | M | 3 | `apps/api/src/estimacion/estadistica.puro.spec.ts` (1), `apps/api/test/demo-seed.e2e-spec.ts` (1), `apps/api/test/estimaciones.e2e-spec.ts` (1) |
+| EST-04 | Sin historial | A | 7 | `apps/api/src/estimacion/estadistica.puro.spec.ts` (3), `apps/api/test/demo-seed.e2e-spec.ts` (1), `apps/api/test/estimaciones.e2e-spec.ts` (2), `apps/api/test/resumen.e2e-spec.ts` (1) |
 | EST-05 | Separación por servicio | A | 2 | `apps/api/test/estimaciones.e2e-spec.ts` (1), `apps/api/test/resumen.e2e-spec.ts` (1) |
 | EST-06 | Nuevo ciclo | M | 2 | `apps/api/test/estimaciones.e2e-spec.ts` (1), `apps/api/test/vencimiento.e2e-spec.ts` (1) |
 
@@ -84,7 +84,7 @@
 | VIS-01 | Mapa de calor | A | 3 | `apps/api/test/sectores.e2e-spec.ts` (3) |
 | VIS-02 | Filtro por servicio | A | — | sin test automatizado |
 | VIS-03 | Tiempo real | M | 3 | `apps/api/test/rls.e2e-spec.ts` (3) |
-| VIS-04 | Panel del sector | M | 3 | `apps/api/test/resumen.e2e-spec.ts` (2), `apps/api/test/vencimiento.e2e-spec.ts` (1) |
+| VIS-04 | Panel del sector | M | 4 | `apps/api/test/demo-seed.e2e-spec.ts` (1), `apps/api/test/resumen.e2e-spec.ts` (2), `apps/api/test/vencimiento.e2e-spec.ts` (1) |
 | VIS-05 | Pantalla pequeña | B | — | sin test automatizado |
 
 ## No funcionales
