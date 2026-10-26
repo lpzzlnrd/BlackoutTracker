@@ -12,7 +12,16 @@ const config: Config = {
   },
   moduleFileExtensions: ['ts', 'js', 'json'],
   testEnvironment: 'node',
-  collectCoverageFrom: ['**/*.ts', '!main.ts', '!**/*.module.ts'],
+  // Los servicios, controladores y DTOs con base de datos los cubre `pnpm test:int`; el umbral mide
+  // la lógica pura de consenso y estimación, que es la que corre aquí.
+  collectCoverageFrom: [
+    '**/*.ts',
+    '!main.ts',
+    '!**/*.module.ts',
+    '!**/*.service.ts',
+    '!**/*.controller.ts',
+    '!**/dto/**',
+  ],
   coverageDirectory: '../coverage',
   // CLAUDE.md §7: cobertura ≥ 70 % en el consenso y en la estimación.
   coverageThreshold: {
