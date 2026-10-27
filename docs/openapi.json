@@ -372,11 +372,6 @@
             "description": "DEMASIADAS_SOLICITUDES"
           }
         },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
         "summary": "Historial de cortes cerrados de un sector",
         "tags": [
           "sectores"
@@ -430,11 +425,6 @@
             "description": "DEMASIADAS_SOLICITUDES"
           }
         },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
         "summary": "Estimación estadística de la duración de un corte",
         "tags": [
           "estimaciones"
@@ -502,11 +492,6 @@
             "description": "DEMASIADAS_SOLICITUDES"
           }
         },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
         "summary": "Resumen de un sector: estado, estimación y últimos cortes de cada servicio",
         "tags": [
           "sectores"

@@ -23,12 +23,9 @@ import { opcionesConexion } from '../../src/db/db.module';
 import { ProxyIntermitente } from './proxy';
 import { type ResidenteSimulado, simular } from './simulacion';
 import { resumirVerificacion, verificar } from './verificacion';
+import { cargarEnv } from '../../src/config/cargar-env';
 
-try {
-  process.loadEnvFile();
-} catch {
-  // sin .env: las variables ya vienen del entorno
-}
+cargarEnv();
 
 function rango(valor: string | undefined, porDefecto: [number, number]): [number, number] {
   if (!valor) return porDefecto;

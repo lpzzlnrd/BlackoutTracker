@@ -4,12 +4,9 @@ import { join, resolve } from 'node:path';
 import postgres from 'postgres';
 import { opcionesConexion } from '../src/db/db.module';
 import { leerSectores, sembrarSectores } from '../src/db/sembrar-sectores';
+import { cargarEnv } from '../src/config/cargar-env';
 
-try {
-  process.loadEnvFile();
-} catch {
-  // sin .env: las variables ya vienen del entorno
-}
+cargarEnv();
 
 async function main(): Promise<void> {
   const url = process.env.DATABASE_URL;

@@ -5,12 +5,9 @@ import { resolve } from 'node:path';
 import postgres from 'postgres';
 import { opcionesConexion } from '../src/db/db.module';
 import { importarCampo } from '../src/db/importar-campo';
+import { cargarEnv } from '../src/config/cargar-env';
 
-try {
-  process.loadEnvFile();
-} catch {
-  // sin .env: las variables ya vienen del entorno
-}
+cargarEnv();
 
 async function main(): Promise<number> {
   const url = process.env.DATABASE_URL;

@@ -148,8 +148,10 @@ describe('GET /api/sectores/:id/historial (T-034)', () => {
     expect(res.body.codigo).toBe('DATOS_INVALIDOS');
   });
 
-  it('sin token → 401; con JWT pero sin perfil de residente → 200 (solo pide JWT)', async () => {
-    await ctx.get('/api/sectores/1/historial').expect(401);
+  it('VIS-04: el historial se lee sin sesión y con una cuenta sin perfil (D-029)', async () => {
+    await evento(1, 'agua', -300, -200);
+    const res = await ctx.get('/api/sectores/1/historial').expect(200);
+    expect(res.body.eventos).toHaveLength(1);
     const sinPerfil = await ctx.emisor.firmar({ sub: randomUUID() });
     await ctx.get('/api/sectores/1/historial', sinPerfil).expect(200);
   });

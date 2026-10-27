@@ -6,6 +6,7 @@ import { crearSincronizador } from './aplicacion/sincronizar-cola';
 import { vigilarConexion } from './aplicacion/vigilar-conexion';
 import { componerPuertos, leerModo } from './datos/componer';
 import { PuertosProvider } from './datos/contexto';
+import { PreferenciasProvider } from './datos/preferencias';
 import './estilos/globales.css';
 import { registrarServiceWorker } from './pwa/registro';
 
@@ -23,13 +24,21 @@ async function arrancar(): Promise<void> {
   });
 
   vigilarConexion({ puertos, sincronizar: crearSincronizador(puertos) });
+  // La sesión guardada se recupera antes de pintar, para no mostrar "Entrar" un instante. Sin red
+  // Supabase puede tardar en rendirse: a los 2 s se pinta igual y la sesión llega cuando llegue.
+  await Promise.race([
+    puertos.sesion.restaurar().catch(() => null),
+    new Promise((listo) => setTimeout(listo, 2000)),
+  ]);
   if (import.meta.env.PROD && modo.tipo === 'real') registrarServiceWorker();
 
   createRoot(raiz).render(
     <StrictMode>
       <PuertosProvider puertos={puertos}>
         <QueryClientProvider client={cliente}>
-          <App modo={modo} />
+          <PreferenciasProvider>
+            <App />
+          </PreferenciasProvider>
         </QueryClientProvider>
       </PuertosProvider>
     </StrictMode>,

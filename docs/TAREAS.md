@@ -10,7 +10,8 @@
 - **Próxima tarea:** T-061 (demo: seed con `data/campo.ejemplo.csv` y checklist) y el resto de T-051 (`/security-review`; la prueba de RLS con la clave anon espera a T-007). Después, T-052 (cobertura).
 - **Bloqueos:** T-007 (Supabase staging) bloquea T-035 y la parte de RLS con la clave anon de T-051; T-044 espera los datos de la campaña; T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
 - **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015 a D-022, D-024 a D-026 (D-023 va en el PR #30 del frontend) y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
-- **Última actualización:** 2026-10-25. Pila de PR a `staging`, a mergear en orden: #31 (integra los PR #19 a #29), #32 T-043, #33 T-050, #34 T-054, #35 T-044 y #36 T-060. #30 (F-001, frontend) va aparte.
+- **Frontend (27-oct, Leonardo lo pidió para las 18:00):** rama `feat/F-002-frontend` sobre F-001 con `staging` integrado; un commit por sección: **S0** base + Docker [x], S1 cuenta y registro, S2 mapa, S3 reportar y cola, S4 panel, S5 PWA y pruebas E2E. D-028 (flat), D-029 (mirar es público) y D-030 (un solo `.env`).
+- **Última actualización:** 2026-10-27. #31 a #38 mergeados en `staging`; #39 (`staging` → `main`) abierto. #30 (F-001) queda dentro de F-002.
 
 ---
 
@@ -86,6 +87,7 @@
 - [x] **T-016 · Barrido de privacidad** (L) — dep: T-015
   Un e2e que llama a todos los endpoints con datos sembrados y verifica que ninguna respuesta contenga `ubicacion`, ni las coordenadas de los residentes de prueba (NF-06). Se amplía en cada fase.
   *Nota (hecha):* `test/privacidad.e2e-spec.ts` recorre cada operación de Swagger (éxito y errores), busca claves de ubicación y las coordenadas sembradas en el texto, y revisa los esquemas de respuesta. Falla si aparece una ruta nueva que no esté en `casos()`. **Al integrar T-014 hay que agregar `GET /api/sectores` a `casos()`**: ahí `geometry`/`coordinates` son legítimos (polígonos de sector), así que para esa ruta solo se comprueba que no salgan las coordenadas sembradas ni `ubicacion`. Cada tarea con endpoint nuevo (T-034, T-042, T-043) agrega su caso.
+- [~] **F-002 · Frontend completo por secciones** (L, 27-oct) — ver *Estado*. S0 hecha: Docker (`pnpm app:up`), marco y primitivos en flat, rutas, hooks de datos, guarda de Reportar, iconos PWA.
 - [ ] **F-001..F-012 · Front de la fase 1** (F) — scaffold Vite + PWA, Leaflet + pin + Turf (`booleanPointInPolygon` **sin** `ignoreBoundary`, que es coherente con D-002), y el flujo de registro de dos pasos (D-014). *Necesita de L:* T-014, T-015 y los tipos de `shared`.
 
 ## Fase 2 — Ciclo de reportes (S4–S5) → `v0.2.0`

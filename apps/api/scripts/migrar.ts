@@ -1,11 +1,8 @@
 // Uso: pnpm db:migrate   (aplica las migraciones a DATABASE_URL)
 import { migrar } from '../src/db/migrar';
+import { cargarEnv } from '../src/config/cargar-env';
 
-try {
-  process.loadEnvFile();
-} catch {
-  // sin .env: las variables ya vienen del entorno
-}
+cargarEnv();
 
 const url = process.env.DATABASE_URL;
 if (!url) {

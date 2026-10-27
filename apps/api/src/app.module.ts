@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
+import { ignorarArchivoEnv, RUTAS_ENV } from './config/cargar-env';
 import { validarEnv } from './config/env';
 import { DbModule } from './db/db.module';
 import { EstimacionModule } from './estimacion/estimacion.module';
@@ -16,7 +17,13 @@ import { SectoresModule } from './sectores/sectores.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, validate: validarEnv }),
+    // Un solo `.env` en la raíz del monorepo (D-030); en los tests no se lee ninguno.
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validate: validarEnv,
+      envFilePath: RUTAS_ENV,
+      ignoreEnvFile: ignorarArchivoEnv(),
+    }),
     // Límite general: 100 solicitudes por minuto y por IP. Las rutas sensibles lo ajustan (T-015, T-051).
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     ScheduleModule.forRoot(),

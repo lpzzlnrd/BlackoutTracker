@@ -42,7 +42,7 @@ pnpm install
 pnpm build                      # compila packages/shared (la API y la web lo consumen desde dist/)
 
 pnpm db:up                      # PostGIS en el puerto 5433, con las bases blackout y blackout_test
-cp apps/api/.env.example apps/api/.env   # y completar SUPABASE_URL
+cp .env.example .env           # un solo .env en la raíz (D-030): completar lo marcado con <…>
 pnpm db:migrate                 # aplica las migraciones de apps/api/drizzle/
 pnpm db:seed                    # sectores (data/sectores-guaparo.geojson) y filas de estado_sector
 pnpm db:seed:campo data/campo.ejemplo.csv   # opcional: ciclos históricos (CSV de campo, docs/dataset-campo.md)
@@ -51,7 +51,7 @@ pnpm db:seed:demo               # opcional: datos de demo, con un corte en curso
 pnpm dev                        # API en http://localhost:3000/api (Swagger en /api/docs) y la web
 ```
 
-Las variables de la API están todas en `apps/api/.env.example`: `DATABASE_URL`, `SUPABASE_URL` (de ahí salen el JWKS y el emisor del JWT), `JWT_AUDIENCE`, `CORS_ORIGINS`, `TRUST_PROXY`, `CONSENSO_N`, `CONSENSO_VENTANA_MIN_ELECTRICIDAD`, `CONSENSO_VENTANA_MIN_AGUA`, `ESTIMACION_N_MIN`, `REPORTE_MAX_ANTIGUEDAD_DIAS`, `REPORTE_VENCE_HORAS`, `CRON_ACTIVO` y `PORT`. Si falta una obligatoria o un valor no sirve, la API no arranca.
+Todas las variables (API, scripts, web y Docker) están en el `.env.example` de la raíz (D-030; guía en [`docs/despliegue.md`](docs/despliegue.md)). Las de la API: `DATABASE_URL`, `SUPABASE_URL` (de ahí salen el JWKS y el emisor del JWT), `JWT_AUDIENCE`, `CORS_ORIGINS`, `TRUST_PROXY`, `CONSENSO_N`, `CONSENSO_VENTANA_MIN_ELECTRICIDAD`, `CONSENSO_VENTANA_MIN_AGUA`, `ESTIMACION_N_MIN`, `REPORTE_MAX_ANTIGUEDAD_DIAS`, `REPORTE_VENCE_HORAS`, `CRON_ACTIVO` y `PORT`. Si falta una obligatoria o un valor no sirve, la API no arranca. La web solo lee las `VITE_*` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` y, opcional, `VITE_API_URL`).
 
 > El GeoJSON de `data/` es **provisional** (D-005): sectores aproximados mientras no exista la división real de Guaparo. Cambiarlo es volver a correr `pnpm db:seed` con el archivo nuevo; el código no depende de los sectores concretos.
 

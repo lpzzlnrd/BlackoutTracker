@@ -53,6 +53,9 @@ export default defineConfig({
     }),
   ],
   resolve: { alias },
+  // Un solo `.env`, en la raíz del monorepo (D-030). Vite solo expone al navegador las `VITE_*`:
+  // la `DATABASE_URL` del mismo archivo nunca llega al bundle.
+  envDir: '../..',
   server: {
     // En desarrollo la API de Nest escucha en el 3000; el front la ve como `/api`, sin CORS.
     proxy: { '/api': 'http://localhost:3000' },

@@ -146,20 +146,22 @@ describe('Barrido de privacidad (NF-06, T-016)', () => {
         estado: 200,
         llamada: () => llamar('get', '/api/sectores', a.token),
       },
+      // Historial, estimación y resumen son públicos (D-029): se barren sin token, como los ve
+      // cualquiera que abra la app.
       {
         swagger: 'GET /api/sectores/{id}/historial',
         estado: 200,
-        llamada: () => llamar('get', '/api/sectores/4/historial', a.token),
+        llamada: () => llamar('get', '/api/sectores/4/historial'),
       },
       {
         swagger: 'GET /api/estimaciones',
         estado: 200,
-        llamada: () => llamar('get', '/api/estimaciones?sectorId=1&tipoServicio=agua', a.token),
+        llamada: () => llamar('get', '/api/estimaciones?sectorId=1&tipoServicio=agua'),
       },
       {
         swagger: 'GET /api/sectores/{id}/resumen',
         estado: 200,
-        llamada: () => llamar('get', '/api/sectores/1/resumen', a.token),
+        llamada: () => llamar('get', '/api/sectores/1/resumen'),
       },
     ];
   };

@@ -7,6 +7,17 @@
 @import '../../../../docs/frontend/tokens/a.css';
 @import '../../../../docs/frontend/tokens/tailwind.css';
 
+/*
+  Flat design (D-028): sin sombras ni degradados. La profundidad la dan los bordes de 1 px y los
+  colores sólidos de los tokens; los colores de estado no cambian (ya pasaron la verificación de
+  contraste y de daltonismo). Misma especificidad que a.css y después de él: gana este valor.
+*/
+:root[data-diseno='a'],
+:root[data-diseno='a'].dark {
+  --sombra-flotante: none;
+  --sombra-hoja: none;
+}
+
 @layer base {
   html {
     /* Las referencias usan el interlineado normal; el preflight de Tailwind pone 1.5 (CANON §2). */

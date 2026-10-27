@@ -1,65 +1,83 @@
-import { useColaAvisos, useEstadosSector, useSectores } from './datos/consultas';
-import { type ModoApp } from './datos/componer';
-import { usePuertos, useObservable } from './datos/contexto';
-import { ETIQUETA_ESTADO, estadoVisual } from './dominio/estado-visual';
-import { hora, nombreServicio } from './utils/formato';
+import type { ReactNode } from 'react';
+import { Contenido, Marco } from './componentes/marco/Marco';
+import { Boton } from './componentes/ui/Boton';
+import { Esqueleto, Mensaje } from './componentes/ui/Mensaje';
+import { PantallaCuenta } from './cuenta/PantallaCuenta';
+import { usePerfil, useSesion } from './datos/consultas';
+import { PantallaMapa } from './mapa/PantallaMapa';
+import { rutaSegura, useParametro, useRuta, type Ruta } from './navegacion/ruta';
+import { PantallaPanel } from './panel/PantallaPanel';
+import { PantallaEntrar } from './registro/PantallaEntrar';
+import { PantallaRegistro } from './registro/PantallaRegistro';
+import { PantallaReportar } from './reportes/PantallaReportar';
 
 /**
- * Pantalla provisional: no es ningún diseño del canon. Solo demuestra que la interfaz, los
- * puertos y los adaptadores (reales o de la demo) están cableados de punta a punta.
+ * Mirar es público (D-029): el mapa y el panel no piden cuenta. Reportar sí, porque el consenso
+ * cuenta vecinos distintos (CON-04) y el sector sale del pin del registro (REG).
  */
-export function App({ modo }: { modo: ModoApp }) {
-  const { conexion } = usePuertos();
-  const estadoConexion = useObservable(conexion);
-  const sectores = useSectores();
-  const estados = useEstadosSector();
-  const cola = useColaAvisos();
+export function App() {
+  const ruta = useRuta();
+  const siguiente = rutaSegura(useParametro('siguiente'));
+  return <Marco>{pantalla(ruta, siguiente)}</Marco>;
+}
 
-  const pendientes = cola.data?.filter((a) => a.estado === 'pendiente').length ?? 0;
-  const sinRed = estadoConexion.modo !== 'en-linea';
+function pantalla(ruta: Ruta, siguiente: Ruta): ReactNode {
+  switch (ruta) {
+    case '/':
+      return <PantallaMapa />;
+    case '/panel':
+      return <PantallaPanel />;
+    case '/reportar':
+      return (
+        <RequiereVecino ruta="/reportar">
+          <PantallaReportar />
+        </RequiereVecino>
+      );
+    case '/cuenta':
+      return <PantallaCuenta />;
+    case '/entrar':
+      return <PantallaEntrar siguiente={siguiente} />;
+    case '/registro':
+      return (
+        <RequiereVecino ruta={siguiente}>
+          <PantallaRegistroHecho />
+        </RequiereVecino>
+      );
+  }
+}
 
-  return (
-    <main className="mx-auto flex min-h-dvh max-w-xl flex-col gap-4 p-4">
-      {sinRed && (
-        <p role="status" className="rounded-control bg-inverso-fondo p-3 text-inverso-texto">
-          {estadoConexion.modo === 'servidor-caido' ? 'No se pudo actualizar' : 'Sin conexión'} ·
-          datos no actualizados
-          {estadoConexion.ultimaSincronizacion
-            ? ` (${hora(estadoConexion.ultimaSincronizacion)})`
-            : ''}
-        </p>
-      )}
+/**
+ * Sin sesión muestra Entrar; con cuenta pero sin pin, el registro (D-014). Lo hace en el sitio, sin
+ * redirigir: al terminar, la misma ruta muestra lo que se pidió.
+ */
+export function RequiereVecino({ ruta, children }: { ruta: Ruta; children: ReactNode }) {
+  const usuario = useSesion();
+  const perfil = usePerfil();
 
-      <h1 className="text-xl font-bold">BlackoutTracker</h1>
-      {modo.tipo === 'demo' && (
-        <p className="text-secundario">Modo demostración · {modo.escenario}</p>
-      )}
-      {pendientes > 0 && (
-        <p className="text-secundario">
-          {pendientes} {pendientes === 1 ? 'aviso pendiente' : 'avisos pendientes'} de envío
-        </p>
-      )}
+  if (!usuario) return <PantallaEntrar siguiente={ruta} />;
+  if (perfil.isPending) {
+    return (
+      <Contenido>
+        <Esqueleto className="h-8 w-40" />
+        <Esqueleto className="h-24" />
+      </Contenido>
+    );
+  }
+  if (perfil.isError) {
+    return (
+      <Contenido>
+        <Mensaje tono="error">No pudimos comprobar tu registro. Revisa tu conexión.</Mensaje>
+        <Boton variante="secundario" icono="refresh-cw" onClick={() => void perfil.refetch()}>
+          Reintentar
+        </Boton>
+      </Contenido>
+    );
+  }
+  if (perfil.data === null) return <PantallaRegistro />;
+  return children;
+}
 
-      <ul className="flex flex-col gap-2">
-        {sectores.data?.features.flatMap((sector) =>
-          (['electricidad', 'agua'] as const).map((servicio) => {
-            const fila = estados.data?.find(
-              (e) => e.sectorId === sector.properties.id && e.tipoServicio === servicio,
-            );
-            return (
-              <li
-                key={`${sector.id}/${servicio}`}
-                className="flex items-center justify-between rounded-tarjeta border border-borde bg-superficie p-3"
-              >
-                <span>
-                  {sector.properties.nombre} · {nombreServicio(servicio)}
-                </span>
-                <span className="text-secundario">{ETIQUETA_ESTADO[estadoVisual(fila)]}</span>
-              </li>
-            );
-          }),
-        )}
-      </ul>
-    </main>
-  );
+/** `/registro` con el perfil ya creado: no hay nada que registrar, se va a la cuenta. */
+function PantallaRegistroHecho() {
+  return <PantallaCuenta />;
 }

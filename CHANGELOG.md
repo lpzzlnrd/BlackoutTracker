@@ -7,6 +7,14 @@ Secciones por versión: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**
 
 ## [Sin publicar]
 
+### Añadido
+- `docker compose --profile app` (`pnpm app:up`): la API (`apps/api/Dockerfile`) y la web servida por nginx (`apps/web/Dockerfile`, `nginx.conf`) en http://localhost:8080, con `/api` reenviado a la API; `apps/web/vercel.json`; `docs/despliegue.md` con Supabase, Render, Vercel, GitHub y Docker (F-002, S0).
+- Base de la interfaz en flat design (D-028): enrutador mínimo (`navegacion/ruta.tsx`), marco con navegación inferior y barra lateral desde 1024 px, primitivos del canon (`Icono`, `EstadoChip`, `ChipSync`, `AvisoConexion`, `BotonPendientes`, `SelectorServicio`, `BloqueEstimacion`, `Boton`, `Campo`, `Mensaje`), el servicio elegido compartido, los hooks de datos de todas las pantallas, la guarda "reportar pide cuenta y pin" y los iconos PNG de la PWA (F-002, S0).
+
+### Cambiado
+- `GET /estimaciones`, `GET /sectores/:id/historial` y `GET /sectores/:id/resumen` son públicos: mirar no pide cuenta (D-029). Tests EST-01 y VIS-04 sin sesión y barrido NF-06 sin token (F-002).
+- Un solo `.env` en la raíz para la API, los scripts, la web y Docker (D-030); se quitan `apps/api/.env.example` y `apps/web/.env.example` (F-002).
+
 ### Seguridad
 - Revisión de seguridad de la API (T-051): `GET /estimaciones` rechaza con 400 un `sectorId` fuera de rango (antes, 500); los formularios urlencoded tienen el mismo límite de 16 kB que el JSON y sin objetos anidados; test NF-07 (sin administrador: ni rutas ni roles, y un token con claims de admin de Supabase no fuerza el consenso).
 - Throttle de lectura (120/min por IP) en `GET /sectores`, `/sectores/:id/historial`, `/sectores/:id/resumen` y `/estimaciones`, y `/resumen` en el barrido NF-06 (T-051, T-043).

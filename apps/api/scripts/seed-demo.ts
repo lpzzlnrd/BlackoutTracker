@@ -16,12 +16,9 @@ import { opcionesConexion } from '../src/db/db.module';
 import { abrirCortesDemo, motivoParaNoSembrar } from '../src/db/demo';
 import { importarCampo } from '../src/db/importar-campo';
 import { leerSectores, sembrarSectores } from '../src/db/sembrar-sectores';
+import { cargarEnv } from '../src/config/cargar-env';
 
-try {
-  process.loadEnvFile();
-} catch {
-  // sin .env: las variables ya vienen del entorno
-}
+cargarEnv();
 
 const DATOS = join(__dirname, '../../../data');
 

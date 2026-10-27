@@ -184,9 +184,10 @@ describe('GET /api/sectores/:id/resumen (T-043)', () => {
     expect((await resumen(0).expect(400)).body.codigo).toBe('DATOS_INVALIDOS');
   });
 
-  it('sin token es 401, pero no pide perfil de residente: basta el JWT', async () => {
-    expect((await resumen(1, null).expect(401)).body.codigo).toBe('NO_AUTENTICADO');
-    // Una cuenta de Auth sin perfil (D-014) puede leer el resumen: no devuelve nada de residentes.
+  it('VIS-04: el resumen se lee sin sesión y con una cuenta sin perfil (D-029)', async () => {
+    const anonimo = await resumen(1, null).expect(200);
+    expect(anonimo.body).toEqual((await resumen(1).expect(200)).body);
+    // Una cuenta de Auth sin perfil (D-014) también: no devuelve nada de residentes.
     const token = await ctx.emisor.firmar({ sub: randomUUID() });
     await resumen(1, token).expect(200);
   });

@@ -1,11 +1,8 @@
 import { defineConfig } from 'drizzle-kit';
+import { cargarEnv } from './src/config/cargar-env';
 
-// `drizzle-kit` no carga el .env por su cuenta: se lee aquí (Node 22). Si no existe, se usa el entorno.
-try {
-  process.loadEnvFile();
-} catch {
-  // sin .env: las variables ya vienen del entorno
-}
+// `drizzle-kit` no carga el .env por su cuenta: se lee aquí (D-030). Si no existe, se usa el entorno.
+cargarEnv();
 
 export default defineConfig({
   dialect: 'postgresql',

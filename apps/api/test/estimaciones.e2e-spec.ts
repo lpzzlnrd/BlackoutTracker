@@ -135,11 +135,20 @@ describe('Estimación estadística — GET /estimaciones (T-042)', () => {
     expect(body.codigo).toBe('SECTOR_NO_ENCONTRADO');
   });
 
-  it('parámetros inválidos → 400 y sin token → 401', async () => {
+  it('parámetros inválidos → 400, también sin token', async () => {
     await estimar(1, 'gas').expect(400);
     await ctx.get('/api/estimaciones?sectorId=abc&tipoServicio=agua', token).expect(400);
     await ctx.get('/api/estimaciones?tipoServicio=agua', token).expect(400);
-    await estimar(1, 'agua', false).expect(401);
+    await estimar(1, 'gas', false).expect(400);
+  });
+
+  it('EST-01: la estimación se lee sin sesión, con la misma respuesta (D-029)', async () => {
+    await cerrados(1, 'agua', [120, 240, 300, 360, 420]);
+    const { body } = await estimar(1, 'agua', false).expect(200);
+    expect(body).toMatchObject({ suficiente: true, n: 5, medianaMin: 300 });
+    expect((await estimar(1, 'agua').expect(200)).body).toEqual(body);
+    // Un token vencido o basura no estorba: la ruta pública no lo mira.
+    await ctx.get('/api/estimaciones?sectorId=1&tipoServicio=agua', 'no.es-un.jwt').expect(200);
   });
 
   it('T-051: un sectorId fuera del rango de smallint es un 400, no un 500', async () => {

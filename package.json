@@ -19,6 +19,8 @@
     "db:up": "docker compose up -d --wait db",
     "db:down": "docker compose down",
     "db:reset": "docker compose down -v && docker compose up -d --wait db",
+    "app:up": "docker compose --profile app up -d --build --wait",
+    "app:logs": "docker compose --profile app logs -f api web",
     "db:generate": "pnpm --filter @blackout/api db:generate",
     "db:migrate": "pnpm --filter @blackout/api db:migrate",
     "db:studio": "pnpm --filter @blackout/api db:studio",

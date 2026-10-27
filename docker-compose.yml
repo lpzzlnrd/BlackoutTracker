@@ -22,5 +22,44 @@ services:
       timeout: 3s
       retries: 20
 
+  # La app completa en local (docs/despliegue.md §7): `pnpm app:up` y http://localhost:8080. Van en
+  # el perfil `app`, así `pnpm db:up` sigue levantando solo la base. Las dos leen el .env de la raíz
+  # (D-030): la API al arrancar y la web en el build. La base de la API es la de DATABASE_URL
+  # (Supabase), no `db`: es la que lee la web por Realtime.
+  api:
+    profiles: ['app']
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: blackout-api
+    container_name: blackout-api
+    env_file: .env
+    environment:
+      PORT: 3000
+      TRUST_PROXY: 1 # detrás del nginx de `web`
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3000/api/salud > /dev/null || exit 1']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+
+  web:
+    profiles: ['app']
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY:-}
+        VITE_API_URL: /api # siempre la API de este compose, por el proxy de nginx
+    image: blackout-web
+    container_name: blackout-web
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - '8080:80'
+
 volumes:
   blackout-pgdata:

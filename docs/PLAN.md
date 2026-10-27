@@ -260,7 +260,7 @@ Tras cada inicio o cierre, en la **misma transacción** que la escritura del rep
 
 ---
 
-## 7. Configuración (`apps/api/.env.example`)
+## 7. Configuración (`.env.example` de la raíz, D-030)
 
 ```
 DATABASE_URL=postgres://postgres:postgres@localhost:5433/blackout     # local (docker)

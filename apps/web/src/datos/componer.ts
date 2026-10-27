@@ -33,7 +33,7 @@ export function componerPuertosReales(): Puertos {
   const claveSupabase = import.meta.env.VITE_SUPABASE_ANON_KEY;
   if (!urlSupabase || !claveSupabase) {
     throw new Error(
-      'Faltan VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY (ver apps/web/.env.example). ' +
+      'Faltan VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY (ver el .env.example de la raíz). ' +
         'Para probar sin backend, abre la app con /?demo=en-linea.',
     );
   }
