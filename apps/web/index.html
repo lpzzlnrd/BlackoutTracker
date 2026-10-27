@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es" data-diseno="a">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>BlackoutTracker</title>
+    <meta
+      name="description"
+      content="Cortes de agua y luz en Guaparo, reportados por los vecinos."
+    />
+    <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icono.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Blackout" />
+    <!-- Antes de la hoja de estilos: evita el destello del tema (PWA.md §6). -->
+    <script>
+      (function () {
+        try {
+          var guardado = localStorage.getItem('tema'); // 'claro' | 'oscuro' | null (sistema)
+          var oscuro = guardado
+            ? guardado === 'oscuro'
+            : matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.classList.toggle('dark', oscuro);
+        } catch (_) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="raiz"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,43 @@
+/*
+  Hoja global. Los tokens se importan tal cual de docs/frontend/tokens (la fuente única del
+  canon: `verificar-tokens.mjs` los comprueba ahí) y no se copian. Propuesta A.
+*/
+@import 'tailwindcss';
+@import '../../../../docs/frontend/tokens/comun.css';
+@import '../../../../docs/frontend/tokens/a.css';
+@import '../../../../docs/frontend/tokens/tailwind.css';
+
+@layer base {
+  html {
+    /* Las referencias usan el interlineado normal; el preflight de Tailwind pone 1.5 (CANON §2). */
+    line-height: normal;
+    overscroll-behavior: none;
+  }
+
+  body {
+    background: var(--fondo);
+    color: var(--texto);
+    font-family: var(--fuente-ui);
+  }
+
+  /* Foco visible en todo lo interactivo (CANON §2). */
+  :where(a, button, input, select, textarea, summary):focus-visible {
+    outline: 2px solid var(--foco);
+    outline-offset: 2px;
+  }
+
+  button,
+  a {
+    touch-action: manipulation;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
