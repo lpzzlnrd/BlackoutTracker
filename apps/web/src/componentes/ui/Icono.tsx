@@ -140,6 +140,9 @@ const TRAZOS = {
     </>
   ),
   'chevron-left': <polyline points="15 18 9 12 15 6" />,
+  // Ocultar y mostrar la hoja del mapa.
+  'chevron-down': <polyline points="6 9 12 15 18 9" />,
+  'chevron-up': <polyline points="18 15 12 9 6 15" />,
   // "Después de avisar" en Reportar (D-038).
   smartphone: (
     <>

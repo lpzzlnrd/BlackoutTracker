@@ -19,6 +19,7 @@ Secciones por versión: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**
 - Base de la interfaz en flat design (D-028): enrutador mínimo (`navegacion/ruta.tsx`), marco con navegación inferior y barra lateral desde 1024 px, primitivos del canon (`Icono`, `EstadoChip`, `ChipSync`, `AvisoConexion`, `BotonPendientes`, `SelectorServicio`, `BloqueEstimacion`, `Boton`, `Campo`, `Mensaje`), el servicio elegido compartido, los hooks de datos de todas las pantallas, la guarda "reportar pide cuenta y pin" y los iconos PNG de la PWA (F-002, S0).
 
 ### Corregido
+- Mapa en el teléfono: la hoja inferior se oculta de un toque (chevrón ↓, o arrastrándola hacia abajo) y queda una franja "Ver detalle"; el mapa se vuelve a encuadrar con todo el alto. Tocar un sector la asoma de nuevo (F-002, VIS-01).
 - `DATABASE_URL` se valida al arrancar (`postgres://` o `postgresql://`): en el primer despliegue a Render un valor mal pegado tumbaba Nest con un "Invalid URL" del driver sin decir qué variable era (T-053).
 - `keepalive.yml` lee `API_URL` como variable del repo: la guía la ponía en el environment `produccion`, que el job no declara, así que nunca la habría visto (T-053).
 - Crear cuenta con *Confirm email* activo en Supabase: la app se quedaba en la portada sin sesión y sin explicar nada; ahora dice "Te enviamos un correo para confirmar tu cuenta" y pasa a "Entrar" (REG-01). Se detectó en la prueba real contra staging del 27-oct, que tenía la confirmación activada (`docs/despliegue.md` §1.4 pide desactivarla) (F-002).

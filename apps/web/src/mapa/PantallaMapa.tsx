@@ -14,7 +14,13 @@ import type { EstadoSector, EstadoVisual } from '../dominio/tipos';
 import { Enlace } from '../navegacion/ruta';
 import { CapaSectores, encuadrar, type Relleno } from './CapaSectores';
 import { DetalleSector } from './DetalleSector';
-import { alturaAsomada, HojaSector, useEsEscritorio, type PosicionHoja } from './HojaSector';
+import {
+  ALTURA_OCULTA,
+  alturaAsomada,
+  HojaSector,
+  useEsEscritorio,
+  type PosicionHoja,
+} from './HojaSector';
 import { AtribucionOSM, DefinicionesMapa, limitesDe, MapaBase } from './MapaBase';
 import { anunciosDeCambio, etiquetaMapa } from './textos';
 
@@ -26,7 +32,8 @@ const LEYENDA: readonly EstadoVisual[] = ['sin-servicio', 'sin-confirmar', 'con-
 
 // Lo que tapan las superposiciones, para que el encuadre deje los sectores a la vista (A §3). En
 // el teléfono, arriba el selector y la leyenda (la barra de la marca ya no está sobre el mapa,
-// D-038); abajo, la hoja asomada más la atribución que flota sobre ella.
+// D-038); abajo, la hoja (asomada u oculta) más la atribución que flota sobre ella. Al ocultar la
+// hoja el mapa se vuelve a encuadrar con todo el alto.
 const rellenoTelefono = (hoja: number): Relleno => ({
   arribaIzquierda: [24, 108],
   abajoDerecha: [24, hoja + 30],
@@ -46,12 +53,15 @@ export function PantallaMapa() {
   const [elegido, setElegido] = useState<number | null>(null);
   const [posicion, setPosicion] = useState<PosicionHoja>('asomada');
   const contenedor = useRef<HTMLDivElement>(null);
-  const hoja = alturaAsomada(useAlto(contenedor));
+  const asomada = alturaAsomada(useAlto(contenedor));
+  const hoja = posicion === 'oculta' ? ALTURA_OCULTA : asomada;
   const relleno = escritorio ? RELLENO_ESCRITORIO : rellenoTelefono(hoja);
   const [mapa, setMapa] = useState<MapaLeaflet | null>(null);
   const geometria = sectores.data;
   // En el teléfono, con la hoja abierta el botón quedaría debajo de ella.
-  const verTodo = useFueraDeEncuadre(mapa, geometria) && (escritorio || posicion === 'asomada');
+  const verTodo =
+    useFueraDeEncuadre(mapa, geometria) &&
+    (escritorio || posicion === 'asomada' || posicion === 'oculta');
 
   const lista = sectores.data?.features ?? [];
   const nombres = lista.map((f) => f.properties);
@@ -69,8 +79,12 @@ export function PantallaMapa() {
   const sector = nombres.find((s) => s.id === seleccionado);
   const anuncio = useAnuncio(estados.data, (id) => nombres.find((s) => s.id === id)?.nombre);
 
-  // Tocar el sector propio vuelve a la vista por defecto.
-  const seleccionar = (id: number) => setElegido(id === propio ? null : id);
+  // Tocar el sector propio vuelve a la vista por defecto. Con la hoja oculta, tocar un sector la
+  // asoma para enseñar su estado.
+  const seleccionar = (id: number) => {
+    setElegido(id === propio ? null : id);
+    if (posicion === 'oculta') setPosicion('asomada');
+  };
 
   const detalle = sector ? (
     <DetalleSector
@@ -177,7 +191,7 @@ export function PantallaMapa() {
         {escritorio ? (
           <AtribucionOSM className="absolute right-2 bottom-2" />
         ) : (
-          <HojaSector posicion={posicion} asomada={hoja} onCambiar={setPosicion}>
+          <HojaSector posicion={posicion} asomada={asomada} onCambiar={setPosicion}>
             {detalle}
           </HojaSector>
         )}
