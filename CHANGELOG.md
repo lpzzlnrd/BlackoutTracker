@@ -8,6 +8,7 @@ Secciones por versión: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**
 ## [Sin publicar]
 
 ### Añadido
+- CI/CD (T-053, D-039): `ci.yml` despliega tras `verificar` en `main` con dos jobs y sus environments, `desplegar-api` (`prod-api`: pide a la API de Render el despliegue del commit, lo sigue hasta `live` y comprueba `/api/salud`) y `desplegar-web` (`prod-web`: CLI de Vercel, después de la API). Cada despliegue queda en *Deployments* de GitHub con su resultado y su URL; sin la variable del servicio, el job se salta. API desplegada en `https://blackouttracker.onrender.com`.
 - Avisos (F-002, D-037): "Tus avisos" pasa a su propia pantalla `/avisos`, con estado vacío, aviso de pendientes y enlace "Ver tus avisos" tras guardar; insignia de avisos sin enviar en la barra, en rojo si alguno se rechazó. Tests OFF-01 y D-037 (E2E) y `resumenCola` (Vitest).
 - Cuenta y registro (F-002, S1): Entrar / Crear cuenta con Supabase Auth y errores en español (REG-04, REG-05, REG-07); registro en dos pasos con el pin en el mapa, validación con Turf incluido el borde y empate al menor id (D-002, REG-01/02/03), confirmación del sector del servidor y sin geolocalización; Cuenta con el sector, el tema (Sistema · Claro · Oscuro) y "Cerrar sesión", que vacía la cola, la caché de consultas y la del service worker, y pide confirmar si hay avisos sin enviar.
 - Mapa (F-002, S2, VIS-01/03/04): coropleta Leaflet por estado (trama "sin confirmar", contorno de "tu sector", etiquetas e insignias), selector Luz/Agua, leyenda, atribución OSM, hoja inferior de tres posiciones en el teléfono y panel de detalle en escritorio (estado, estimación con su n, aviso pendiente, botón de reportar y últimos cortes), `aria-label` del mapa y anuncios `aria-live` de los cambios por Realtime.
@@ -18,6 +19,8 @@ Secciones por versión: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**
 - Base de la interfaz en flat design (D-028): enrutador mínimo (`navegacion/ruta.tsx`), marco con navegación inferior y barra lateral desde 1024 px, primitivos del canon (`Icono`, `EstadoChip`, `ChipSync`, `AvisoConexion`, `BotonPendientes`, `SelectorServicio`, `BloqueEstimacion`, `Boton`, `Campo`, `Mensaje`), el servicio elegido compartido, los hooks de datos de todas las pantallas, la guarda "reportar pide cuenta y pin" y los iconos PNG de la PWA (F-002, S0).
 
 ### Corregido
+- `DATABASE_URL` se valida al arrancar (`postgres://` o `postgresql://`): en el primer despliegue a Render un valor mal pegado tumbaba Nest con un "Invalid URL" del driver sin decir qué variable era (T-053).
+- `keepalive.yml` lee `API_URL` como variable del repo: la guía la ponía en el environment `produccion`, que el job no declara, así que nunca la habría visto (T-053).
 - Crear cuenta con *Confirm email* activo en Supabase: la app se quedaba en la portada sin sesión y sin explicar nada; ahora dice "Te enviamos un correo para confirmar tu cuenta" y pasa a "Entrar" (REG-01). Se detectó en la prueba real contra staging del 27-oct, que tenía la confirmación activada (`docs/despliegue.md` §1.4 pide desactivarla) (F-002).
 - Mapa (D-035): los nombres de sectores vecinos ya no se pisan al alejar el zoom (sin "Guaparo" en el mapa y solo la insignia si el marcador medido no cabe), el título del detalle ya no se corta en "Guaparo Nor…" y el contorno del sector seleccionado se ve (va en su propio panel, encima de los estados). Tests VIS-01 y VIS-05 (F-002).
 - `--mapa-base` en oscuro: las propuestas A, B y C lo definían solo en claro y ganaban también en oscuro, así que el fondo del mapa salía claro mientras cargaban las teselas (F-002).
@@ -25,12 +28,16 @@ Secciones por versión: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**
 - Realtime de `estado_sector`: un solo canal compartido por todos los `useEstadosSector` (se abre con el primer oyente y se cierra con el último, con nombre nuevo en cada apertura). Antes la app se caía con "cannot add `postgres_changes` callbacks … after `subscribe()`", porque `supabase.channel()` devuelve el canal ya suscrito si el nombre se repite (mapa y detalle a la vez, o StrictMode). Test VIS-03 del adaptador (F-002).
 
 ### Cambiado
+- `docs/despliegue.md` (T-053): `DATABASE_URL` por el *Transaction pooler* (6543), build de Render que instala solo la API (`--filter @blackout/api...`), rama `main`, Auto-Deploy en Off y la configuración de GitHub del CI/CD. En Vercel, el despliegue automático de `main` se apaga desde el panel (*Ignored Build Step*), sin tocar `apps/web`; las previews siguen.
 - Barra del teléfono (F-002, D-037): cinco destinos (Mapa · Panel · Reportar · Avisos · Cuenta) con Reportar al centro, circular, de acento y sobresaliendo de la barra; Reportar queda solo con el formulario.
 - Sectores del Guaparo real (D-036): `data/sectores-guaparo.geojson` tiene ahora 6 sectores trazados sobre vías de OSM, en lugar de la cuadrícula provisional que quedaba 2,5 km al sureste. La cuadrícula pasa a `data/sectores-cuadricula.geojson` para los tests de integración y el modo demo de la web; la demo usa los nombres reales. Test nuevo: el GeoJSON real siembra 6 sectores válidos, sin solapes ni huecos. Staging se volvió a sembrar (F-002).
 - Mapa: el nombre de un sector solo se muestra si su fila cabe dentro del polígono real (no del rectángulo que lo envuelve), para que no invada al vecino en sectores angostos o inclinados; si no, va solo la insignia (VIS-05, F-002).
 - Mapa (D-035): "con servicio" al 25 % en oscuro (antes 55 %) para que los cortes resalten; máscara que apaga lo que queda fuera de Guaparo; no se puede alejar más de un nivel del encuadre y aparece "Ver todo Guaparo" cuando la vista ya no muestra todos los sectores (F-002).
 - `GET /estimaciones`, `GET /sectores/:id/historial` y `GET /sectores/:id/resumen` son públicos: mirar no pide cuenta (D-029). Tests EST-01 y VIS-04 sin sesión y barrido NF-06 sin token (F-002).
 - Un solo `.env` en la raíz para la API, los scripts, la web y Docker (D-030); se quitan `apps/api/.env.example` y `apps/web/.env.example` (F-002).
+
+### Eliminado
+- `deploy-api.yml` y su *deploy hook*: el despliegue de la API pasa al job `desplegar-api` de `ci.yml` (T-053, D-039).
 
 ### Seguridad
 - Revisión de seguridad de la API (T-051): `GET /estimaciones` rechaza con 400 un `sectorId` fuera de rango (antes, 500); los formularios urlencoded tienen el mismo límite de 16 kB que el JSON y sin objetos anidados; test NF-07 (sin administrador: ni rutas ni roles, y un token con claims de admin de Supabase no fuerza el consenso).

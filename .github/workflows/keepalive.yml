@@ -3,6 +3,9 @@ name: Keep-alive
 # Supabase gratis se pausa tras ~7 días sin actividad y Render gratis se duerme (docs/PLAN.md §10).
 # `GET /api/salud` toca la base, así que un ping periódico evita las dos cosas. Si la variable
 # API_URL no está definida (antes de T-053), no hace nada.
+#
+# API_URL tiene que ser una variable **del repo**, no de un environment: este job no declara
+# environment (si lo hiciera, GitHub registraría un "despliegue" cada 14 min) y no las vería.
 on:
   schedule:
     - cron: '*/14 * * * *'
