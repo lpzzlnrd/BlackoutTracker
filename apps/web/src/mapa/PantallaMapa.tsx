@@ -1,16 +1,18 @@
 import './pantalla-mapa.css';
+import type { SectoresGeoJsonDto } from '@blackout/shared';
+import { geoJSON, type Map as MapaLeaflet } from 'leaflet';
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { Boton } from '../componentes/ui/Boton';
 import { BotonPendientes } from '../componentes/ui/BotonPendientes';
 import { EstadoChip } from '../componentes/ui/Chips';
-import { Marca } from '../componentes/ui/Icono';
+import { Icono, Marca } from '../componentes/ui/Icono';
 import { Esqueleto, Mensaje } from '../componentes/ui/Mensaje';
 import { SelectorServicio } from '../componentes/ui/SelectorServicio';
 import { useColaAvisos, useEstadosSector, usePerfil, useSectores } from '../datos/consultas';
 import { useServicio } from '../datos/preferencias';
 import type { EstadoSector, EstadoVisual } from '../dominio/tipos';
 import { Enlace, navegar } from '../navegacion/ruta';
-import { CapaSectores, type Relleno } from './CapaSectores';
+import { CapaSectores, encuadrar, type Relleno } from './CapaSectores';
 import { DetalleSector } from './DetalleSector';
 import { alturaAsomada, HojaSector, useEsEscritorio, type PosicionHoja } from './HojaSector';
 import { AtribucionOSM, DefinicionesMapa, limitesDe, MapaBase } from './MapaBase';
@@ -43,6 +45,10 @@ export function PantallaMapa() {
   const contenedor = useRef<HTMLDivElement>(null);
   const hoja = alturaAsomada(useAlto(contenedor));
   const relleno = escritorio ? RELLENO_ESCRITORIO : rellenoTelefono(hoja);
+  const [mapa, setMapa] = useState<MapaLeaflet | null>(null);
+  const geometria = sectores.data;
+  // En el teléfono, con la hoja abierta el botón quedaría debajo de ella.
+  const verTodo = useFueraDeEncuadre(mapa, geometria) && (escritorio || posicion === 'asomada');
 
   const lista = sectores.data?.features ?? [];
   const nombres = lista.map((f) => f.properties);
@@ -98,6 +104,7 @@ export function PantallaMapa() {
           limites={limitesDe(sectores.data)}
           relleno={relleno}
           etiqueta={etiquetaMapa(nombres, estados.data, servicio)}
+          refMapa={setMapa}
         >
           {sectores.data && (
             <CapaSectores
@@ -111,6 +118,18 @@ export function PantallaMapa() {
             />
           )}
         </MapaBase>
+
+        {verTodo && mapa && geometria && (
+          <button
+            type="button"
+            onClick={() => encuadrar(mapa, geometria, relleno)}
+            className="absolute left-4 z-[1000] flex h-11 items-center gap-2 rounded-chip border border-borde bg-superficie pr-3.5 pl-3 text-sm font-semibold lg:top-4 lg:right-4 lg:left-auto"
+            style={escritorio ? undefined : { bottom: hoja + 8 }}
+          >
+            <Icono nombre="map" tamano={18} />
+            Ver todo Guaparo
+          </button>
+        )}
 
         {/* Teléfono: barra flotante con la marca y los pendientes (A §3). */}
         <div className="absolute inset-x-4 top-2 z-[1000] flex items-center justify-between gap-2 lg:hidden">
@@ -190,6 +209,28 @@ function useAnuncio(
     if (frases.length > 0) setAnuncio(frases.join('. '));
   }
   return anuncio;
+}
+
+/**
+ * Si la vista ya no muestra todos los sectores (el vecino acercó el mapa o lo movió): entonces se
+ * ofrece volver al encuadre. Al cargar está encuadrado, así que basta con mirar al terminar cada
+ * movimiento.
+ */
+function useFueraDeEncuadre(
+  mapa: MapaLeaflet | null,
+  sectores: SectoresGeoJsonDto | undefined,
+): boolean {
+  const [fuera, setFuera] = useState(false);
+  useEffect(() => {
+    if (!mapa || !sectores?.features.length) return;
+    const limites = geoJSON(sectores).getBounds();
+    const revisar = () => setFuera(!mapa.getBounds().contains(limites));
+    mapa.on('moveend', revisar);
+    return () => {
+      mapa.off('moveend', revisar);
+    };
+  }, [mapa, sectores]);
+  return fuera;
 }
 
 /** Alto en píxeles de un elemento, al día con cada cambio de tamaño (girar el teléfono). */

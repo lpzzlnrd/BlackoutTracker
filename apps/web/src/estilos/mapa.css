@@ -57,6 +57,14 @@
   stroke-width: 1.5px;
 }
 
+/* Fuera de Guaparo, las teselas se apagan hacia la base del mapa: así los sectores resaltan solos
+   y se ve dónde termina la urbanización (D-035). */
+.mascara {
+  fill: var(--mapa-base);
+  fill-opacity: 0.6;
+  stroke: none;
+}
+
 /* Contorno grueso de "tu sector" y del sector seleccionado (§4.3). */
 .sector-contorno {
   fill: none;

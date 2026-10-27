@@ -17,6 +17,13 @@ const filaDe = (
 ): EstadoSector | undefined =>
   estados?.find((e) => e.sectorId === sectorId && e.tipoServicio === servicio);
 
+/**
+ * Nombre del sector sobre el mapa: dentro de Guaparo, la urbanización sobra ("Guaparo Noroeste" →
+ * "Noroeste") y solo hace que las etiquetas vecinas se pisen. El detalle y el `aria-label` usan el
+ * nombre completo.
+ */
+export const nombreEnMapa = (nombre: string): string => nombre.replace(/^Guaparo\s+(?=\S)/i, '');
+
 /** El estado que se dibuja para un sector y servicio; sin filas, "sin datos" (CANON §3). */
 export const estadoDeSector = (
   estados: readonly EstadoSector[] | undefined,

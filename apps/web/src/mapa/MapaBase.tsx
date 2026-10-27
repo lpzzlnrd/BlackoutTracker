@@ -1,20 +1,20 @@
 import 'leaflet/dist/leaflet.css';
 import '../estilos/mapa.css';
 import type { SectoresGeoJsonDto } from '@blackout/shared';
-import { geoJSON, type LatLngBoundsExpression } from 'leaflet';
-import type { ReactNode } from 'react';
+import { geoJSON, latLngBounds, type LatLngBounds, type Map as MapaLeaflet } from 'leaflet';
+import type { ReactNode, Ref } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 
 // Base común de todos los mapas (CANON §4.1): coropleta (S2) y elección del pin (registro, S1).
 // Sin controles de Leaflet: la atribución es un elemento propio, hermano del mapa.
 
 /** Encuadre de todos los sectores; Guaparo aproximado mientras no hay geometría. */
-export function limitesDe(sectores: SectoresGeoJsonDto | undefined): LatLngBoundsExpression {
+export function limitesDe(sectores: SectoresGeoJsonDto | undefined): LatLngBounds {
   if (!sectores?.features.length) {
-    return [
+    return latLngBounds([
       [10.195, -68.02],
       [10.215, -67.995],
-    ];
+    ]);
   }
   return geoJSON(sectores).getBounds();
 }
@@ -23,18 +23,22 @@ export function MapaBase({
   limites,
   relleno,
   etiqueta,
+  refMapa,
   children,
 }: {
-  limites: LatLngBoundsExpression;
+  limites: LatLngBounds;
   /** `paddingTopLeft` / `paddingBottomRight` del encuadre inicial (deja sitio a la hoja, A §3). */
   relleno?: { arribaIzquierda: [number, number]; abajoDerecha: [number, number] };
   /** `aria-label` del mapa (CANON §4.6): "Mapa de sectores: Sector 1 sin servicio, …". */
   etiqueta: string;
+  /** La instancia de Leaflet, para controles que viven fuera del mapa ("Ver todo Guaparo"). */
+  refMapa?: Ref<MapaLeaflet>;
   children?: ReactNode;
 }) {
   return (
     <div role="img" aria-label={etiqueta} className="absolute inset-0">
       <MapContainer
+        ref={refMapa}
         bounds={limites}
         boundsOptions={{
           paddingTopLeft: relleno?.arribaIzquierda ?? [16, 16],

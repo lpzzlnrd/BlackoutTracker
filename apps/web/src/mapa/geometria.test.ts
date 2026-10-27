@@ -2,7 +2,7 @@ import type { SectorFeatureDto } from '@blackout/shared';
 import { booleanPointInPolygon } from '@turf/boolean-point-in-polygon';
 import { describe, expect, it } from 'vitest';
 import { puntoEtiqueta } from './geometria';
-import { escaparHtml, marcadorSector } from './marcador';
+import { escaparHtml, marcadorSector, medidaMarcador } from './marcador';
 
 const sector = (anillo: [number, number][]): SectorFeatureDto => ({
   type: 'Feature',
@@ -90,5 +90,26 @@ describe('marcadorSector', () => {
     expect(marcadorSector({ nombre: 'S', estado: 'con-servicio', propio: true }).ancla).toEqual([
       80, 34,
     ]);
+  });
+});
+
+describe('medidaMarcador', () => {
+  it('VIS-05: un nombre más largo o una letra más grande piden más ancho', () => {
+    const corto = medidaMarcador('Norte', false, 14);
+    expect(medidaMarcador('Noroeste', false, 14).ancho).toBeGreaterThan(corto.ancho);
+    expect(medidaMarcador('Norte', false, 18).ancho).toBeGreaterThan(corto.ancho);
+  });
+
+  it('VIS-05: "Guaparo Noroeste" no cabe en un sector de 125 px de ancho a 18 px; "Noroeste" sí', () => {
+    // El caso de la captura del 27-oct: con el zoom alejado, los nombres vecinos se pisaban.
+    expect(medidaMarcador('Guaparo Noroeste', false, 18).ancho).toBeGreaterThan(125);
+    expect(medidaMarcador('Noroeste', false, 18).ancho).toBeLessThanOrEqual(125);
+  });
+
+  it('VIS-01: la píldora "Tu sector" suma alto, no ancho', () => {
+    const otro = medidaMarcador('Noroeste', false, 14);
+    const propio = medidaMarcador('Noroeste', true, 14);
+    expect(propio.ancho).toBe(otro.ancho);
+    expect(propio.alto).toBeGreaterThan(otro.alto);
   });
 });

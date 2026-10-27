@@ -79,10 +79,11 @@ export function DetalleSector({
           Tu sector
         </span>
       )}
-      <div className="flex items-center justify-between gap-2">
+      {/* El título no se corta: lo que distingue "Noroeste" de "Noreste" va al final. */}
+      <div className="flex items-start justify-between gap-2">
         <h2
           id={idTitulo}
-          className={`leading-tight font-bold ${panel ? 'text-2xl' : 'text-xl'} min-w-0 truncate`}
+          className={`leading-tight font-bold ${panel ? 'text-2xl' : 'text-xl'} min-w-0 break-words`}
         >
           {nombre}
         </h2>

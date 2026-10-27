@@ -28,7 +28,40 @@ export const escaparHtml = (texto: string): string =>
 export const ANCHO_MARCADOR = 160;
 const ALTO_NOMBRE = 20;
 const ALTO_PILDORA = 20;
+const ALTO_INSIGNIA = 22;
 const SEPARACION = 4;
+
+/** Tamaño del nombre en px: el mismo de `.marcador-nombre text` en pantalla-mapa.css. */
+export const TAMANO_NOMBRE = { telefono: 14, escritorio: 18 } as const;
+
+let contexto: CanvasRenderingContext2D | null | undefined;
+
+/**
+ * Ancho del texto en negrita con la fuente de la interfaz, medido en un canvas. Sin `document`
+ * (los tests corren en Node), se estima en 0,6 em por carácter.
+ */
+function anchoTexto(texto: string, tamano: number): number {
+  contexto ??=
+    typeof document === 'undefined' ? null : document.createElement('canvas').getContext('2d');
+  if (!contexto) return texto.length * tamano * 0.6;
+  const fuente = getComputedStyle(document.documentElement).getPropertyValue('--fuente-ui').trim();
+  contexto.font = `700 ${tamano}px ${fuente || 'sans-serif'}`;
+  return contexto.measureText(texto).width;
+}
+
+/**
+ * Lo que ocupa en pantalla el marcador completo (píldora, nombre e insignia), para decidir si cabe
+ * dentro de su sector o va solo la insignia. Al ancho del texto se le suman el halo y un margen.
+ */
+export function medidaMarcador(
+  nombre: string,
+  propio: boolean,
+  tamano: number,
+): { ancho: number; alto: number } {
+  const ancho = Math.ceil(anchoTexto(nombre, tamano)) + 12;
+  const alto = (propio ? ALTO_PILDORA + SEPARACION : 0) + ALTO_NOMBRE + SEPARACION + ALTO_INSIGNIA;
+  return { ancho, alto: alto + 8 };
+}
 
 export interface Marcador {
   html: string;
@@ -63,7 +96,7 @@ export function marcadorSector(opciones: {
     `<text x="${ANCHO_MARCADOR / 2}" y="15" text-anchor="middle">${escaparHtml(nombre)}</text></svg>` +
     `${insignia}</div>`;
   const arriba = propio ? ALTO_PILDORA + SEPARACION : 0;
-  const alto = arriba + ALTO_NOMBRE + SEPARACION + 22;
+  const alto = arriba + ALTO_NOMBRE + SEPARACION + ALTO_INSIGNIA;
   return {
     html,
     tamano: [ANCHO_MARCADOR, alto],

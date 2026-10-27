@@ -17,10 +17,13 @@ Secciones por versión: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**
 - Base de la interfaz en flat design (D-028): enrutador mínimo (`navegacion/ruta.tsx`), marco con navegación inferior y barra lateral desde 1024 px, primitivos del canon (`Icono`, `EstadoChip`, `ChipSync`, `AvisoConexion`, `BotonPendientes`, `SelectorServicio`, `BloqueEstimacion`, `Boton`, `Campo`, `Mensaje`), el servicio elegido compartido, los hooks de datos de todas las pantallas, la guarda "reportar pide cuenta y pin" y los iconos PNG de la PWA (F-002, S0).
 
 ### Corregido
+- Mapa (D-035): los nombres de sectores vecinos ya no se pisan al alejar el zoom (sin "Guaparo" en el mapa y solo la insignia si el marcador medido no cabe), el título del detalle ya no se corta en "Guaparo Nor…" y el contorno del sector seleccionado se ve (va en su propio panel, encima de los estados). Tests VIS-01 y VIS-05 (F-002).
+- `--mapa-base` en oscuro: las propuestas A, B y C lo definían solo en claro y ganaban también en oscuro, así que el fondo del mapa salía claro mientras cargaban las teselas (F-002).
 - `nuevoId` arma el UUID v4 con `crypto.getRandomValues` cuando `crypto.randomUUID` no existe (origen no seguro: la app abierta por la IP de la red local o en las E2E); antes no se podía guardar ningún aviso (F-002).
 - Realtime de `estado_sector`: un solo canal compartido por todos los `useEstadosSector` (se abre con el primer oyente y se cierra con el último, con nombre nuevo en cada apertura). Antes la app se caía con "cannot add `postgres_changes` callbacks … after `subscribe()`", porque `supabase.channel()` devuelve el canal ya suscrito si el nombre se repite (mapa y detalle a la vez, o StrictMode). Test VIS-03 del adaptador (F-002).
 
 ### Cambiado
+- Mapa (D-035): "con servicio" al 25 % en oscuro (antes 55 %) para que los cortes resalten; máscara que apaga lo que queda fuera de Guaparo; no se puede alejar más de un nivel del encuadre y aparece "Ver todo Guaparo" cuando la vista ya no muestra todos los sectores (F-002).
 - `GET /estimaciones`, `GET /sectores/:id/historial` y `GET /sectores/:id/resumen` son públicos: mirar no pide cuenta (D-029). Tests EST-01 y VIS-04 sin sesión y barrido NF-06 sin token (F-002).
 - Un solo `.env` en la raíz para la API, los scripts, la web y Docker (D-030); se quitan `apps/api/.env.example` y `apps/web/.env.example` (F-002).
 
