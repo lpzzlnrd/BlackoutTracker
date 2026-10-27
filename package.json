@@ -22,7 +22,8 @@
     "db:generate": "pnpm --filter @blackout/api db:generate",
     "db:migrate": "pnpm --filter @blackout/api db:migrate",
     "db:studio": "pnpm --filter @blackout/api db:studio",
-    "db:seed": "pnpm --filter @blackout/api db:seed"
+    "db:seed": "pnpm --filter @blackout/api db:seed",
+    "db:seed:campo": "pnpm --filter @blackout/api db:seed:campo"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -15,7 +15,8 @@
     "db:migrate": "ts-node --transpile-only scripts/migrar.ts",
     "db:studio": "drizzle-kit studio",
     "db:seed": "ts-node --transpile-only scripts/seed-sectores.ts",
-    "red:intermitente": "ts-node --transpile-only scripts/red-intermitente/index.ts"
+    "red:intermitente": "ts-node --transpile-only scripts/red-intermitente/index.ts",
+    "db:seed:campo": "ts-node --transpile-only scripts/seed-campo.ts"
   },
   "dependencies": {
     "@blackout/shared": "workspace:*",
