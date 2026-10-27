@@ -8,45 +8,45 @@
 
 | Grupo | Casos | Con test | Prioridad A con test |
 |---|---|---|---|
-| REG — Registro y validación geográfica | 7 | 3 | 2 / 4 |
+| REG — Registro y validación geográfica | 7 | 6 | 4 / 4 |
 | REP — Ciclo de reportes | 7 | 7 | 4 / 4 |
 | CON — Consenso estructural | 7 | 7 | 5 / 5 |
-| OFF — Sin conexión | 7 | 5 | 4 / 5 |
+| OFF — Sin conexión | 7 | 6 | 4 / 5 |
 | EST — Estimación estadística | 6 | 6 | 4 / 4 |
-| VIS — Visualización | 5 | 3 | 1 / 2 |
+| VIS — Visualización | 5 | 5 | 2 / 2 |
 | No funcionales | 8 | 3 | — |
 | Aceptación (8–10 residentes, sin instrucciones paso a paso) | 6 | 0 | — |
-| **Total** | **53** | **34** | **20 / 24** |
+| **Total** | **53** | **40** | **23 / 24** |
 
 ## REG — Registro y validación geográfica
 
 | ID | Caso | P | Tests | Dónde |
 |---|---|---|---|---|
-| REG-01 | Pin dentro del polígono | A | 4 | `apps/api/test/registro.e2e-spec.ts` (3), `apps/web/src/datos/adaptadores/mock/residente.mock.test.ts` (1) |
-| REG-02 | Pin fuera del polígono | A | 2 | `apps/api/test/registro.e2e-spec.ts` (1), `apps/web/src/datos/adaptadores/mock/residente.mock.test.ts` (1) |
-| REG-03 | Pin sobre el borde | M | 2 | `apps/api/test/registro.e2e-spec.ts` (2) |
-| REG-04 | Correo ya existente | A | — | sin test automatizado |
-| REG-05 | Campos vacíos | M | — | sin test automatizado |
+| REG-01 | Pin dentro del polígono | A | 5 | `apps/api/test/registro.e2e-spec.ts` (3), `apps/web/src/datos/adaptadores/mock/residente.mock.test.ts` (1), `apps/web/src/dominio/sector-del-pin.test.ts` (1) |
+| REG-02 | Pin fuera del polígono | A | 4 | `apps/api/test/registro.e2e-spec.ts` (1), `apps/web/src/datos/adaptadores/mock/residente.mock.test.ts` (1), `apps/web/src/dominio/sector-del-pin.test.ts` (2) |
+| REG-03 | Pin sobre el borde | M | 4 | `apps/api/test/registro.e2e-spec.ts` (2), `apps/web/src/dominio/sector-del-pin.test.ts` (2) |
+| REG-04 | Correo ya existente | A | 1 | `apps/web/src/dominio/credenciales.test.ts` (1) |
+| REG-05 | Campos vacíos | M | 4 | `apps/web/src/dominio/credenciales.test.ts` (4) |
 | REG-06 | Permiso de ubicación denegado | M | — | sin test automatizado |
-| REG-07 | Login y logout | A | — | sin test automatizado |
+| REG-07 | Login y logout | A | 4 | `apps/web/src/aplicacion/cerrar-sesion.test.ts` (2), `apps/web/src/dominio/credenciales.test.ts` (2) |
 
 ## REP — Ciclo de reportes
 
 | ID | Caso | P | Tests | Dónde |
 |---|---|---|---|---|
-| REP-01 | Inicio de un corte de luz | A | 2 | `apps/api/test/reportes-inicio.e2e-spec.ts` (1), `apps/web/src/datos/adaptadores/mock/reportes.mock.test.ts` (1) |
-| REP-02 | Inicio de un corte de agua | A | 1 | `apps/api/test/reportes-inicio.e2e-spec.ts` (1) |
-| REP-03 | Cierre (regreso del servicio) | A | 3 | `apps/api/src/reportes/tiempo.puro.spec.ts` (1), `apps/api/test/reportes-cierre.e2e-spec.ts` (1), `apps/web/src/datos/adaptadores/mock/reportes.mock.test.ts` (1) |
+| REP-01 | Inicio de un corte de luz | A | 4 | `apps/api/test/reportes-inicio.e2e-spec.ts` (1), `apps/web/src/aplicacion/reportar.test.ts` (1), `apps/web/src/datos/adaptadores/mock/reportes.mock.test.ts` (1), `apps/web/src/mapa/textos.test.ts` (1) |
+| REP-02 | Inicio de un corte de agua | A | 2 | `apps/api/test/reportes-inicio.e2e-spec.ts` (1), `apps/web/src/aplicacion/reportar.test.ts` (1) |
+| REP-03 | Cierre (regreso del servicio) | A | 5 | `apps/api/src/reportes/tiempo.puro.spec.ts` (1), `apps/api/test/reportes-cierre.e2e-spec.ts` (1), `apps/web/src/aplicacion/reportar.test.ts` (1), `apps/web/src/datos/adaptadores/mock/reportes.mock.test.ts` (1), `apps/web/src/mapa/textos.test.ts` (1) |
 | REP-04 | Cierre sin inicio | M | 3 | `apps/api/test/reportes-cierre.e2e-spec.ts` (2), `apps/web/src/datos/adaptadores/mock/reportes.mock.test.ts` (1) |
-| REP-05 | Duplicado del mismo usuario | A | 7 | `apps/api/test/esquema.e2e-spec.ts` (2), `apps/api/test/reportes-inicio.e2e-spec.ts` (2), `apps/api/test/vencimiento.e2e-spec.ts` (1), `apps/web/src/datos/adaptadores/mock/reportes.mock.test.ts` (1), `apps/web/src/dominio/errores.test.ts` (1) |
-| REP-06 | Agua y luz a la vez | M | 4 | `apps/api/test/esquema.e2e-spec.ts` (1), `apps/api/test/reportes-cierre.e2e-spec.ts` (1), `apps/api/test/reportes-inicio.e2e-spec.ts` (1), `apps/web/src/datos/adaptadores/mock/reportes.mock.test.ts` (1) |
-| REP-07 | Fin anterior al inicio | M | 8 | `apps/api/src/reportes/tiempo.puro.spec.ts` (2), `apps/api/test/esquema.e2e-spec.ts` (2), `apps/api/test/reportes-cierre.e2e-spec.ts` (2), `apps/api/test/reportes-inicio.e2e-spec.ts` (1), `apps/web/src/datos/adaptadores/mock/reportes.mock.test.ts` (1) |
+| REP-05 | Duplicado del mismo usuario | A | 9 | `apps/api/test/esquema.e2e-spec.ts` (2), `apps/api/test/reportes-inicio.e2e-spec.ts` (2), `apps/api/test/vencimiento.e2e-spec.ts` (1), `apps/web/src/aplicacion/corte-abierto.test.ts` (1), `apps/web/src/aplicacion/reportar.test.ts` (1), `apps/web/src/datos/adaptadores/mock/reportes.mock.test.ts` (1), `apps/web/src/dominio/errores.test.ts` (1) |
+| REP-06 | Agua y luz a la vez | M | 5 | `apps/api/test/esquema.e2e-spec.ts` (1), `apps/api/test/reportes-cierre.e2e-spec.ts` (1), `apps/api/test/reportes-inicio.e2e-spec.ts` (1), `apps/web/src/aplicacion/corte-abierto.test.ts` (1), `apps/web/src/datos/adaptadores/mock/reportes.mock.test.ts` (1) |
+| REP-07 | Fin anterior al inicio | M | 10 | `apps/api/src/reportes/tiempo.puro.spec.ts` (2), `apps/api/test/esquema.e2e-spec.ts` (2), `apps/api/test/reportes-cierre.e2e-spec.ts` (2), `apps/api/test/reportes-inicio.e2e-spec.ts` (1), `apps/web/src/aplicacion/hora-aviso.test.ts` (2), `apps/web/src/datos/adaptadores/mock/reportes.mock.test.ts` (1) |
 
 ## CON — Consenso estructural
 
 | ID | Caso | P | Tests | Dónde |
 |---|---|---|---|---|
-| CON-01 | N − 1 | A | 4 | `apps/api/src/consenso/consenso.puro.spec.ts` (1), `apps/api/test/consenso.e2e-spec.ts` (1), `apps/api/test/demo-seed.e2e-spec.ts` (1), `apps/api/test/resumen.e2e-spec.ts` (1) |
+| CON-01 | N − 1 | A | 6 | `apps/api/src/consenso/consenso.puro.spec.ts` (1), `apps/api/test/consenso.e2e-spec.ts` (1), `apps/api/test/demo-seed.e2e-spec.ts` (1), `apps/api/test/resumen.e2e-spec.ts` (1), `apps/web/src/dominio/panel.test.ts` (1), `apps/web/src/mapa/textos.test.ts` (1) |
 | CON-02 | N | A | 4 | `apps/api/src/consenso/consenso.puro.spec.ts` (1), `apps/api/test/consenso.e2e-spec.ts` (1), `apps/api/test/demo-seed.e2e-spec.ts` (1), `apps/web/src/dominio/estado-visual.test.ts` (1) |
 | CON-03 | N + 1 | M | 4 | `apps/api/src/consenso/consenso.puro.spec.ts` (1), `apps/api/test/consenso.e2e-spec.ts` (2), `apps/api/test/esquema.e2e-spec.ts` (1) |
 | CON-04 | Mismo usuario ×3 | A | 6 | `apps/api/src/consenso/consenso.puro.spec.ts` (5), `apps/api/test/consenso.e2e-spec.ts` (1) |
@@ -58,13 +58,13 @@
 
 | ID | Caso | P | Tests | Dónde |
 |---|---|---|---|---|
-| OFF-01 | Reporte en modo avión | A | 2 | `apps/web/src/aplicacion/sincronizar-cola.test.ts` (1), `apps/web/src/datos/adaptadores/mock/reportes.mock.test.ts` (1) |
+| OFF-01 | Reporte en modo avión | A | 5 | `apps/web/src/aplicacion/corte-abierto.test.ts` (1), `apps/web/src/aplicacion/reportar.test.ts` (1), `apps/web/src/aplicacion/sincronizar-cola.test.ts` (1), `apps/web/src/datos/adaptadores/mock/reportes.mock.test.ts` (1), `apps/web/src/mapa/textos.test.ts` (1) |
 | OFF-02 | Sincronizar al volver la red | A | 1 | `apps/web/src/aplicacion/vigilar-conexion.test.ts` (1) |
-| OFF-03 | Hora real del evento | A | 4 | `apps/api/src/reportes/tiempo.puro.spec.ts` (1), `apps/api/test/reportes-inicio.e2e-spec.ts` (2), `apps/web/src/datos/adaptadores/mock/reportes.mock.test.ts` (1) |
-| OFF-04 | Varios en cola | M | 6 | `apps/api/test/sincronizacion.e2e-spec.ts` (4), `apps/web/src/aplicacion/sincronizar-cola.test.ts` (1), `packages/shared/test/sincronizacion.test.mjs` (1) |
-| OFF-05 | Reintento sin duplicado | A | 11 | `apps/api/test/red-intermitente.e2e-spec.ts` (1), `apps/api/test/reportes-cierre.e2e-spec.ts` (2), `apps/api/test/reportes-inicio.e2e-spec.ts` (2), `apps/api/test/sincronizacion.e2e-spec.ts` (1), `apps/web/src/aplicacion/sincronizar-cola.test.ts` (1), `apps/web/src/datos/adaptadores/mock/reportes.mock.test.ts` (3), `packages/shared/test/sincronizacion.test.mjs` (1) |
+| OFF-03 | Hora real del evento | A | 8 | `apps/api/src/reportes/tiempo.puro.spec.ts` (1), `apps/api/test/reportes-inicio.e2e-spec.ts` (2), `apps/web/src/aplicacion/hora-aviso.test.ts` (4), `apps/web/src/datos/adaptadores/mock/reportes.mock.test.ts` (1) |
+| OFF-04 | Varios en cola | M | 8 | `apps/api/test/sincronizacion.e2e-spec.ts` (4), `apps/web/src/aplicacion/corte-abierto.test.ts` (2), `apps/web/src/aplicacion/sincronizar-cola.test.ts` (1), `packages/shared/test/sincronizacion.test.mjs` (1) |
+| OFF-05 | Reintento sin duplicado | A | 14 | `apps/api/test/red-intermitente.e2e-spec.ts` (1), `apps/api/test/reportes-cierre.e2e-spec.ts` (2), `apps/api/test/reportes-inicio.e2e-spec.ts` (2), `apps/api/test/sincronizacion.e2e-spec.ts` (1), `apps/web/src/aplicacion/reportar.test.ts` (1), `apps/web/src/aplicacion/sincronizar-cola.test.ts` (1), `apps/web/src/datos/adaptadores/mock/reportes.mock.test.ts` (3), `apps/web/src/utils/id.test.ts` (2), `packages/shared/test/sincronizacion.test.mjs` (1) |
 | OFF-06 | Cerrar con cola pendiente | A | — | sin test automatizado |
-| OFF-07 | Consultar sin red | M | — | sin test automatizado |
+| OFF-07 | Consultar sin red | M | 2 | `apps/web/src/dominio/credenciales.test.ts` (1), `apps/web/src/mapa/textos.test.ts` (1) |
 
 ## EST — Estimación estadística
 
@@ -81,11 +81,11 @@
 
 | ID | Caso | P | Tests | Dónde |
 |---|---|---|---|---|
-| VIS-01 | Mapa de calor | A | 3 | `apps/api/test/sectores.e2e-spec.ts` (3) |
-| VIS-02 | Filtro por servicio | A | — | sin test automatizado |
-| VIS-03 | Tiempo real | M | 4 | `apps/api/test/rls.e2e-spec.ts` (3), `apps/web/src/datos/adaptadores/mock/demo.test.ts` (1) |
-| VIS-04 | Panel del sector | M | 6 | `apps/api/test/demo-seed.e2e-spec.ts` (1), `apps/api/test/historial.e2e-spec.ts` (1), `apps/api/test/resumen.e2e-spec.ts` (3), `apps/api/test/vencimiento.e2e-spec.ts` (1) |
-| VIS-05 | Pantalla pequeña | B | — | sin test automatizado |
+| VIS-01 | Mapa de calor | A | 12 | `apps/api/test/sectores.e2e-spec.ts` (3), `apps/web/src/mapa/geometria.test.ts` (6), `apps/web/src/mapa/textos.test.ts` (3) |
+| VIS-02 | Filtro por servicio | A | 6 | `apps/web/src/dominio/panel.test.ts` (5), `apps/web/src/mapa/textos.test.ts` (1) |
+| VIS-03 | Tiempo real | M | 7 | `apps/api/test/rls.e2e-spec.ts` (3), `apps/web/src/datos/adaptadores/mock/demo.test.ts` (1), `apps/web/src/mapa/textos.test.ts` (3) |
+| VIS-04 | Panel del sector | M | 14 | `apps/api/test/demo-seed.e2e-spec.ts` (1), `apps/api/test/historial.e2e-spec.ts` (1), `apps/api/test/resumen.e2e-spec.ts` (3), `apps/api/test/vencimiento.e2e-spec.ts` (1), `apps/web/src/dominio/panel.test.ts` (4), `apps/web/src/mapa/textos.test.ts` (4) |
+| VIS-05 | Pantalla pequeña | B | 1 | `apps/web/src/mapa/geometria.test.ts` (1) |
 
 ## No funcionales
 

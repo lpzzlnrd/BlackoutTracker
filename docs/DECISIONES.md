@@ -125,3 +125,16 @@ Un reporte abierto hace más de **48 h** se marca `vencido`: deja de contar para
 ### D-030 · Un solo `.env`, en la raíz del monorepo — **Decidida por Leonardo** (F-002)
 **Decisión:** todas las variables (API, scripts `db:*`, web y Docker) viven en el `.env` de la raíz; la plantilla es el `.env.example` de la raíz y desaparecen `apps/api/.env.example` y `apps/web/.env.example`. La API busca `apps/api/.env` y, si no existe, `../../.env` (`src/config/cargar-env.ts`, que usan `ConfigModule`, los scripts y `drizzle.config.ts`); en los tests no se lee ninguno. Vite usa `envDir: '../..'` y solo expone las `VITE_*`. Docker: `env_file: .env` para la API y las `VITE_*` como argumentos del build de la web.
 **Por qué:** un solo archivo que llenar. Lo que ya está en el entorno (Render, Docker, los tests) manda sobre el archivo (`process.loadEnvFile` y `ConfigModule` no sobrescriben), así que nada cambia fuera de local. Ningún `.env` entra a una imagen (`.dockerignore`).
+
+### D-031 · Reportar depende del corte propio, no del estado del sector — **Propuesta** (F-002, S3)
+**Decisión:** el botón dice "Se fue la luz" si el vecino no tiene un corte propio abierto de ese servicio y "Ya volvió la luz" si lo tiene. "Abierto" mezcla `GET /reportes/mios` con la cola: un inicio en cola (pendiente o enviado) abre; un cierre en cola cierra; uno con error no cuenta. La hora "Fue antes" se lee como hora de Caracas (UTC−4 fijo) y se valida con las reglas de la API.
+**Por qué:** solo se puede cerrar un reporte propio (D-003): con el sector sin servicio y sin reporte propio, "Ya volvió" daría un 404. Se aparta de CANON §7.1, que ata el texto al estado del sector.
+
+### D-032 · Primero la cuenta, después el pin (ajusta D-014) — **Propuesta** (F-002, S1)
+**Decisión:** el registro es cuenta → pin, porque Reportar pide la sesión antes (D-029). Se mantiene `validar-pin` antes de `POST /residentes/me` y que Nest no crea usuarios. El pin vive solo en el estado del componente y se olvida al crear el perfil.
+
+### D-033 · Mapa y panel: lo que las maquetas no dibujan — **Propuesta** (F-002, S2 y S4)
+**Decisión:** (1) sin P2, un sector sin servicio dice "Desde las {hora}" sin "confirmado por n vecinos"; (2) el botón de reportar del mapa sale solo en el sector propio (el reporte va al sector del pin); (3) la hoja completa deja a la vista la barra, el selector y la leyenda; (4) el panel pone el sector propio primero y el resto por gravedad, y una fila abre el detalle en `/panel?sector=` (no el mapa); (5) el rango intercuartílico se muestra como texto, sin la barra de C.
+
+### D-034 · E2E en Docker con los datos de ejemplo — **Propuesta** (F-002, S5)
+**Decisión:** las pruebas E2E viven en `e2e/` (paquete aparte, fuera del workspace, con la imagen oficial de Playwright) y corren contra la web de Docker con `?demo=`, en teléfono y escritorio, con axe. No escriben en Supabase ni dependen de él: siempre dan el mismo resultado. El flujo real con tres cuentas (consenso y Realtime) queda para la prueba manual con dos teléfonos (`docs/demo.md`).

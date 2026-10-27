@@ -9,7 +9,8 @@ import tseslint from 'typescript-eslint';
 // Una sola configuración para todo el monorepo. `pnpm lint` corre `eslint .` desde la raíz.
 // Las reglas con tipos (no-floating-promises, etc.) se activan solo en apps/api.
 export default defineConfig(
-  globalIgnores(['**/dist/', '**/coverage/', '**/dev-dist/']),
+  // e2e/informe y e2e/resultados: el informe HTML y las trazas que genera Playwright.
+  globalIgnores(['**/dist/', '**/coverage/', '**/dev-dist/', 'e2e/informe/', 'e2e/resultados/']),
 
   js.configs.recommended,
   tseslint.configs.recommended,

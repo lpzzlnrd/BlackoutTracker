@@ -8,8 +8,16 @@ Secciones por versión: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**
 ## [Sin publicar]
 
 ### Añadido
+- Cuenta y registro (F-002, S1): Entrar / Crear cuenta con Supabase Auth y errores en español (REG-04, REG-05, REG-07); registro en dos pasos con el pin en el mapa, validación con Turf incluido el borde y empate al menor id (D-002, REG-01/02/03), confirmación del sector del servidor y sin geolocalización; Cuenta con el sector, el tema (Sistema · Claro · Oscuro) y "Cerrar sesión", que vacía la cola, la caché de consultas y la del service worker, y pide confirmar si hay avisos sin enviar.
+- Mapa (F-002, S2, VIS-01/03/04): coropleta Leaflet por estado (trama "sin confirmar", contorno de "tu sector", etiquetas e insignias), selector Luz/Agua, leyenda, atribución OSM, hoja inferior de tres posiciones en el teléfono y panel de detalle en escritorio (estado, estimación con su n, aviso pendiente, botón de reportar y últimos cortes), `aria-label` del mapa y anuncios `aria-live` de los cambios por Realtime.
+- Reportar (F-002, S3): "Se fue / Ya volvió" según el corte propio abierto (servidor + cola), hora real "Ahora" o "Fue antes" con las mismas reglas que la API, todo aviso pasa por la cola y se envía al instante si hay red (un solo sincronizador compartido con `vigilarConexion`), confirmación con su estado y el umbral del consenso, y "Tus avisos" con Reintentar/Descartar. Tests REP-01/02/03/05/06/07 y OFF-01/03/04/05.
+- Panel (F-002, S4): sectores filtrados por Luz/Agua (tarjetas en el teléfono, tabla con mediana, cuartiles y n desde 1024 px), el propio primero y el resto por gravedad, recuento por estado, y detalle por `?sector=` con estado, estimación e historial paginado de cada servicio. Tests VIS-02, VIS-04 y CON-01.
+- PWA y pruebas (F-002, S5): aviso "Instalar BlackoutTracker", aviso de versión nueva y tema claro/oscuro; pruebas E2E con Playwright + axe en Docker (`pnpm e2e`, `e2e/`): 32 casos en teléfono y escritorio (VIS-01/02/04/05, REP-01, OFF-01/07, EST-04 y axe sin violaciones graves en cada pantalla).
 - `docker compose --profile app` (`pnpm app:up`): la API (`apps/api/Dockerfile`) y la web servida por nginx (`apps/web/Dockerfile`, `nginx.conf`) en http://localhost:8080, con `/api` reenviado a la API; `apps/web/vercel.json`; `docs/despliegue.md` con Supabase, Render, Vercel, GitHub y Docker (F-002, S0).
 - Base de la interfaz en flat design (D-028): enrutador mínimo (`navegacion/ruta.tsx`), marco con navegación inferior y barra lateral desde 1024 px, primitivos del canon (`Icono`, `EstadoChip`, `ChipSync`, `AvisoConexion`, `BotonPendientes`, `SelectorServicio`, `BloqueEstimacion`, `Boton`, `Campo`, `Mensaje`), el servicio elegido compartido, los hooks de datos de todas las pantallas, la guarda "reportar pide cuenta y pin" y los iconos PNG de la PWA (F-002, S0).
+
+### Corregido
+- `nuevoId` arma el UUID v4 con `crypto.getRandomValues` cuando `crypto.randomUUID` no existe (origen no seguro: la app abierta por la IP de la red local o en las E2E); antes no se podía guardar ningún aviso (F-002).
 
 ### Cambiado
 - `GET /estimaciones`, `GET /sectores/:id/historial` y `GET /sectores/:id/resumen` son públicos: mirar no pide cuenta (D-029). Tests EST-01 y VIS-04 sin sesión y barrido NF-06 sin token (F-002).
