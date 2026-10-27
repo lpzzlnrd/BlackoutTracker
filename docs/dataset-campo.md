@@ -9,12 +9,15 @@ consenso (D-008), así la estimación tiene datos desde el primer día. Lo imple
 ```csv
 sector,tipo_servicio,inicio,fin
 Guaparo Noroeste,electricidad,2026-09-02T14:10:00-04:00,2026-09-02T17:40:00-04:00
-Guaparo Sureste,agua,2026-09-05T05:00:00-04:00,2026-09-05T21:00:00-04:00
+Guaparo Sur,agua,2026-09-05T05:00:00-04:00,2026-09-05T21:00:00-04:00
 ```
 
 - **Cabecera obligatoria** `sector,tipo_servicio,inicio,fin`, en ese orden (sin distinguir mayúsculas).
 - **`sector`:** el nombre del sector tal como está en `sectores.nombre` (el `properties.nombre` del
-  GeoJSON). No distingue mayúsculas ni espacios de más.
+  GeoJSON). No distingue mayúsculas ni espacios de más. Los del Guaparo real (D-036): Guaparo
+  Noroeste, Guaparo Calle 160, Guaparo Pérez Carreño, Guaparo Av. Bolívar, Guaparo Suroeste y
+  Guaparo Sur. `data/campo.ejemplo.csv` usa los de la cuadrícula de pruebas, porque es un fixture
+  de los tests.
 - **`tipo_servicio`:** `agua` o `electricidad`.
 - **`inicio` y `fin`:** ISO 8601 con fecha, hora y **zona** (`-04:00` para Venezuela, o `Z`). Sin zona
   la hora sería ambigua y la fila se rechaza.

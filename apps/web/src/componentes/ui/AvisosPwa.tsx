@@ -52,7 +52,7 @@ export function AvisoVersion() {
   return (
     <div
       role="status"
-      className="fixed right-4 bottom-[104px] left-4 z-[1100] flex items-center justify-between gap-3 rounded-bloque bg-inverso-fondo px-4 py-2.5 text-sm text-inverso-texto lg:bottom-6 lg:left-auto lg:w-[360px]"
+      className="fixed right-4 bottom-[116px] left-4 z-[1100] flex items-center justify-between gap-3 rounded-bloque bg-inverso-fondo px-4 py-2.5 text-sm text-inverso-texto lg:bottom-6 lg:left-auto lg:w-[360px]"
     >
       <span>Hay una versión nueva de la app</span>
       <button

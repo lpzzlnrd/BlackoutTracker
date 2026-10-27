@@ -1,7 +1,10 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 // Flujos completos con los datos de ejemplo: lo que hace un vecino, de principio a fin. La demo
 // arranca con sesión y perfil, así que Reportar se abre directo.
+
+const navPrincipal = (page: Page) =>
+  page.getByRole('navigation', { name: 'Principal' }).locator('visible=true');
 
 test('REP-01: avisar que se fue el agua deja el aviso enviado en "Tus avisos"', async ({
   page,
@@ -11,11 +14,14 @@ test('REP-01: avisar que se fue el agua deja el aviso enviado en "Tus avisos"', 
   await page.getByRole('button', { name: 'Se fue el agua' }).click();
 
   await expect(page.getByText('Aviso guardado')).toBeVisible();
+  // REP-05: con el corte propio abierto, el botón pasa a cerrarlo.
+  await expect(page.getByRole('button', { name: 'Ya volvió el agua' })).toBeVisible();
+  // La cola vive en su propia pantalla (D-037).
+  await page.getByRole('link', { name: 'Ver tus avisos' }).click();
+  await expect(page).toHaveURL(/\/avisos\?demo=en-linea/);
   const cola = page.locator('#cola');
   await expect(cola.getByText('Se fue el agua').first()).toBeVisible();
   await expect(cola.getByText('Enviado').first()).toBeVisible();
-  // REP-05: con el corte propio abierto, el botón pasa a cerrarlo.
-  await expect(page.getByRole('button', { name: 'Ya volvió el agua' })).toBeVisible();
 });
 
 test('OFF-01: sin conexión el aviso queda pendiente y se enviará al reconectar', async ({
@@ -26,6 +32,10 @@ test('OFF-01: sin conexión el aviso queda pendiente y se enviará al reconectar
   await page.getByRole('button', { name: 'Se fue el agua' }).click();
 
   await expect(page.getByText('Se enviará al reconectar.')).toBeVisible();
+  // El de la demo y este: la barra los cuenta y Avisos los muestra pendientes.
+  await navPrincipal(page)
+    .getByRole('link', { name: /Avisos.*2 avisos sin enviar/ })
+    .click();
   await expect(page.locator('#cola').getByText('Pendiente').first()).toBeVisible();
 });
 

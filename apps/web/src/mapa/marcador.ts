@@ -26,7 +26,7 @@ export const escaparHtml = (texto: string): string =>
 
 /** Ancho de la caja del marcador; el texto se centra en ella. */
 export const ANCHO_MARCADOR = 160;
-const ALTO_NOMBRE = 20;
+export const ALTO_NOMBRE = 20;
 const ALTO_PILDORA = 20;
 const ALTO_INSIGNIA = 22;
 const SEPARACION = 4;
@@ -50,18 +50,11 @@ function anchoTexto(texto: string, tamano: number): number {
 }
 
 /**
- * Lo que ocupa en pantalla el marcador completo (píldora, nombre e insignia), para decidir si cabe
- * dentro de su sector o va solo la insignia. Al ancho del texto se le suman el halo y un margen.
+ * Ancho en pantalla del nombre de un sector, con su halo, para decidir si cabe dentro del sector o
+ * va solo la insignia.
  */
-export function medidaMarcador(
-  nombre: string,
-  propio: boolean,
-  tamano: number,
-): { ancho: number; alto: number } {
-  const ancho = Math.ceil(anchoTexto(nombre, tamano)) + 12;
-  const alto = (propio ? ALTO_PILDORA + SEPARACION : 0) + ALTO_NOMBRE + SEPARACION + ALTO_INSIGNIA;
-  return { ancho, alto: alto + 8 };
-}
+export const anchoNombre = (nombre: string, tamano: number): number =>
+  Math.ceil(anchoTexto(nombre, tamano)) + 8;
 
 export interface Marcador {
   html: string;

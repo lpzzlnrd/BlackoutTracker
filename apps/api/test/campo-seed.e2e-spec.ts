@@ -30,7 +30,7 @@ describe('importación del dataset de campo (T-044)', () => {
   beforeEach(async () => {
     await limpiar(bd.sql);
     const geojson: unknown = JSON.parse(
-      readFileSync(join(RAIZ, 'data/sectores-guaparo.geojson'), 'utf-8'),
+      readFileSync(join(RAIZ, 'data/sectores-cuadricula.geojson'), 'utf-8'),
     );
     await sembrarSectores(bd.sql, leerSectores(geojson));
   });

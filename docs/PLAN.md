@@ -70,7 +70,8 @@
 ├─ docker-compose.yml        postgis/postgis:16-3.4 para desarrollo y tests de integración
 ├─ .github/workflows/ci.yml
 ├─ data/
-│  └─ sectores-guaparo.geojson   (provisional hasta tener el real; ver D-005)
+│  ├─ sectores-guaparo.geojson   (Guaparo real desde OSM, por validar con los vecinos; D-005, D-036)
+│  └─ sectores-cuadricula.geojson (cuadrícula 2 × 2 de los tests y del modo demo de la web)
 ├─ packages/shared/          tipos y enums sin dependencias de runtime
 │  └─ src/  enums.ts · constantes.ts · dto.ts · errores.ts (códigos de error) · index.ts
 ├─ apps/api/

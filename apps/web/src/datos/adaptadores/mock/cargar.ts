@@ -8,8 +8,9 @@ interface GeoJsonSemilla {
 }
 
 /**
- * La geometría no está en `datos-ejemplo.json`: se toma de la cuadrícula provisional de `data/`
- * (D-005) y se le ponen los ids y nombres de los sectores de ejemplo, en el mismo orden.
+ * La geometría no está en `datos-ejemplo.json`: se toma de la cuadrícula de pruebas de `data/`
+ * (`sectores-cuadricula.geojson`, D-036) y se le ponen los ids y nombres de los sectores de ejemplo,
+ * en el mismo orden.
  */
 export function geoJsonDemo(
   sectores: DatosEjemplo['sectores'],
@@ -41,7 +42,7 @@ export function geoJsonDemo(
 export async function cargarPuertosDemo(opciones: OpcionesDemo): Promise<PuertosDemo> {
   const [ejemplo, semilla] = await Promise.all([
     import('@docs/frontend/datos-ejemplo.json'),
-    import('@data/sectores-guaparo.geojson?raw'),
+    import('@data/sectores-cuadricula.geojson?raw'),
   ]);
   const datos = ejemplo.default as unknown as DatosEjemplo;
   const geoJson = geoJsonDemo(datos.sectores, JSON.parse(semilla.default) as GeoJsonSemilla);

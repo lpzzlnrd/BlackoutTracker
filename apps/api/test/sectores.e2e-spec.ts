@@ -38,7 +38,7 @@ describe('GET /sectores (T-014)', () => {
   beforeEach(async () => {
     await limpiar(bd.sql);
     const geojson: unknown = JSON.parse(
-      readFileSync(join(__dirname, '../../../data/sectores-guaparo.geojson'), 'utf-8'),
+      readFileSync(join(__dirname, '../../../data/sectores-cuadricula.geojson'), 'utf-8'),
     );
     await sembrarSectores(bd.sql, leerSectores(geojson));
   });

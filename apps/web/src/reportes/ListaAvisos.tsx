@@ -9,28 +9,24 @@ import { usePuertos } from '../datos/contexto';
 import { textoAccion } from '../dominio/aviso';
 import { mensajeDeError } from '../dominio/errores';
 import type { AvisoCola } from '../dominio/tipos';
+import { Enlace } from '../navegacion/ruta';
 import { diaRelativo, hora } from '../utils/formato';
 
 /**
  * "Tus avisos": la cola tal como está en este dispositivo (PWA.md §7), del más reciente al más
  * antiguo. Un aviso rechazado (400, 409, 422) es un error permanente: se explica con su código y
- * se ofrece "Reintentar" o "Descartar".
+ * se ofrece "Reintentar" o "Descartar". Vive en su propia pantalla, `/avisos` (D-037).
  */
 export function ListaAvisos({ sincronizar }: { sincronizar: () => Promise<void> }) {
   const cola = useColaAvisos();
   const avisos = [...(cola.data ?? [])].reverse();
 
   return (
-    <section id="cola" aria-labelledby="titulo-cola" className="flex flex-col gap-2">
-      <h2 id="titulo-cola" className="text-base font-bold">
-        Tus avisos
-      </h2>
+    <section id="cola" aria-label="Lista de avisos" className="flex flex-col gap-2">
       {cola.isPending ? (
         <Esqueleto className="h-16" />
       ) : avisos.length === 0 ? (
-        <p className="rounded-bloque border border-borde bg-superficie px-4 py-3 text-sm text-secundario">
-          Aún no tienes avisos. Lo que reportes aparece aquí al instante, aunque no haya conexión.
-        </p>
+        <SinAvisos />
       ) : (
         <ul className="rounded-tarjeta border border-borde bg-superficie px-4">
           {avisos.map((aviso) => (
@@ -39,6 +35,31 @@ export function ListaAvisos({ sincronizar }: { sincronizar: () => Promise<void> 
         </ul>
       )}
     </section>
+  );
+}
+
+/** Estado vacío: qué va a aparecer aquí y el camino para el primer aviso. */
+function SinAvisos() {
+  return (
+    <div className="flex flex-col items-start gap-3 rounded-tarjeta border border-borde bg-superficie p-4">
+      <span className="grid h-10 w-10 place-items-center rounded-control bg-superficie-2 text-texto-2">
+        <Icono nombre="clock" tamano={20} />
+      </span>
+      <div className="flex flex-col gap-1">
+        <p className="font-semibold">Aún no tienes avisos</p>
+        <p className="text-sm leading-[1.4] text-secundario">
+          Cuando reportes que se fue o volvió el servicio, el aviso aparece aquí al instante, aunque
+          no haya conexión, y ves si ya llegó.
+        </p>
+      </div>
+      <Enlace
+        a="/reportar"
+        className="inline-flex h-11 items-center gap-2 rounded-control bg-acento px-4 text-sm font-semibold text-sobre-acento"
+      >
+        <Icono nombre="plus" tamano={18} grosor={2.4} />
+        Reportar un corte
+      </Enlace>
+    </div>
   );
 }
 

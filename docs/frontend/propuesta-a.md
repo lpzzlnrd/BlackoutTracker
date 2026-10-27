@@ -86,7 +86,7 @@ Raíz: `position: relative; width: 390px; height: 844px; overflow: hidden; backg
 | **Leyenda**                                   | `top: 150`; `left/right: 16`; `flex-wrap: wrap`; `gap: 6px`              | Tres chips de alto 28, `padding: 0 10px`, radio 999, 12 / 600, `gap: 5px`, `white-space: nowrap`; icono compacto de 13 (trazo 2,6): `check`, `interrogacion`, `x`. Colores `--estado-*-chip` / `--estado-*-tinta`. Orden: Con servicio · Sin confirmar · Sin servicio.                              |
 | **Atribución obligatoria de OpenStreetMap**   | `right: 8`; `top: 484` (su borde inferior queda unos 6 px sobre la hoja) | `padding: 2px 6px`; radio 4; fondo `rgba(255, 255, 255, 0.85)`; texto `--texto-2` 12. Se mueve con la altura de la hoja: siempre por encima de ella.                                                                                                                                              |
 | **Hoja inferior con el sector del vecino**    | `top: 510`; alto 250; `padding: 8px 20px 0`; esquinas superiores 20      | `--superficie`; `--sombra-hoja`. Ver el detalle abajo.                                                                                                                                                                                                                                            |
-| **Navegación inferior**                       | `bottom: 0`; alto 84; `padding: 8px 8px 20px`; `justify-content: space-around` | `--superficie`; borde superior 1 px `--borde`. Cuatro elementos: Mapa · Panel · Reportar · Cuenta. Ver el detalle abajo.                                                                                                                                                                            |
+| **Navegación inferior**                       | `bottom: 0`; alto 84; `padding: 8px 8px 20px`; `justify-content: space-around` | `--superficie`; borde superior 1 px `--borde`. Cinco elementos (D-037): Mapa · Panel · Reportar · Avisos · Cuenta. Ver el detalle abajo.                                                                                                                                                                            |
 
 ### Hoja inferior
 
@@ -100,13 +100,16 @@ Contenido de arriba abajo (`section` con `aria-label` = nombre del sector):
 
 ### Navegación inferior
 
-Cada elemento es un `<a>`: columna centrada, `gap: 4px`, `min-width: 72px`, `min-height: 56px`, `padding-top: 2px`, 12 px. Dentro, una **píldora de 56 × 30** (radio 15) con el icono de 22 px.
+_(D-037: la maqueta dibuja cuatro; la app usa cinco con Reportar al centro.)_ La barra es una rejilla de **cinco columnas iguales** (`padding: 8px 4px 20px`, con la zona segura). Cada elemento es un `<a>`: columna centrada, `gap: 4px`, `min-height: 56px`, `padding-top: 2px`, 12 px. Dentro, una **píldora de 56 × 30** (radio 15; 48 × 30 por debajo de 360 px) con el icono de 22 px.
 
 | Elemento     | Píldora y color                                                                                           | Icono                       |
 | ------------ | --------------------------------------------------------------------------------------------------------- | --------------------------- |
 | **Activo** (Mapa) | Fondo `--acento-suave`; icono y etiqueta `--acento`, etiqueta 700; `aria-current="page"`             | `map`, trazo 2              |
 | **Inactivo** (Panel, Cuenta) | Sin fondo; icono y etiqueta `--secundario`, etiqueta 600                                      | `grid`, `user`, trazo 2     |
-| **Reportar**  | Fondo `--acento`; icono `--sobre-acento`; etiqueta `--acento` 700 (siempre resaltada, esté o no activa)  | `plus`, trazo 2,4           |
+| **Reportar** (centro, D-037) | **Círculo de 56 px** de `--acento` con el icono `--sobre-acento`, dentro de un anillo de 4 px de `--superficie` (64 px en total; `--acento-suave` si es la pantalla actual). Sobresale **24 px** por encima de la barra y el anillo corta su borde superior; plano, sin sombra (D-028). En el flujo ocupa lo mismo que una píldora (`margin-top: -34px`), así la etiqueta queda alineada con las demás. Etiqueta `--acento` 700 | `plus` de 26, trazo 2,4 |
+| **Avisos** (D-037) | Como un inactivo o activo, con una **insignia** arriba a la derecha de la píldora (20 px de alto, radio 999, 12 / 700 tabular): el número de avisos sin enviar, con los colores invertidos de _Pendiente_ (`--estado-sin-confirmar-tinta` de fondo) o de _Error_ si alguno se rechazó. El número va en `aria-hidden` y el enlace se llama "Avisos, {n} avisos sin enviar" | `clock`, trazo 2 |
+
+La nav va por encima de las capas del mapa (`z-index` 1050) para que el círculo se vea entero sobre la hoja inferior, y el aviso de versión nueva sube a `bottom: 116px` para no taparlo.
 
 ## 4. Escritorio (`a-escritorio.html`, ≥ 1024 px)
 
@@ -122,7 +125,7 @@ Raíz: `display: flex; flex-wrap: wrap; min-height: 860px; background: var(--fon
 
 ### Barra lateral
 
-- **Navegación:** columna, `gap: 4px`. Cada elemento: `min-height: 44px`, `padding: 0 12px`, radio 10, `gap: 12px`, icono de 20, 15 px. Activo (Mapa): fondo `--acento-suave`, texto `--acento`, 700. Inactivo: texto `--texto-2`, 600. Iconos: `map`, `grid`, **`plus-circle`** (Reportar), `user`.
+- **Navegación:** columna, `gap: 4px`. Cada elemento: `min-height: 44px`, `padding: 0 12px`, radio 10, `gap: 12px`, icono de 20, 15 px. Activo (Mapa): fondo `--acento-suave`, texto `--acento`, 700. Inactivo: texto `--texto-2`, 600. Iconos: `map`, `grid`, **`plus-circle`** (Reportar), `clock` (Avisos, con la misma insignia a la derecha, D-037), `user`.
 - **Pie:** columna, `gap: 14px`.
   - **Tarjeta de instalar:** `padding: 14px`, radio 14, `--superficie-2`, borde 1 px `--borde`, columna, `gap: 10px`. Título "Instalar BlackoutTracker" 14 / 700; texto "Se abre como una app y sigue funcionando sin conexión." 13 `--secundario`, `line-height: 1.4`; botón de alto 44, borde 1 px `--borde-control`, radio 10, `--superficie`, texto `--texto` 14 / 600, icono `download` de 16, `gap: 8px`. Se muestra solo si el navegador permite instalar y no se descartó.
   - **Estado de conexión:** `role="status"`, `padding: 0 8px`, `gap: 10px`, 13 `--secundario`, icono `wifi` de 18: "En línea · actualizado a las {hora}".
@@ -148,7 +151,7 @@ Raíz: `display: flex; flex-wrap: wrap; min-height: 860px; background: var(--fon
 - **Servicio sin corte** (con servicio): la línea de estado pasa a "Última interrupción: hace {n} días, duró {duración}" y la estimación se muestra igual.
 - **Cargando:** bloques `--superficie-2` del tamaño del contenido, sin animación si `prefers-reduced-motion`.
 - **Sin datos** (sin red y sin caché): polígonos de "sin datos", la hoja con el chip "Sin datos" y el aviso de conexión.
-- **Botón de pendientes:** abre una hoja con la cola: por cada aviso, el servicio, la acción ("Se fue la luz" / "Volvió la luz"), la hora y su chip _Pendiente_ / _Enviado_ / _Error_; un _Error_ ofrece "Reintentar" y "Descartar". Los avisos que el servidor rechaza con 400, 409 o 422 son errores permanentes ([`PLAN.md`](../PLAN.md) §5).
+- **Botón de pendientes:** lleva a la pantalla Avisos (`/avisos`, D-037), que muestra la cola: por cada aviso, el servicio, la acción ("Se fue la luz" / "Volvió la luz"), la hora y su chip _Pendiente_ / _Enviado_ / _Error_; un _Error_ ofrece "Reintentar" y "Descartar". Los avisos que el servidor rechaza con 400, 409 o 422 son errores permanentes ([`PLAN.md`](../PLAN.md) §5).
 - **Reportar, Panel y Cuenta:** el diseño de teléfono dibuja solo el mapa. Las otras pestañas se construyen con los mismos primitivos; Panel es la lista de sectores (la alternativa accesible al mapa).
 - **Modo oscuro:** se obtiene con los tokens oscuros.
 

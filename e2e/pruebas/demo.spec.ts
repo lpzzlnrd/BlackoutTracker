@@ -4,7 +4,7 @@ import { expect, test, type Page } from '@playwright/test';
 // Recorrido de la PWA con los datos de ejemplo (`?demo=`, CANON §11): no necesita Supabase ni
 // la API, así que siempre da el mismo resultado. Corre en teléfono (Pixel 7) y en escritorio.
 
-const RUTAS = ['/', '/panel', '/reportar', '/cuenta'] as const;
+const RUTAS = ['/', '/panel', '/reportar', '/avisos', '/cuenta'] as const;
 
 const navPrincipal = (page: Page) =>
   page.getByRole('navigation', { name: 'Principal' }).locator('visible=true');
@@ -29,6 +29,8 @@ test('la navegación principal lleva a cada pantalla y conserva el modo demo', a
   await page.goto('/?demo=en-linea');
   for (const [texto, ruta] of [
     ['Panel', '/panel'],
+    ['Reportar', '/reportar'],
+    ['Avisos', '/avisos'],
     ['Cuenta', '/cuenta'],
     ['Mapa', '/'],
   ] as const) {
@@ -39,6 +41,49 @@ test('la navegación principal lleva a cada pantalla y conserva el modo demo', a
       'page',
     );
   }
+});
+
+test('D-037: en el teléfono la barra tiene cinco destinos con Reportar al centro', async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== 'telefono', 'La barra inferior es solo del teléfono');
+  await page.goto('/?demo=en-linea');
+  const barra = navPrincipal(page);
+  await expect(barra.getByRole('link')).toHaveText([
+    'Mapa',
+    'Panel',
+    'Reportar',
+    'Avisos',
+    'Cuenta',
+  ]);
+  const caja = await barra.boundingBox();
+  const reportar = barra.getByRole('link', { name: 'Reportar' });
+  const enlace = await reportar.boundingBox();
+  const circulo = await reportar.locator('span').first().boundingBox();
+  if (!caja || !enlace || !circulo) throw new Error('La barra no se dibujó');
+  // Al centro de la barra, circular y sobresaliendo por arriba.
+  expect(Math.abs(enlace.x + enlace.width / 2 - (caja.x + caja.width / 2))).toBeLessThanOrEqual(2);
+  expect(circulo.width).toBeGreaterThanOrEqual(56);
+  expect(circulo.width).toBe(circulo.height);
+  expect(circulo.y).toBeLessThan(caja.y);
+});
+
+test('OFF-01: Avisos muestra la cola del dispositivo y la barra cuenta los pendientes', async ({
+  page,
+}) => {
+  await page.goto('/avisos?demo=sin-conexion');
+  await expect(page.getByRole('heading', { level: 1, name: 'Tus avisos' })).toBeVisible();
+  await expect(page.locator('#cola').getByText('Pendiente').first()).toBeVisible();
+  await expect(
+    navPrincipal(page).getByRole('link', { name: /Avisos.*1 aviso sin enviar/ }),
+  ).toBeVisible();
+});
+
+test('Avisos vacío explica qué aparecerá y lleva a Reportar', async ({ page }) => {
+  await page.goto('/avisos?demo=en-linea');
+  await expect(page.getByText('Aún no tienes avisos')).toBeVisible();
+  await page.getByRole('link', { name: 'Reportar un corte' }).click();
+  await expect(page).toHaveURL(/\/reportar\?demo=en-linea/);
 });
 
 for (const ruta of RUTAS) {

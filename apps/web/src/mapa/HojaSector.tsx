@@ -86,7 +86,9 @@ export function HojaSector({
         >
           <span className="h-1 w-10 rounded-[2px] bg-borde-2" />
         </button>
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5">{children}</div>
+        {/* 32 px abajo: el botón de Reportar sobresale 24 px de la barra (D-037) y no debe tapar
+            lo último de la hoja al hacer scroll. */}
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-8">{children}</div>
       </div>
     </div>
   );

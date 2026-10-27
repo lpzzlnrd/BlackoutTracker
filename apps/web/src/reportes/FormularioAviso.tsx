@@ -11,12 +11,14 @@ import { avisarCierre, avisarInicio } from '../aplicacion/reportar';
 import { Boton } from '../componentes/ui/Boton';
 import { Campo } from '../componentes/ui/Campo';
 import { ChipSync } from '../componentes/ui/Chips';
+import { Icono } from '../componentes/ui/Icono';
 import { Mensaje } from '../componentes/ui/Mensaje';
 import { SelectorServicio } from '../componentes/ui/SelectorServicio';
 import { useColaAvisos } from '../datos/consultas';
 import { usePuertos } from '../datos/contexto';
 import { textoAccion, textoBotonReportar } from '../dominio/aviso';
 import { mensajeDeError } from '../dominio/errores';
+import { Enlace } from '../navegacion/ruta';
 import { hora } from '../utils/formato';
 
 type Cuando = 'ahora' | 'antes';
@@ -200,6 +202,13 @@ export function FormularioAviso({
               {ultimo.accion === 'inicio' ? 'el corte' : 'que volvió el servicio'}.
             </p>
           )}
+          <Enlace
+            a="/avisos"
+            className="inline-flex min-h-11 items-center gap-1.5 self-start text-sm font-semibold text-acento"
+          >
+            <Icono nombre="clock" tamano={16} />
+            Ver tus avisos
+          </Enlace>
         </div>
       )}
     </form>

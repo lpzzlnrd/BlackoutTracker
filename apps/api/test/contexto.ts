@@ -63,11 +63,14 @@ export class Contexto {
     await this.bd.sql.end();
   }
 
-  /** Vacía la base, siembra los sectores provisionales y fija `ahora` al reloj real. */
-  async reiniciar(): Promise<void> {
+  /**
+   * Vacía la base, siembra los sectores y fija `ahora` al reloj real. Por defecto, la cuadrícula de
+   * pruebas (la de los puntos de `fixtures/puntos.ts`); la demo usa el Guaparo real.
+   */
+  async reiniciar(archivo = 'sectores-cuadricula.geojson'): Promise<void> {
     await limpiar(this.bd.sql);
     const geojson: unknown = JSON.parse(
-      readFileSync(join(__dirname, '../../../data/sectores-guaparo.geojson'), 'utf-8'),
+      readFileSync(join(__dirname, '../../../data', archivo), 'utf-8'),
     );
     await sembrarSectores(this.bd.sql, leerSectores(geojson));
     this.ahora = new Date();

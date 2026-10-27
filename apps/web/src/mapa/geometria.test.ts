@@ -1,8 +1,8 @@
 import type { SectorFeatureDto } from '@blackout/shared';
 import { booleanPointInPolygon } from '@turf/boolean-point-in-polygon';
 import { describe, expect, it } from 'vitest';
-import { puntoEtiqueta } from './geometria';
-import { escaparHtml, marcadorSector, medidaMarcador } from './marcador';
+import { contiene, puntoEtiqueta } from './geometria';
+import { anchoNombre, escaparHtml, marcadorSector } from './marcador';
 
 const sector = (anillo: [number, number][]): SectorFeatureDto => ({
   type: 'Feature',
@@ -42,6 +42,24 @@ describe('puntoEtiqueta', () => {
       [0, 0],
     ]);
     expect(dentro(u, puntoEtiqueta(u))).toBe(true);
+  });
+});
+
+describe('contiene', () => {
+  it('VIS-05: un sector angosto e inclinado no contiene los puntos de su rectángulo envolvente', () => {
+    // Franja diagonal: su rectángulo envolvente es el cuadrado 0..1, pero el sector no lo llena.
+    const franja = sector([
+      [0, 0],
+      [0.2, 0],
+      [1, 0.8],
+      [1, 1],
+      [0.8, 1],
+      [0, 0.2],
+      [0, 0],
+    ]);
+    expect(contiene(franja, 0.5, 0.5)).toBe(true);
+    expect(contiene(franja, 0.9, 0.1)).toBe(false);
+    expect(contiene(franja, 0.1, 0.9)).toBe(false);
   });
 });
 
@@ -93,23 +111,16 @@ describe('marcadorSector', () => {
   });
 });
 
-describe('medidaMarcador', () => {
+describe('anchoNombre', () => {
   it('VIS-05: un nombre más largo o una letra más grande piden más ancho', () => {
-    const corto = medidaMarcador('Norte', false, 14);
-    expect(medidaMarcador('Noroeste', false, 14).ancho).toBeGreaterThan(corto.ancho);
-    expect(medidaMarcador('Norte', false, 18).ancho).toBeGreaterThan(corto.ancho);
+    const corto = anchoNombre('Norte', 14);
+    expect(anchoNombre('Noroeste', 14)).toBeGreaterThan(corto);
+    expect(anchoNombre('Norte', 18)).toBeGreaterThan(corto);
   });
 
   it('VIS-05: "Guaparo Noroeste" no cabe en un sector de 125 px de ancho a 18 px; "Noroeste" sí', () => {
     // El caso de la captura del 27-oct: con el zoom alejado, los nombres vecinos se pisaban.
-    expect(medidaMarcador('Guaparo Noroeste', false, 18).ancho).toBeGreaterThan(125);
-    expect(medidaMarcador('Noroeste', false, 18).ancho).toBeLessThanOrEqual(125);
-  });
-
-  it('VIS-01: la píldora "Tu sector" suma alto, no ancho', () => {
-    const otro = medidaMarcador('Noroeste', false, 14);
-    const propio = medidaMarcador('Noroeste', true, 14);
-    expect(propio.ancho).toBe(otro.ancho);
-    expect(propio.alto).toBeGreaterThan(otro.alto);
+    expect(anchoNombre('Guaparo Noroeste', 18)).toBeGreaterThan(125);
+    expect(anchoNombre('Noroeste', 18)).toBeLessThanOrEqual(125);
   });
 });

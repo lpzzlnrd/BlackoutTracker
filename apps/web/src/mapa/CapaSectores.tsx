@@ -2,7 +2,6 @@ import type { SectoresGeoJsonDto, TipoServicio } from '@blackout/shared';
 import type { SectorFeatureDto } from '@blackout/shared';
 import {
   divIcon,
-  geoJSON,
   point,
   type LatLngTuple,
   type Layer,
@@ -12,10 +11,10 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { GeoJSON, Marker, Pane, Polygon, useMap, useMapEvents } from 'react-leaflet';
 import type { EstadoSector } from '../dominio/tipos';
-import { puntoEtiqueta } from './geometria';
+import { contiene, puntoEtiqueta } from './geometria';
 import { useEsEscritorio } from './HojaSector';
 import { limitesDe } from './MapaBase';
-import { marcadorSector, medidaMarcador, TAMANO_NOMBRE } from './marcador';
+import { ALTO_NOMBRE, anchoNombre, marcadorSector, TAMANO_NOMBRE } from './marcador';
 import { estadoDeSector, nombreEnMapa } from './textos';
 
 /** Espacio que tapan las superposiciones, como puntos de Leaflet: `[x, y]` en píxeles. */
@@ -98,14 +97,15 @@ export function CapaSectores({
       {sectores.features.map((sector) => {
         const nombre = nombreEnMapa(sector.properties.nombre);
         const esPropio = sector.properties.id === propio;
+        const posicion = puntoEtiqueta(sector);
         return (
           <MarcadorSector
             key={sector.properties.id}
-            posicion={puntoEtiqueta(sector)}
+            posicion={posicion}
             nombre={nombre}
             estado={estadoDeSector(estados, sector.properties.id, servicio)}
             propio={esPropio}
-            compacto={!cabeEn(mapa, sector, medidaMarcador(nombre, esPropio, tamanoNombre))}
+            compacto={!cabeEn(mapa, sector, posicion, anchoNombre(nombre, tamanoNombre))}
           />
         );
       })}
@@ -113,16 +113,27 @@ export function CapaSectores({
   );
 }
 
-/** Si el marcador completo cabe en el sector tal como se ve ahora; si no, va solo la insignia. */
+/**
+ * Si el nombre cabe dentro del sector tal como se ve ahora: las cuatro esquinas de su fila tienen
+ * que caer en el polígono (la insignia, pequeña y centrada debajo, no cuenta). El rectángulo que
+ * envuelve al sector no sirve: en uno inclinado o angosto es mucho más ancho que el sector.
+ */
 const cabeEn = (
   mapa: MapaLeaflet,
   sector: SectorFeatureDto,
-  { ancho, alto }: { ancho: number; alto: number },
+  posicion: [number, number],
+  ancho: number,
 ): boolean => {
-  const limites = geoJSON(sector).getBounds();
-  const noreste = mapa.latLngToContainerPoint(limites.getNorthEast());
-  const suroeste = mapa.latLngToContainerPoint(limites.getSouthWest());
-  return noreste.x - suroeste.x >= ancho && suroeste.y - noreste.y >= alto;
+  const ancla = mapa.latLngToContainerPoint(posicion);
+  return [-1, 1].every((dx) =>
+    [-1, 1].every((dy) => {
+      const esquina = mapa.containerPointToLatLng([
+        ancla.x + (dx * ancho) / 2,
+        ancla.y + (dy * ALTO_NOMBRE) / 2,
+      ]);
+      return contiene(sector, esquina.lat, esquina.lng);
+    }),
+  );
 };
 
 function MarcadorSector({

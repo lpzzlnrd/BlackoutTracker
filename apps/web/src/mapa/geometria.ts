@@ -16,3 +16,9 @@ export function puntoEtiqueta(sector: SectorFeatureDto): [number, number] {
   const [lng, lat] = punto.geometry.coordinates;
   return [lat ?? 0, lng ?? 0];
 }
+
+/** Si el punto (`lat`, `lng`) cae dentro del sector o sobre su borde. */
+export function contiene(sector: SectorFeatureDto, lat: number, lng: number): boolean {
+  const poligono = sector as unknown as Parameters<typeof booleanPointInPolygon>[1];
+  return booleanPointInPolygon([lng, lat], poligono);
+}

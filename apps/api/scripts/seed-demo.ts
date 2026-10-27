@@ -5,7 +5,7 @@
 //   2. Historial sintético de data/demo.csv con el importador de campo (T-044): "aprox. X h, según
 //      n cortes" en casi todos los pares y "datos insuficientes" en dos.
 //   3. Reportes en vivo por el consenso real: un corte de luz confirmado en Suroeste y 2 reportes de
-//      agua sin confirmar en Noreste. Levanta la app de Nest sin servidor HTTP, así que necesita el
+//      agua sin confirmar en Calle 160. Levanta la app de Nest sin servidor HTTP, así que necesita el
 //      .env completo de la API; con --sin-corte se salta.
 // Se niega con NODE_ENV=production o una URL de base que parezca de producción, salvo --forzar.
 import { readFileSync } from 'node:fs';

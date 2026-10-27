@@ -1,24 +1,21 @@
 import { CONSENSO_N_POR_DEFECTO, TipoServicio } from '@blackout/shared';
-import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { corteAbierto } from '../aplicacion/corte-abierto';
 import { Contenido, EncabezadoPantalla } from '../componentes/marco/Marco';
 import { EstadoChip } from '../componentes/ui/Chips';
 import {
-  claves,
   useColaAvisos,
   useConfiguracion,
   useEstadosSector,
   useMisReportes,
   usePerfil,
-  useSesion,
 } from '../datos/consultas';
 import { useObservable, usePuertos } from '../datos/contexto';
 import { useServicio } from '../datos/preferencias';
 import { estadoVisual } from '../dominio/estado-visual';
 import { useParametro } from '../navegacion/ruta';
 import { FormularioAviso } from './FormularioAviso';
-import { ListaAvisos } from './ListaAvisos';
+import { useRefrescarTrasEnvio } from './useRefrescarTrasEnvio';
 import { useSincronizarCola } from './useSincronizarCola';
 
 const leerServicio = (valor: string | null): TipoServicio | null =>
@@ -26,19 +23,19 @@ const leerServicio = (valor: string | null): TipoServicio | null =>
 
 /**
  * Reportar (REP, OFF). Solo se ve con sesión y perfil (`RequiereVecino`). El mapa puede traer el
- * servicio en `?servicio=`; si no, el que el vecino eligió la última vez.
+ * servicio en `?servicio=`; si no, el que el vecino eligió la última vez. La cola ("Tus avisos")
+ * vive en su propia pantalla, `/avisos` (D-037): aquí queda solo el aviso.
  */
 export function PantallaReportar() {
   const { conexion } = usePuertos();
   const estadoConexion = useObservable(conexion);
-  const cliente = useQueryClient();
-  const usuario = useSesion();
   const perfil = usePerfil();
   const misReportes = useMisReportes();
   const cola = useColaAvisos();
   const estados = useEstadosSector();
   const configuracion = useConfiguracion();
   const sincronizar = useSincronizarCola();
+  useRefrescarTrasEnvio();
 
   const [preferido, elegirPreferido] = useServicio();
   const desdeUrl = leerServicio(useParametro('servicio'));
@@ -48,17 +45,6 @@ export function PantallaReportar() {
     elegirPreferido(nuevo);
   };
 
-  // Cada aviso que el servidor acepta o rechaza (aquí o desde `vigilarConexion` al volver la
-  // red) cambia "mis reportes" y quizá el estado del sector: se vuelven a pedir.
-  const resueltos = cola.data?.filter((a) => a.estado !== 'pendiente').length ?? 0;
-  const previos = useRef(resueltos);
-  useEffect(() => {
-    if (resueltos === previos.current) return;
-    previos.current = resueltos;
-    void cliente.invalidateQueries({ queryKey: claves.misReportes(usuario?.id) });
-    void cliente.invalidateQueries({ queryKey: claves.estados });
-  }, [resueltos, cliente, usuario?.id]);
-
   const abierto = corteAbierto(servicio, misReportes.data, cola.data);
   const sector = perfil.data;
   const fila = estados.data?.find(
@@ -66,7 +52,7 @@ export function PantallaReportar() {
   );
 
   return (
-    <Contenido ancho="amplio">
+    <Contenido>
       <EncabezadoPantalla
         titulo="Reportar"
         descripcion="Avisa cuando se va o vuelve el servicio. Sin conexión también: se envía al reconectar."
@@ -78,17 +64,14 @@ export function PantallaReportar() {
           <EstadoChip estado={estadoVisual(fila)} />
         </p>
       )}
-      <div className="grid items-start gap-5 lg:grid-cols-2">
-        <FormularioAviso
-          servicio={servicio}
-          onCambiarServicio={cambiarServicio}
-          abierto={abierto}
-          consensoN={configuracion.data?.consensoN ?? CONSENSO_N_POR_DEFECTO}
-          sinRed={estadoConexion.modo !== 'en-linea'}
-          sincronizar={sincronizar}
-        />
-        <ListaAvisos sincronizar={sincronizar} />
-      </div>
+      <FormularioAviso
+        servicio={servicio}
+        onCambiarServicio={cambiarServicio}
+        abierto={abierto}
+        consensoN={configuracion.data?.consensoN ?? CONSENSO_N_POR_DEFECTO}
+        sinRed={estadoConexion.modo !== 'en-linea'}
+        sincronizar={sincronizar}
+      />
     </Contenido>
   );
 }

@@ -1,0 +1,151 @@
+{
+  "type": "FeatureCollection",
+  "provisional": true,
+  "nota": "CUADRÍCULA DE PRUEBAS (D-036): 4 sectores de 2 × 2 que NO son Guaparo (quedan unos 2,5 km al sureste). La usan los tests de integración de la API (los puntos de control de apps/api/test/fixtures/puntos.ts) y el modo demo de la web (?demo=, E2E). El Guaparo real está en sectores-guaparo.geojson.",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "nombre": "Guaparo Noroeste",
+        "PROVISIONAL": true
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                -68.012,
+                10.205
+              ],
+              [
+                -68.006,
+                10.205
+              ],
+              [
+                -68.006,
+                10.21
+              ],
+              [
+                -68.012,
+                10.21
+              ],
+              [
+                -68.012,
+                10.205
+              ]
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nombre": "Guaparo Noreste",
+        "PROVISIONAL": true
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                -68.006,
+                10.205
+              ],
+              [
+                -68.0,
+                10.205
+              ],
+              [
+                -68.0,
+                10.21
+              ],
+              [
+                -68.006,
+                10.21
+              ],
+              [
+                -68.006,
+                10.205
+              ]
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nombre": "Guaparo Suroeste",
+        "PROVISIONAL": true
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                -68.012,
+                10.2
+              ],
+              [
+                -68.006,
+                10.2
+              ],
+              [
+                -68.006,
+                10.205
+              ],
+              [
+                -68.012,
+                10.205
+              ],
+              [
+                -68.012,
+                10.2
+              ]
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nombre": "Guaparo Sureste",
+        "PROVISIONAL": true
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                -68.006,
+                10.2
+              ],
+              [
+                -68.0,
+                10.2
+              ],
+              [
+                -68.0,
+                10.205
+              ],
+              [
+                -68.006,
+                10.205
+              ],
+              [
+                -68.006,
+                10.2
+              ]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -10,11 +10,13 @@ import { rutaSegura, useParametro, useRuta, type Ruta } from './navegacion/ruta'
 import { PantallaPanel } from './panel/PantallaPanel';
 import { PantallaEntrar } from './registro/PantallaEntrar';
 import { PantallaRegistro } from './registro/PantallaRegistro';
+import { PantallaAvisos } from './reportes/PantallaAvisos';
 import { PantallaReportar } from './reportes/PantallaReportar';
 
 /**
  * Mirar es público (D-029): el mapa y el panel no piden cuenta. Reportar sí, porque el consenso
- * cuenta vecinos distintos (CON-04) y el sector sale del pin del registro (REG).
+ * cuenta vecinos distintos (CON-04) y el sector sale del pin del registro (REG). Avisos tampoco la
+ * pide: es la cola de este dispositivo y sin sesión está vacía (D-037).
  */
 export function App() {
   const ruta = useRuta();
@@ -39,6 +41,8 @@ function pantalla(ruta: Ruta, siguiente: Ruta): ReactNode {
           <PantallaReportar />
         </RequiereVecino>
       );
+    case '/avisos':
+      return <PantallaAvisos />;
     case '/cuenta':
       return <PantallaCuenta />;
     case '/entrar':

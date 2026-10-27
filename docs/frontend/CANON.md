@@ -63,7 +63,7 @@ Dos cosas que ese ejercicio descubrió y que **ya están corregidas en las refer
 - **Alto:** `100dvh`, no `100vh` (en móvil `vh` incluye la barra del navegador).
 - **Zona segura inferior:** la navegación de las referencias deja un relleno abajo (A: 20 px; B: 18 px; C: 14 px) que representa el indicador de inicio del teléfono. En producción: `padding-bottom: max(<relleno de la referencia>, env(safe-area-inset-bottom))` junto con `viewport-fit=cover` ([`PWA.md`](PWA.md) §5).
 - **Por encima de 640 px** _(regla del canon, no dibujada)_: B y C centran la columna de contenido con `max-width: 640px`; A mantiene el mapa y la hoja inferior a todo el ancho, con el contenido de la hoja en `max-width: 640px` centrado.
-- **Por debajo de 360 px** _(regla del canon)_: en A, el botón "1 pendiente" pasa a ser solo el reloj con una insignia numérica, como el de C. La leyenda de A ya hace `flex-wrap`.
+- **Por debajo de 360 px** _(regla del canon)_: en A, el botón "1 pendiente" pasa a ser solo el reloj con una insignia numérica, como el de C. La leyenda de A ya hace `flex-wrap`. En la navegación inferior, las píldoras pasan de 56 a 48 px de ancho para que los cinco destinos quepan (D-037).
 - Nunca scroll horizontal a ningún ancho desde 320 px.
 
 ### Escritorio (1024 px o más)
@@ -234,7 +234,7 @@ La **trama** de "sin confirmar" se define una sola vez en un `<svg>` oculto al i
 - **Etiqueta "Tu sector"** (solo en el mapa de A): píldora de `--texto` con texto `--superficie`, 700, sobre el sector del residente. B y C marcan "tu sector" solo con el contorno grueso.
 - **Dónde va cada cosa**: en el punto de `@turf/center-of-mass` de cada sector; si ese punto cae fuera del polígono (sectores cóncavos), en `@turf/point-on-feature`.
 - **Sector seleccionado** _(no dibujado)_: lleva el mismo contorno grueso que "tu sector". Por defecto está seleccionado el del residente. El contorno va en su propio panel de Leaflet (`zIndex: 450`): en el mismo SVG, la capa de estados (que se recrea con cada cambio) quedaba dibujada encima y lo tapaba (D-035).
-- **Nombre en el mapa** _(D-035)_: sin la urbanización ("Guaparo Noroeste" → "Noroeste"); el detalle y el `aria-label` usan el nombre completo, y el título del detalle no se corta. Si el marcador completo (píldora, nombre medido con la fuente real e insignia) no cabe en el sector a ese zoom, va solo la insignia.
+- **Nombre en el mapa** _(D-035)_: sin la urbanización ("Guaparo Noroeste" → "Noroeste"); el detalle y el `aria-label` usan el nombre completo, y el título del detalle no se corta. Si el nombre (medido con la fuente real, más su halo) no cabe dentro del polígono a ese zoom, va solo la insignia: se comprueban las cuatro esquinas de su fila contra el polígono, no contra el rectángulo que lo envuelve (D-036).
 - **Encuadre** _(D-035)_: al cargar, los sectores llenan el espacio libre. No se puede alejar más de un nivel de ese encuadre ni salir de un área de 5 veces Guaparo. Cuando la vista ya no muestra todos los sectores, aparece el botón "Ver todo Guaparo" (icono `map`; arriba a la derecha en escritorio, sobre la hoja asomada en el teléfono).
 
 ### 4.4 Tamaños: dos escalas
@@ -389,7 +389,8 @@ Reglas:
 
 | Dónde                          | Texto                                                                                                   | Propuesta |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------- | --------- |
-| Navegación                     | Mapa · Panel · Reportar · Cuenta                                                                        | A, C      |
+| Navegación                     | Mapa · Panel · Reportar · Avisos · Cuenta _(D-037)_                                                     | A         |
+| Navegación                     | Panel · Mapa · Reportar · Cuenta                                                                        | C         |
 | Navegación                     | Inicio · Mapa · Cuenta                                                                                  | B         |
 | Marca                          | BlackoutTracker                                                                                         | todas     |
 | Selector de servicio           | Luz · Agua (grupo con `aria-label="Servicio"`)                                                          | A, C      |
@@ -399,6 +400,9 @@ Reglas:
 | Aviso en línea                 | Sincronizado · {hora}                                                                                   | C         |
 | Cola                           | {n} pendiente(s) (botón); `aria-label`: "{n} aviso pendiente de envío"                                  | A, B / C  |
 | Cola, detalle                  | Tu aviso «Volvió la luz» ({hora}) está pendiente de envío                                               | A         |
+| Avisos _(D-037)_               | Tus avisos · Lo que reportaste desde este dispositivo, del más reciente al más antiguo. · {n} aviso(s) sin enviar todavía. Se envían solos cuando hay conexión. | A |
+| Avisos vacío _(D-037)_         | Aún no tienes avisos · Cuando reportes que se fue o volvió el servicio, el aviso aparece aquí al instante, aunque no haya conexión, y ves si ya llegó. · Reportar un corte | A |
+| Insignia de Avisos _(D-037)_   | {n} (visual) · `aria`: "Avisos, {n} aviso(s) sin enviar" · tras guardar un aviso: Ver tus avisos       | A         |
 | Cola, detalle                  | Aviso «Volvió la luz» pendiente · Se enviará al reconectar                                              | B         |
 | Cola, detalle                  | Tu aviso «Volvió la luz» ({hora}) · pendiente                                                           | C         |
 | Chips de sincronización        | Pendiente · Enviado · Error                                                                             | todas     |
@@ -458,7 +462,7 @@ Los tres diseños comparten estas piezas. Se construyen una vez con los tokens y
 | `MapaSectores`      | La coropleta de §4                                                      | `sectores`, `estados`, `escala`             |
 | `LeyendaMapa`       | Leyenda de estados                                                      | `variante`                                  |
 | `AtribucionOSM`     | Atribución obligatoria                                                  | —                                           |
-| Navegación          | Inferior (teléfono), lateral (A) o superior (B y C)                     | `items`, `activo`                           |
+| Navegación          | Inferior (teléfono), lateral (A) o superior (B y C); en A, cinco destinos con Reportar circular al centro e insignia en Avisos (D-037) | `items`, `activo`, `sinEnviar` |
 | `AvisoInstalacion`, `AvisoVersion` | Instalar la app; "Hay una versión nueva"                 | `onAceptar`                                 |
 
 ---

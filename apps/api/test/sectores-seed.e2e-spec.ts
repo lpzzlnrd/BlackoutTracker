@@ -4,7 +4,7 @@ import { leerSectores, sembrarSectores } from '../src/db/sembrar-sectores';
 import { abrirBd, type BdTest, cuadrado, limpiar } from './bd';
 import { BORDE_ENTRE_SECTORES, DENTRO, ID_SECTOR } from './fixtures/puntos';
 
-const GEOJSON = join(__dirname, '../../../data/sectores-guaparo.geojson');
+const GEOJSON = join(__dirname, '../../../data/sectores-cuadricula.geojson');
 
 describe('siembra de sectores (T-012)', () => {
   let bd: BdTest;
@@ -16,7 +16,7 @@ describe('siembra de sectores (T-012)', () => {
   afterAll(() => bd.sql.end());
   beforeEach(() => limpiar(bd.sql));
 
-  it('siembra los 4 sectores provisionales y 8 filas de estado_sector (sector × servicio)', async () => {
+  it('siembra los 4 sectores de la cuadrícula y 8 filas de estado_sector (sector × servicio)', async () => {
     const res = await sembrarSectores(bd.sql, sectoresDelArchivo());
     expect(res).toEqual({ sectores: 4, filasEstado: 8 });
     const filas =
@@ -28,6 +28,20 @@ describe('siembra de sectores (T-012)', () => {
       'Guaparo Sureste',
     ]);
     expect(filas.every((f) => f.valida === true && f.srid === 4326)).toBe(true);
+  });
+
+  it('el GeoJSON real de Guaparo siembra 6 sectores válidos, sin solapes ni huecos (D-036)', async () => {
+    const real = leerSectores(
+      JSON.parse(readFileSync(join(__dirname, '../../../data/sectores-guaparo.geojson'), 'utf-8')),
+    );
+    // sembrarSectores ya rechaza los solapes; aquí además la unión no deja huecos dentro.
+    expect(await sembrarSectores(bd.sql, real)).toEqual({ sectores: 6, filasEstado: 12 });
+    const [geo] = await bd.sql`
+      select bool_and(st_isvalid(geom)) as validos,
+             st_numinteriorrings(st_geometryn(st_union(geom), 1)) as huecos,
+             st_numgeometries(st_union(geom)) as piezas
+      from sectores`;
+    expect(geo).toEqual({ validos: true, huecos: 0, piezas: 1 });
   });
 
   it('es idempotente: correrla dos veces no duplica nada', async () => {

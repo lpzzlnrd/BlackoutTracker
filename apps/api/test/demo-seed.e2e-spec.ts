@@ -18,7 +18,8 @@ describe('seed de demo (T-061, D-027)', () => {
     ctx = await Contexto.crear();
   });
   afterAll(() => ctx.cerrar());
-  beforeEach(() => ctx.reiniciar());
+  // La demo va sobre el Guaparo real: sus nombres son los de data/sectores-guaparo.geojson.
+  beforeEach(() => ctx.reiniciar('sectores-guaparo.geojson'));
 
   const sembrar = async () => ({
     historial: await importarCampo(ctx.bd.sql, DEMO, ctx.ahora),
@@ -44,12 +45,12 @@ describe('seed de demo (T-061, D-027)', () => {
     const esperado: Array<[string, string, number, boolean]> = [
       ['Guaparo Noroeste', 'agua', 7, true],
       ['Guaparo Noroeste', 'electricidad', 11, true],
-      ['Guaparo Noreste', 'agua', 5, true],
-      ['Guaparo Noreste', 'electricidad', 3, false],
+      ['Guaparo Calle 160', 'agua', 5, true],
+      ['Guaparo Calle 160', 'electricidad', 3, false],
       ['Guaparo Suroeste', 'agua', 2, false],
       ['Guaparo Suroeste', 'electricidad', 8, true],
-      ['Guaparo Sureste', 'agua', 9, true],
-      ['Guaparo Sureste', 'electricidad', 6, true],
+      ['Guaparo Sur', 'agua', 9, true],
+      ['Guaparo Sur', 'electricidad', 6, true],
     ];
     for (const [sector, tipo, n, suficiente] of esperado) {
       const res = await ctx
@@ -79,7 +80,7 @@ describe('seed de demo (T-061, D-027)', () => {
     expect(res.body.medianaMin).toBeLessThanOrEqual(5 * 60);
   });
 
-  it('CON-02, CON-01: un corte de luz confirmado en Suroeste y 2 reportes de agua sin confirmar en Noreste', async () => {
+  it('CON-02, CON-01: un corte de luz confirmado en Suroeste y 2 reportes de agua sin confirmar en Calle 160', async () => {
     const { creados } = await sembrar();
     expect(creados).toBe(5);
     const [luz] = await ctx.bd.sql`
@@ -89,7 +90,7 @@ describe('seed de demo (T-061, D-027)', () => {
     expect(luz.evento_id).not.toBeNull();
     const [agua] = await ctx.bd.sql`
       select estado, reportes_sin_confirmar from estado_sector
-      where sector_id = ${await idSector('Guaparo Noreste')} and tipo_servicio = 'agua'`;
+      where sector_id = ${await idSector('Guaparo Calle 160')} and tipo_servicio = 'agua'`;
     expect(agua).toEqual({ estado: 'con_servicio', reportes_sin_confirmar: 2 });
   });
 

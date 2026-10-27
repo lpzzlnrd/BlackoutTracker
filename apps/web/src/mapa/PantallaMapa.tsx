@@ -137,7 +137,7 @@ export function PantallaMapa() {
             <Marca tamano={24} />
             BlackoutTracker
           </p>
-          <BotonPendientes cantidad={pendientes} onClick={() => navegar('/reportar')} />
+          <BotonPendientes cantidad={pendientes} onClick={() => navegar('/avisos')} />
         </div>
 
         <div className="absolute top-[60px] left-1/2 z-[1000] -translate-x-1/2 lg:top-4 lg:left-4 lg:translate-x-0">

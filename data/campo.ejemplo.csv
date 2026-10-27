@@ -1,5 +1,6 @@
 # EJEMPLO SINTÉTICO (T-044): NO son datos de la campaña de campo. Sirve para probar `pnpm db:seed:campo`
-# y como base del seed de demo (T-061). Formato en docs/dataset-campo.md.
+# y como base del seed de demo (T-061). Formato en docs/dataset-campo.md. Usa los sectores de la cuadrícula de
+# pruebas (data/sectores-cuadricula.geojson, D-036), no los del Guaparo real.
 # Noroeste y Sureste tienen >= 5 ciclos por servicio (hay cifra); Noreste tiene 3 (datos insuficientes).
 sector,tipo_servicio,inicio,fin
 Guaparo Noroeste,electricidad,2026-09-02T14:10:00-04:00,2026-09-02T17:40:00-04:00

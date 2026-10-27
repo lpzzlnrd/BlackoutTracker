@@ -25,7 +25,7 @@ export interface CorteDemo {
 
 /**
  * Luz en Suroeste: 3 vecinos dentro de la ventana de 30 min → corte confirmado (CON-02).
- * Agua en Noreste: 2 vecinos → "2 reportes sin confirmar" con N = 3 (CON-01). Con la ventana de agua
+ * Agua en Calle 160: 2 vecinos → "2 reportes sin confirmar" con N = 3 (CON-01). Con la ventana de agua
  * (180 min) ese aviso se ve hasta unas 3 h después de sembrar; el corte confirmado dura hasta que los
  * reportes vencen (48 h, D-015).
  */
@@ -40,7 +40,7 @@ export const CORTES_DEMO: CorteDemo[] = [
     ],
   },
   {
-    sectorNombre: 'Guaparo Noreste',
+    sectorNombre: 'Guaparo Calle 160',
     tipoServicio: TipoServicio.Agua,
     reportes: [
       { residenteId: '00000000-0000-4000-8000-00000000de04', minutos: -20 },

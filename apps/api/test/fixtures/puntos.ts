@@ -1,7 +1,8 @@
-// Coordenadas de control para los sectores provisionales de data/sectores-guaparo.geojson (D-005):
-// una cuadrícula de 2 × 2. La numeración (ids) es la del orden del archivo y de la siembra:
+// Coordenadas de control para la cuadrícula de pruebas de data/sectores-cuadricula.geojson (D-036):
+// 2 × 2 sectores que no son el Guaparo real. La numeración (ids) es la del orden del archivo y de la
+// siembra:
 //   1 Noroeste · 2 Noreste · 3 Suroeste · 4 Sureste
-// Si cambia el GeoJSON provisional, hay que actualizar estas coordenadas.
+// Si cambia la cuadrícula, hay que actualizar estas coordenadas.
 // Ojo con el orden: `lat` primero en estos objetos, y `[lng, lat]` en GeoJSON y en ST_MakePoint.
 
 export interface Punto {
