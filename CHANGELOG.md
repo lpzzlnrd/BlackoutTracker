@@ -8,6 +8,7 @@ Secciones por versión: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**
 ## [Sin publicar]
 
 ### Seguridad
+- Revisión de seguridad de la API (T-051): `GET /estimaciones` rechaza con 400 un `sectorId` fuera de rango (antes, 500); los formularios urlencoded tienen el mismo límite de 16 kB que el JSON y sin objetos anidados; test NF-07 (sin administrador: ni rutas ni roles, y un token con claims de admin de Supabase no fuerza el consenso).
 - Throttle de lectura (120/min por IP) en `GET /sectores`, `/sectores/:id/historial`, `/sectores/:id/resumen` y `/estimaciones`, y `/resumen` en el barrido NF-06 (T-051, T-043).
 - Barrido NF-06 ampliado a `GET /sectores`, `GET /sectores/:id/historial` y `GET /estimaciones` (y sus errores). En `/sectores` solo quedan exentas las claves del polígono del sector, que es público (T-051).
 - Migración 0002: RLS activada en las cinco tablas, `REVOKE ALL` (tablas y secuencias) a `anon` y `authenticated`, lectura de `estado_sector` por una política `SELECT`, y `estado_sector` en la publicación `supabase_realtime` cuando existe. Los roles se crean solo en el PostGIS local. Con tests NF-06 y de la publicación (T-011).

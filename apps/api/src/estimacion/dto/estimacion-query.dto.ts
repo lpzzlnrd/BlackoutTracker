@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsIn, IsInt, Min } from 'class-validator';
+import { IsIn, IsInt, Max, Min } from 'class-validator';
 import { TIPOS_SERVICIO, type TipoServicio } from '@blackout/shared';
 
 export class EstimacionQueryDto {
@@ -8,6 +8,8 @@ export class EstimacionQueryDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
+  // Igual que en `SectorParamDto`: `sectores.id` es smallint y un número mayor rompía la consulta (500).
+  @Max(32_767)
   sectorId!: number;
 
   @ApiProperty({ enum: TIPOS_SERVICIO, description: 'Agua y luz nunca se mezclan (EST-05).' })

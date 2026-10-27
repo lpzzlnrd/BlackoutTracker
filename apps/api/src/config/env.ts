@@ -1,5 +1,14 @@
 import { plainToInstance, Transform } from 'class-transformer';
-import { IsBoolean, IsInt, IsString, IsUrl, Matches, Max, Min, validateSync } from 'class-validator';
+import {
+  IsBoolean,
+  IsInt,
+  IsString,
+  IsUrl,
+  Matches,
+  Max,
+  Min,
+  validateSync,
+} from 'class-validator';
 import {
   CONSENSO_N_POR_DEFECTO,
   CONSENSO_VENTANA_MIN_POR_DEFECTO,

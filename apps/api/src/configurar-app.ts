@@ -42,6 +42,12 @@ export function configurarApp(
   app.use(helmet());
   // Reemplaza el body parser por defecto (100 kB) por uno más estricto; el exceso es un 413.
   (app as NestExpressApplication).useBodyParser('json', { limit: LIMITE_BODY });
+  // La API solo habla JSON, pero Express también acepta formularios (100 kB por defecto): se les
+  // pone el mismo límite y sin objetos anidados, para que no sean una vía para saltarse el de arriba.
+  (app as NestExpressApplication).useBodyParser('urlencoded', {
+    limit: LIMITE_BODY,
+    extended: false,
+  });
   // CORS estricto: solo los orígenes de la lista, los métodos y cabeceras que usa la API y sin
   // cookies (la autenticación va en `Authorization`).
   app.enableCors({

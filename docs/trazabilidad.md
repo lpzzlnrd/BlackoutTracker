@@ -14,9 +14,9 @@
 | OFF — Sin conexión | 7 | 3 | 2 / 5 |
 | EST — Estimación estadística | 6 | 6 | 4 / 4 |
 | VIS — Visualización | 5 | 3 | 1 / 2 |
-| No funcionales | 8 | 2 | — |
+| No funcionales | 8 | 3 | — |
 | Aceptación (8–10 residentes, sin instrucciones paso a paso) | 6 | 0 | — |
-| **Total** | **53** | **31** | **18 / 24** |
+| **Total** | **53** | **32** | **18 / 24** |
 
 ## REG — Registro y validación geográfica
 
@@ -97,7 +97,7 @@
 | NF-04 | Intermitencia | — | 2 | `apps/api/test/red-intermitente.e2e-spec.ts` (2) |
 | NF-05 | Compatibilidad | — | — | sin test automatizado |
 | NF-06 | Privacidad | — | 19 | `apps/api/test/historial.e2e-spec.ts` (1), `apps/api/test/privacidad.e2e-spec.ts` (6), `apps/api/test/registro.e2e-spec.ts` (1), `apps/api/test/reportes-inicio.e2e-spec.ts` (1), `apps/api/test/reportes-mios.e2e-spec.ts` (1), `apps/api/test/resumen.e2e-spec.ts` (1), `apps/api/test/rls.e2e-spec.ts` (7), `apps/api/test/sectores.e2e-spec.ts` (1) |
-| NF-07 | Sin admin | — | — | sin test automatizado |
+| NF-07 | Sin admin | — | 5 | `apps/api/test/sin-administrador.e2e-spec.ts` (5) |
 | NF-08 | Usabilidad | — | — | sin test automatizado |
 
 ## Aceptación (8–10 residentes, sin instrucciones paso a paso)
