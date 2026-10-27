@@ -12,7 +12,6 @@ import {
   textoAvisoPendiente,
   textoBotonPrincipal,
   textoConsenso,
-  titularEstado,
 } from './textos';
 
 const AHORA = '2026-10-07T19:06:00Z'; // 15:06 en Caracas
@@ -210,14 +209,6 @@ describe('nombreEnMapa', () => {
 });
 
 describe('bloque de estado del detalle (D-038)', () => {
-  it('VIS-04: el titular nombra el estado y el servicio, sin mezclar agua y luz', () => {
-    expect(titularEstado('sin-servicio', LUZ)).toBe('Sin luz');
-    expect(titularEstado('sin-servicio', AGUA)).toBe('Sin agua');
-    expect(titularEstado('con-servicio', AGUA)).toBe('Con agua');
-    expect(titularEstado('sin-confirmar', LUZ)).toBe('Reportes sin confirmar');
-    expect(titularEstado('sin-datos', LUZ)).toBe('Sin datos');
-  });
-
   it('CON-01: un corte confirmado lo reportaron al menos N vecinos distintos', () => {
     expect(textoConsenso(3)).toBe('Confirmado por al menos 3 vecinos');
   });

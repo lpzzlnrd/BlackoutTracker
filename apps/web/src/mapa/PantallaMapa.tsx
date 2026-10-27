@@ -9,27 +9,20 @@ import { Esqueleto, Mensaje } from '../componentes/ui/Mensaje';
 import { SelectorServicio } from '../componentes/ui/SelectorServicio';
 import { useEstadosSector, usePerfil, useSectores } from '../datos/consultas';
 import { useServicio } from '../datos/preferencias';
+import { sectoresSinServicio } from '../dominio/panel';
 import type { EstadoSector, EstadoVisual } from '../dominio/tipos';
 import { Enlace } from '../navegacion/ruta';
 import { CapaSectores, encuadrar, type Relleno } from './CapaSectores';
 import { DetalleSector } from './DetalleSector';
 import { alturaAsomada, HojaSector, useEsEscritorio, type PosicionHoja } from './HojaSector';
 import { AtribucionOSM, DefinicionesMapa, limitesDe, MapaBase } from './MapaBase';
-import { anunciosDeCambio, estadoDeSector, etiquetaMapa } from './textos';
+import { anunciosDeCambio, etiquetaMapa } from './textos';
 
 /**
  * La leyenda: tres estados, de más a menos grave, como el panel (D-038; CANON §4.5 los ponía al
  * revés). "Sin datos" no va.
  */
 const LEYENDA: readonly EstadoVisual[] = ['sin-servicio', 'sin-confirmar', 'con-servicio'];
-
-/** Cuántos sectores están sin un servicio: la insignia del selector (D-038). */
-const sinServicio = (
-  sectores: readonly { id: number }[],
-  estados: EstadoSector[] | undefined,
-  servicio: TipoServicio,
-): number =>
-  sectores.filter((s) => estadoDeSector(estados, s.id, servicio) === 'sin-servicio').length;
 
 // Lo que tapan las superposiciones, para que el encuadre deje los sectores a la vista (A §3). En
 // el teléfono, arriba el selector y la leyenda (la barra de la marca ya no está sobre el mapa,
@@ -63,8 +56,12 @@ export function PantallaMapa() {
   const lista = sectores.data?.features ?? [];
   const nombres = lista.map((f) => f.properties);
   const cortes = {
-    [TipoServicio.Electricidad]: sinServicio(nombres, estados.data, TipoServicio.Electricidad),
-    [TipoServicio.Agua]: sinServicio(nombres, estados.data, TipoServicio.Agua),
+    [TipoServicio.Electricidad]: sectoresSinServicio(
+      nombres,
+      estados.data,
+      TipoServicio.Electricidad,
+    ),
+    [TipoServicio.Agua]: sectoresSinServicio(nombres, estados.data, TipoServicio.Agua),
   };
   const propio = perfil.data?.sectorId;
   // Por defecto, el sector del vecino; sin cuenta, el primero (A §5).

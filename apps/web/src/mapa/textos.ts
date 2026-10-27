@@ -1,7 +1,7 @@
 import { TipoServicio, type EventoSectorDto } from '@blackout/shared';
 import { estadoVisual } from '../dominio/estado-visual';
 import type { AccionAviso, AvisoCola, EstadoSector, EstadoVisual } from '../dominio/tipos';
-import { diaRelativo, duracion, hora, nombreServicio } from '../utils/formato';
+import { diaRelativo, duracion, hora } from '../utils/formato';
 
 // Textos del mapa y de su detalle (CANON §4.6 y §7). Funciones puras: se prueban sin React.
 
@@ -135,21 +135,6 @@ const NOMBRE_EN_FRASE: Record<TipoServicio, string> = {
 /** "Se fue la luz" / "Volvió el agua": la acción de un aviso de la cola. */
 export const textoAccion = (servicio: TipoServicio, accion: AccionAviso): string =>
   `${accion === 'inicio' ? 'Se fue' : 'Volvió'} ${NOMBRE_EN_FRASE[servicio]}`;
-
-/** Titular del bloque de estado del detalle (D-038): "Sin luz", "Con agua"… */
-export function titularEstado(estado: EstadoVisual, servicio: TipoServicio): string {
-  const nombre = nombreServicio(servicio).toLowerCase();
-  switch (estado) {
-    case 'sin-servicio':
-      return `Sin ${nombre}`;
-    case 'con-servicio':
-      return `Con ${nombre}`;
-    case 'sin-confirmar':
-      return 'Reportes sin confirmar';
-    case 'sin-datos':
-      return 'Sin datos';
-  }
-}
 
 /**
  * Bajo "Sin luz": el corte se confirmó porque lo reportaron al menos N vecinos distintos (CON-01).

@@ -1,8 +1,10 @@
 import type { EventoSectorDto, TipoServicio } from '@blackout/shared';
+import { Consenso } from '../componentes/ui/Consenso';
 import { Icono, type NombreIcono } from '../componentes/ui/Icono';
+import { titularEstado } from '../dominio/estado-visual';
 import type { EstadoSector, EstadoVisual } from '../dominio/tipos';
 import { hora } from '../utils/formato';
-import { lineaEstado, textoConsenso, titularEstado } from './textos';
+import { lineaEstado, textoConsenso } from './textos';
 
 // El estado del sector como bloque (D-038): el corte es lo único sólido y ruidoso; los demás
 // estados van en el tono suave de su chip, para que no compitan con él (D-035). Siempre color +
@@ -79,25 +81,5 @@ export function BloqueEstado({
         <p className="text-sm">{lineaEstado({ estado, fila, eventos, consensoN, ahora })}</p>
       )}
     </div>
-  );
-}
-
-/**
- * El consenso a la vista (CON-01): una barrita por vecino que hace falta, llenas las que ya
- * reportaron. Toma el color del texto del bloque. El texto dice lo mismo para el lector.
- */
-function Consenso({ llenas, total, texto }: { llenas: number; total: number; texto: string }) {
-  return (
-    <p className="flex items-center gap-2 text-[13px] font-semibold">
-      <span aria-hidden="true" className="flex flex-none gap-[3px]">
-        {Array.from({ length: Math.min(total, 10) }, (_, i) => (
-          <span
-            key={i}
-            className={`h-1.5 w-[18px] rounded-[3px] bg-current ${i < llenas ? '' : 'opacity-30'}`}
-          />
-        ))}
-      </span>
-      {texto}
-    </p>
   );
 }

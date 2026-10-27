@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { estadoVisual, peorEstado } from './estado-visual';
+import { estadoVisual, peorEstado, titularEstado } from './estado-visual';
 import type { EstadoSector } from './tipos';
 
 const fila = (parche: Partial<EstadoSector>): EstadoSector => ({
@@ -36,5 +36,15 @@ describe('estadoVisual (CANON §3)', () => {
     expect(peorEstado([agua, fila({ reportesSinConfirmar: 1 })])).toBe('sin-confirmar');
     expect(peorEstado([agua, fila({ estado: 'sin_servicio' })])).toBe('sin-servicio');
     expect(peorEstado([])).toBe('sin-datos');
+  });
+});
+
+describe('titularEstado (D-038)', () => {
+  it('VIS-04: el titular nombra el estado y el servicio, sin mezclar agua y luz', () => {
+    expect(titularEstado('sin-servicio', 'electricidad')).toBe('Sin luz');
+    expect(titularEstado('sin-servicio', 'agua')).toBe('Sin agua');
+    expect(titularEstado('con-servicio', 'agua')).toBe('Con agua');
+    expect(titularEstado('sin-confirmar', 'electricidad')).toBe('Reportes sin confirmar');
+    expect(titularEstado('sin-datos', 'electricidad')).toBe('Sin datos');
   });
 });

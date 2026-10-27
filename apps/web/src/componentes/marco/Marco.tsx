@@ -266,7 +266,10 @@ export function EncabezadoPantalla({
   );
 }
 
-/** Columna de contenido de las pantallas de lista y formularios: 640 px como máximo, centrada. */
+/**
+ * Columna de contenido de las pantallas de lista y formularios: 640 px como máximo, centrada. En
+ * el teléfono deja 40 px abajo: el círculo de Reportar sobresale 24 px de la barra (D-037).
+ */
 export function Contenido({
   children,
   ancho = 'normal',
@@ -276,7 +279,7 @@ export function Contenido({
 }) {
   return (
     <div
-      className={`mx-auto flex w-full flex-col gap-5 px-4 py-5 lg:px-8 lg:py-8 ${
+      className={`mx-auto flex w-full flex-col gap-5 px-4 pt-5 pb-10 lg:px-8 lg:py-8 ${
         ancho === 'amplio' ? 'max-w-5xl' : 'max-w-[640px]'
       }`}
     >

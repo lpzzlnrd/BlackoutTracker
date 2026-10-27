@@ -8,20 +8,22 @@ import {
 import { Contenido } from '../componentes/marco/Marco';
 import { BloqueEstimacion } from '../componentes/ui/BloqueEstimacion';
 import { Boton } from '../componentes/ui/Boton';
-import { EstadoChip } from '../componentes/ui/Chips';
 import { Icono } from '../componentes/ui/Icono';
 import { Esqueleto, Mensaje } from '../componentes/ui/Mensaje';
 import { useConfiguracion, useHistorial, usePerfil, useResumen } from '../datos/consultas';
 import { usePuertos } from '../datos/contexto';
 import { ErrorApiCliente } from '../dominio/errores';
 import { estadoVisual } from '../dominio/estado-visual';
-import { intervalo, lineaEstado } from '../dominio/panel';
+import { intervalo } from '../dominio/panel';
+import { BloqueEstado } from '../mapa/BloqueEstado';
+import { minutosDesde } from '../mapa/textos';
 import { Enlace } from '../navegacion/ruta';
 import { diaRelativo, duracion, nombreServicio } from '../utils/formato';
 import { EtiquetaTuSector } from './piezas';
 
 // Detalle de un sector (VIS-04): por servicio, el estado, la estimación con su n y los cortes,
 // del más reciente al más antiguo. Agua y luz van en bloques separados y nunca se mezclan (EST-05).
+// El estado y la estimación usan los mismos bloques que el mapa (D-038).
 
 const ORDEN = [TipoServicio.Electricidad, TipoServicio.Agua] as const;
 
@@ -51,7 +53,9 @@ export function DetalleSector({ sectorId }: { sectorId: number | null }) {
     return (
       <Contenido>
         <Volver />
-        <h1 className="text-[22px] leading-tight font-bold">Sector</h1>
+        <h1 className="font-display text-[32px] leading-[1.05] font-extrabold tracking-[-0.02em]">
+          Sector
+        </h1>
         <Mensaje tono="error">No encontramos ese sector.</Mensaje>
       </Contenido>
     );
@@ -71,7 +75,9 @@ export function DetalleSector({ sectorId }: { sectorId: number | null }) {
           </>
         ) : (
           <div className="flex flex-col items-start gap-3">
-            <h1 className="text-[22px] leading-tight font-bold">Sector</h1>
+            <h1 className="font-display text-[32px] leading-[1.05] font-extrabold tracking-[-0.02em]">
+              Sector
+            </h1>
             <Mensaje tono="error">
               Sin datos: no hay información guardada de este sector. Conéctate para verla.
             </Mensaje>
@@ -92,7 +98,9 @@ export function DetalleSector({ sectorId }: { sectorId: number | null }) {
       <Volver />
       <header className="flex flex-col items-start gap-2">
         {propio && <EtiquetaTuSector />}
-        <h1 className="text-[22px] leading-tight font-bold lg:text-2xl">{sectorNombre}</h1>
+        <h1 className="font-display text-[32px] leading-[1.05] font-extrabold tracking-[-0.02em]">
+          {sectorNombre}
+        </h1>
       </header>
       <div className="grid items-start gap-5 lg:grid-cols-2">
         {ORDEN.map((tipo) => {
@@ -132,7 +140,8 @@ function BloqueServicio({
     desde: servicio.desde,
     actualizadoEn: '',
   };
-  const linea = lineaEstado(fila, consensoN);
+  const ahora = usePuertos().reloj.ahora();
+  const estado = estadoVisual(fila);
   const enCurso = servicio.ultimosEventos.find((e) => e.finEn === null);
   const idTitulo = `servicio-${tipoServicio}`;
 
@@ -141,15 +150,29 @@ function BloqueServicio({
       aria-labelledby={idTitulo}
       className="flex flex-col gap-4 rounded-tarjeta border border-borde bg-superficie p-4 lg:p-5"
     >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id={idTitulo} className="flex items-center gap-2 text-lg leading-tight font-bold">
-          <Icono nombre={tipoServicio === TipoServicio.Electricidad ? 'zap' : 'droplet'} />
-          {nombreServicio(tipoServicio)}
-        </h2>
-        <EstadoChip estado={estadoVisual(fila)} />
-      </div>
-      {linea && <p className="-mt-2 text-sm text-secundario">{linea}</p>}
-      <BloqueEstimacion estimacion={servicio.estimacion} nMin={nMin} variante="panel" />
+      <h2
+        id={idTitulo}
+        className="flex items-center gap-2 font-display text-xl leading-tight font-extrabold"
+      >
+        <Icono nombre={tipoServicio === TipoServicio.Electricidad ? 'zap' : 'droplet'} />
+        {nombreServicio(tipoServicio)}
+      </h2>
+      <BloqueEstado
+        estado={estado}
+        servicio={tipoServicio}
+        fila={fila}
+        eventos={servicio.ultimosEventos}
+        consensoN={consensoN}
+        ahora={ahora}
+      />
+      <BloqueEstimacion
+        estimacion={servicio.estimacion}
+        nMin={nMin}
+        variante="panel"
+        transcurridoMin={
+          estado === 'sin-servicio' && fila.desde ? minutosDesde(fila.desde, ahora) : undefined
+        }
+      />
       <Historial sectorId={sectorId} tipoServicio={tipoServicio} enCurso={enCurso} />
     </section>
   );
