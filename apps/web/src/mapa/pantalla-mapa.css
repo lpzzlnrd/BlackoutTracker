@@ -1,0 +1,104 @@
+/*
+  Marcadores de los sectores (CANON §4.3 y §4.4, escala del teléfono de A). Van en `L.divIcon`, así
+  que se estilan aquí con los tokens; nada de hex.
+*/
+
+.marcador-sector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.marcador-propio {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--texto);
+  color: var(--superficie);
+  font-size: 11px; /* la etiqueta no baja de 11 px (CANON §4.4) */
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.marcador-nombre {
+  display: block;
+  overflow: visible;
+}
+
+.marcador-nombre text {
+  font-family: var(--fuente-ui);
+  font-size: 14px;
+  font-weight: 700;
+  fill: var(--texto);
+  paint-order: stroke;
+  stroke: var(--mapa-halo);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+.marcador-insignia {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--mapa-insignia);
+  border: 1px solid currentColor;
+}
+
+.marcador-insignia--con-servicio {
+  color: var(--estado-con-servicio-tinta);
+}
+
+.marcador-insignia--sin-servicio {
+  color: var(--estado-sin-servicio-tinta);
+}
+
+.marcador-insignia--sin-confirmar {
+  color: var(--estado-sin-confirmar-tinta);
+}
+
+.marcador-insignia--sin-datos {
+  color: var(--estado-sin-datos-tinta);
+}
+
+/* En escritorio el mapa es más grande: escala "mapa grande de A" aproximada (CANON §4.4). */
+@media (min-width: 1024px) {
+  .marcador-nombre text {
+    font-size: 18px;
+    stroke-width: 5px;
+  }
+
+  .marcador-insignia {
+    width: 30px;
+    height: 30px;
+  }
+
+  .marcador-insignia svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .sector {
+    stroke-width: 3px;
+  }
+
+  .sector-contorno {
+    stroke-width: 6px;
+  }
+}
+
+/* Hoja inferior: transición de altura, sin animación si se pide menos movimiento. */
+.hoja-sector {
+  transition: height 200ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hoja-sector {
+    transition: none;
+  }
+}

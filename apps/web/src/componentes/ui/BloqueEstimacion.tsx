@@ -25,7 +25,7 @@ export function BloqueEstimacion({
         <Esqueleto className="mt-1 h-8 w-48" />
       ) : estimacion.suficiente ? (
         <p className="mt-0.5 flex flex-wrap items-baseline gap-x-2">
-          <span className={`${grande} leading-tight font-bold tabular-nums`}>
+          <span className={`${grande} leading-tight font-bold whitespace-nowrap tabular-nums`}>
             {estimacionAprox(estimacion.medianaMin)}
           </span>
           <span className="text-sm text-secundario">{segunCortes(estimacion.n)}</span>

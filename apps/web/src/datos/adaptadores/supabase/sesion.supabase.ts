@@ -53,7 +53,8 @@ export function crearSesionSupabase(supabase: SupabaseClient): Sesion {
       return nuevo;
     },
     async cerrar() {
-      const { error } = await supabase.auth.signOut();
+      // 'local': sin red el cierre global falla y deja la sesión puesta; así se cierra igual.
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
       if (error) throw error;
     },
   };

@@ -203,3 +203,8 @@ La base, la API y la web en contenedores, con la web en **http://localhost:8080*
   ```
 - **Logs:** `pnpm app:logs`.
 - **Apagar solo la app** (la base local sigue): `docker compose --profile app stop api web`. **Ojo:** `pnpm db:down` y `pnpm db:reset` apagan también la base, y `db:reset` además borra su volumen.
+- **Pruebas de punta a punta (Playwright + axe) en Docker**, con la app levantada:
+  ```bash
+  pnpm e2e         # docker compose --profile e2e run --rm --build e2e
+  ```
+  Corren en teléfono (Pixel 7) y en escritorio (1280 × 860) contra `http://web`, con los datos de ejemplo (`?demo=`), así que no escriben nada en Supabase. El informe HTML queda en `e2e/informe/index.html` (ábrelo con doble clic) y las trazas de los fallos, en `e2e/resultados/`. Sin el `pnpm` de tu máquina: `docker compose --profile e2e run --rm --build e2e`.

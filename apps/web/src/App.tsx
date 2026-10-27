@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Contenido, Marco } from './componentes/marco/Marco';
+import { AvisoInstalacion, AvisoVersion } from './componentes/ui/AvisosPwa';
 import { Boton } from './componentes/ui/Boton';
 import { Esqueleto, Mensaje } from './componentes/ui/Mensaje';
 import { PantallaCuenta } from './cuenta/PantallaCuenta';
@@ -18,7 +19,12 @@ import { PantallaReportar } from './reportes/PantallaReportar';
 export function App() {
   const ruta = useRuta();
   const siguiente = rutaSegura(useParametro('siguiente'));
-  return <Marco>{pantalla(ruta, siguiente)}</Marco>;
+  return (
+    <>
+      <Marco pie={<AvisoInstalacion />}>{pantalla(ruta, siguiente)}</Marco>
+      <AvisoVersion />
+    </>
+  );
 }
 
 function pantalla(ruta: Ruta, siguiente: Ruta): ReactNode {

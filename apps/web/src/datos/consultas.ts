@@ -100,7 +100,7 @@ export function usePerfil() {
     queryKey: claves.perfil(usuario?.id),
     enabled: usuario !== null,
     staleTime: Infinity,
-    retry: (intentos, error) => !esDefinitivo(error) && intentos < 2,
+    retry: reintentarSiNoEsDefinitivo,
     queryFn: async (): Promise<SectorAsignadoDto | null> => {
       try {
         return await residente.obtenerMio();
@@ -122,7 +122,7 @@ export function useMisReportes() {
   return useQuery({
     queryKey: claves.misReportes(usuario?.id),
     enabled: usuario !== null && Boolean(perfil.data),
-    retry: (intentos, error) => !esDefinitivo(error) && intentos < 2,
+    retry: reintentarSiNoEsDefinitivo,
     queryFn: () => reportes.obtenerMios({ abiertos: true }),
   });
 }
@@ -133,6 +133,7 @@ export function useResumen(sectorId: number | undefined) {
   return useQuery({
     queryKey: claves.resumen(sectorId ?? -1),
     enabled: sectorId !== undefined,
+    retry: reintentarSiNoEsDefinitivo,
     queryFn: () => detalleSector.resumen(sectorId as number),
   });
 }
@@ -143,6 +144,7 @@ export function useEstimacion(sectorId: number | undefined, servicio: TipoServic
   return useQuery({
     queryKey: claves.estimacion(sectorId ?? -1, servicio),
     enabled: sectorId !== undefined,
+    retry: reintentarSiNoEsDefinitivo,
     queryFn: () => estimaciones.obtener(sectorId as number, servicio),
   });
 }
@@ -153,6 +155,7 @@ export function useHistorial(sectorId: number | undefined, servicio?: TipoServic
   return useInfiniteQuery({
     queryKey: claves.historial(sectorId ?? -1, servicio),
     enabled: sectorId !== undefined,
+    retry: reintentarSiNoEsDefinitivo,
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam }) =>
       detalleSector.historial(sectorId as number, { tipoServicio: servicio, cursor: pageParam }),
@@ -163,3 +166,8 @@ export function useHistorial(sectorId: number | undefined, servicio?: TipoServic
 /** 4xx: reintentar no cambia la respuesta. */
 const esDefinitivo = (error: unknown): boolean =>
   error instanceof ErrorApiCliente && error.estado >= 400 && error.estado < 500;
+
+/** Un 404 de un sector inexistente se muestra al momento; la red caída sí se reintenta. */
+function reintentarSiNoEsDefinitivo(intentos: number, error: unknown): boolean {
+  return !esDefinitivo(error) && intentos < 2;
+}

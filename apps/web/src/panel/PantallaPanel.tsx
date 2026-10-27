@@ -1,12 +1,13 @@
-import { Contenido, EncabezadoPantalla } from '../componentes/marco/Marco';
-import { Mensaje } from '../componentes/ui/Mensaje';
+import { leerSectorId } from '../dominio/panel';
+import { useParametro } from '../navegacion/ruta';
+import { DetalleSector } from './DetalleSector';
+import { ListaSectores } from './ListaSectores';
 
-/** S4: lista de sectores (la alternativa accesible al mapa), estimaciones e historial. */
+/**
+ * Panel (S4): la lista de sectores y, con `?sector=<id>`, el detalle de uno (VIS-04). Misma ruta,
+ * así el botón Atrás del navegador vuelve de un detalle a la lista.
+ */
 export function PantallaPanel() {
-  return (
-    <Contenido>
-      <EncabezadoPantalla titulo="Panel" />
-      <Mensaje>En construcción (S4).</Mensaje>
-    </Contenido>
-  );
+  const sector = useParametro('sector');
+  return sector === null ? <ListaSectores /> : <DetalleSector sectorId={leerSectorId(sector)} />;
 }

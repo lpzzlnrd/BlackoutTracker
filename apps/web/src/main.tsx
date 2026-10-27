@@ -8,7 +8,10 @@ import { componerPuertos, leerModo } from './datos/componer';
 import { PuertosProvider } from './datos/contexto';
 import { PreferenciasProvider } from './datos/preferencias';
 import './estilos/globales.css';
+import { PwaProvider, type Pwa } from './pwa/contexto';
+import { crearInstalacion } from './pwa/instalacion';
 import { registrarServiceWorker } from './pwa/registro';
+import { seguirSistema } from './pwa/tema';
 
 async function arrancar(): Promise<void> {
   const raiz = document.getElementById('raiz');
@@ -23,22 +26,29 @@ async function arrancar(): Promise<void> {
     defaultOptions: { queries: { networkMode: 'always', retry: 1, staleTime: 30_000 } },
   });
 
-  vigilarConexion({ puertos, sincronizar: crearSincronizador(puertos) });
+  const sincronizar = crearSincronizador(puertos);
+  vigilarConexion({ puertos, sincronizar });
   // La sesión guardada se recupera antes de pintar, para no mostrar "Entrar" un instante. Sin red
   // Supabase puede tardar en rendirse: a los 2 s se pinta igual y la sesión llega cuando llegue.
   await Promise.race([
     puertos.sesion.restaurar().catch(() => null),
     new Promise((listo) => setTimeout(listo, 2000)),
   ]);
-  if (import.meta.env.PROD && modo.tipo === 'real') registrarServiceWorker();
+  const pwa: Pwa = {
+    sw: import.meta.env.PROD && modo.tipo === 'real' ? registrarServiceWorker() : null,
+    instalacion: crearInstalacion(),
+  };
+  seguirSistema();
 
   createRoot(raiz).render(
     <StrictMode>
-      <PuertosProvider puertos={puertos}>
+      <PuertosProvider puertos={puertos} sincronizar={sincronizar}>
         <QueryClientProvider client={cliente}>
-          <PreferenciasProvider>
-            <App />
-          </PreferenciasProvider>
+          <PwaProvider pwa={pwa}>
+            <PreferenciasProvider>
+              <App />
+            </PreferenciasProvider>
+          </PwaProvider>
         </QueryClientProvider>
       </PuertosProvider>
     </StrictMode>,
