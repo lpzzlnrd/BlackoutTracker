@@ -176,6 +176,7 @@ Sin estos valores, los dos workflows se saltan sin fallar.
 ## 6. Verificación
 
 - [ ] `https://<ref>.supabase.co/auth/v1/.well-known/jwks.json` → una clave con `"kty":"EC"`.
+- [ ] `https://<ref>.supabase.co/auth/v1/settings` (con la cabecera `apikey: <publishable key>`) → `"mailer_autoconfirm": true`. Si sale `false`, falta desactivar *Confirm email* (§1.4): nadie podrá crear cuenta, porque el correo gratuito solo llega a los miembros del proyecto. En staging pasó el 27-oct.
 - [ ] `https://<servicio>.onrender.com/api/salud` → `{"estado":"ok", "baseDeDatos":"ok", …}`.
 - [ ] `https://<servicio>.onrender.com/api/docs` → abre Swagger.
 - [ ] En `https://<app>.vercel.app` se ven el mapa y los colores de los sectores sin iniciar sesión.

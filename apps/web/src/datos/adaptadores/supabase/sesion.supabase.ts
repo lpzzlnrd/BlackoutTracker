@@ -1,4 +1,5 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js';
+import { CONFIRMACION_PENDIENTE } from '../../../dominio/credenciales';
 import { crearAlmacen } from '../../../dominio/observable';
 import type { UsuarioSesion } from '../../../dominio/tipos';
 import type { Sesion } from '../../puertos';
@@ -38,6 +39,12 @@ export function crearSesionSupabase(supabase: SupabaseClient): Sesion {
     async registrar(correo, clave) {
       const { data, error } = await supabase.auth.signUp({ email: correo, password: clave });
       if (error) throw error;
+      // Con "Confirm email" activo no hay sesión hasta abrir el enlace del correo.
+      if (!data.session) {
+        throw Object.assign(new Error('Falta confirmar el correo.'), {
+          code: CONFIRMACION_PENDIENTE,
+        });
+      }
       const nuevo = aUsuario(data.user);
       if (!nuevo) throw new Error('Supabase no devolvió el usuario creado.');
       return nuevo;

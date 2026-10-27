@@ -6,6 +6,7 @@ import { Mensaje } from '../componentes/ui/Mensaje';
 import { usePuertos } from '../datos/contexto';
 import {
   CLAVE_MINIMA,
+  esConfirmacionPendiente,
   mensajeErrorAuth,
   validarCredenciales,
   type ErroresCredenciales,
@@ -27,6 +28,7 @@ export function PantallaEntrar({ siguiente = '/' }: { siguiente?: Ruta }) {
   const [clave, setClave] = useState('');
   const [errores, setErrores] = useState<ErroresCredenciales>({});
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
   const crear = modo === 'crear';
@@ -35,11 +37,13 @@ export function PantallaEntrar({ siguiente = '/' }: { siguiente?: Ruta }) {
     setModo(crear ? 'entrar' : 'crear');
     setErrores({});
     setErrorGeneral(null);
+    setAviso(null);
   };
 
   async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     setErrorGeneral(null);
+    setAviso(null);
     const encontrados = validarCredenciales(correo, clave);
     setErrores(encontrados);
     if (encontrados.correo || encontrados.clave) return; // REG-05: no se envía
@@ -50,7 +54,13 @@ export function PantallaEntrar({ siguiente = '/' }: { siguiente?: Ruta }) {
       else await sesion.iniciar(correo.trim(), clave);
       if (ruta === '/entrar') navegar(siguiente, { reemplazar: true });
     } catch (error) {
-      setErrorGeneral(mensajeErrorAuth(error));
+      // La cuenta sí se creó: falta el correo. Se pasa a "Entrar" para cuando lo confirme.
+      if (esConfirmacionPendiente(error)) {
+        setModo('entrar');
+        setAviso(mensajeErrorAuth(error));
+      } else {
+        setErrorGeneral(mensajeErrorAuth(error));
+      }
     } finally {
       setEnviando(false);
     }
@@ -89,6 +99,7 @@ export function PantallaEntrar({ siguiente = '/' }: { siguiente?: Ruta }) {
           ayuda={crear ? `Al menos ${CLAVE_MINIMA} caracteres.` : undefined}
         />
 
+        {aviso && <Mensaje>{aviso}</Mensaje>}
         {errorGeneral && <Mensaje tono="error">{errorGeneral}</Mensaje>}
 
         <Boton type="submit" ancho cargando={enviando}>

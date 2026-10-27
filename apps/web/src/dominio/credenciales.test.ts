@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { mensajeErrorAuth, validarCredenciales } from './credenciales';
+import {
+  CONFIRMACION_PENDIENTE,
+  esConfirmacionPendiente,
+  mensajeErrorAuth,
+  validarCredenciales,
+} from './credenciales';
 
 describe('validarCredenciales', () => {
   it('REG-05: sin correo ni contraseña no se envía y se marca cada campo', () => {
@@ -54,5 +59,15 @@ describe('mensajeErrorAuth', () => {
       'No pudimos completar la operación. Inténtalo de nuevo en un momento.',
     );
     expect(mensajeErrorAuth(null)).toMatch(/No pudimos/);
+  });
+});
+
+describe('confirmación de correo pendiente', () => {
+  it('REG-01: si Supabase pide confirmar el correo, se dice en claro en vez de quedarse sin sesión', () => {
+    const error = Object.assign(new Error('x'), { code: CONFIRMACION_PENDIENTE });
+    expect(esConfirmacionPendiente(error)).toBe(true);
+    expect(mensajeErrorAuth(error)).toMatch(/Te enviamos un correo/);
+    expect(esConfirmacionPendiente({ code: 'email_not_confirmed' })).toBe(false);
+    expect(esConfirmacionPendiente(null)).toBe(false);
   });
 });

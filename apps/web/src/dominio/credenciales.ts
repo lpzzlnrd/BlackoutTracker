@@ -35,6 +35,17 @@ interface ErrorAuthLike {
 const texto = (valor: unknown): string => (typeof valor === 'string' ? valor : '');
 
 /**
+ * La cuenta se creó pero Supabase no dio sesión: pide confirmar el correo ("Confirm email" activo).
+ * No es un fallo de Supabase, así que lo marca el adaptador con este código.
+ */
+export const CONFIRMACION_PENDIENTE = 'confirmacion_pendiente';
+
+export const esConfirmacionPendiente = (error: unknown): boolean =>
+  typeof error === 'object' &&
+  error !== null &&
+  (error as ErrorAuthLike).code === CONFIRMACION_PENDIENTE;
+
+/**
  * Mensaje en español para un fallo de Supabase Auth. Nunca dice cuál de los dos campos falló al
  * entrar (REG-07) y avisa de una cuenta repetida sin crear otra (REG-04).
  */
@@ -71,6 +82,9 @@ export function mensajeErrorAuth(error: unknown): string {
   }
   if (codigo.startsWith('over_') || estado === 429) {
     return 'Demasiados intentos seguidos. Espera un momento e inténtalo otra vez.';
+  }
+  if (codigo === CONFIRMACION_PENDIENTE) {
+    return 'Te enviamos un correo para confirmar tu cuenta. Ábrelo y después entra con tu contraseña.';
   }
   if (codigo === 'email_not_confirmed') {
     return 'Tu correo todavía no está confirmado.';
