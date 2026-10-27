@@ -39,7 +39,7 @@ jobs:
       DATABASE_URL_TEST: postgres://postgres:postgres@localhost:5433/blackout_test
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # La versión de pnpm sale de `packageManager` en package.json.
       - uses: pnpm/action-setup@v4
@@ -73,7 +73,7 @@ jobs:
     timeout-minutes: 5
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
