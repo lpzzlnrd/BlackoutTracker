@@ -181,21 +181,35 @@ export function Icono({
   );
 }
 
-/** La marca: un pin con un rayo recortado, en el acento y con el rayo del color de la superficie. */
-export function Marca({ tamano = 24 }: { tamano?: number }) {
+/**
+ * La marca (D-038): un rayo en un bloque redondeado, en el acento. Sobre la barra de tinta se
+ * invierte: bloque del color del texto de la barra y rayo del color de la barra.
+ */
+export function Marca({
+  tamano = 24,
+  sobreBarra = false,
+}: {
+  tamano?: number;
+  sobreBarra?: boolean;
+}) {
   return (
     <svg
       width={tamano}
       height={tamano}
-      viewBox="0 0 24 24"
+      viewBox="0 0 28 28"
       aria-hidden="true"
       style={{ flex: 'none' }}
     >
-      <path
-        d="M12 2.2c-3.9 0-7 3-7 6.9 0 5.2 7 12.7 7 12.7s7-7.5 7-12.7c0-3.9-3.1-6.9-7-6.9z"
-        fill="var(--acento)"
+      <rect
+        width="28"
+        height="28"
+        rx="8"
+        fill={sobreBarra ? 'var(--barra-texto)' : 'var(--acento)'}
       />
-      <path d="M12.9 5.6 8.9 10.6h2.7l-.6 3.8 4.1-5.1h-2.7z" fill="var(--superficie)" />
+      <path
+        d="M15.6 4.5 8 16h5.2l-1.4 7.5L20 12h-5.3z"
+        fill={sobreBarra ? 'var(--barra)' : 'var(--sobre-acento)'}
+      />
     </svg>
   );
 }

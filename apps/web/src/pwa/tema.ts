@@ -16,7 +16,10 @@ export function leerTema(): Tema {
   return 'sistema';
 }
 
-/** Aplica el tema a `<html>` y al `theme-color` de la barra del navegador, y lo recuerda. */
+/**
+ * Aplica el tema a `<html>` y al `theme-color` de la barra del navegador, y lo recuerda. La barra
+ * del navegador toma el color de la barra superior de la app (D-038), que queda justo debajo.
+ */
 export function aplicarTema(tema: Tema): void {
   try {
     if (tema === 'sistema') localStorage.removeItem(CLAVE);
@@ -26,12 +29,12 @@ export function aplicarTema(tema: Tema): void {
   }
   const oscuro = tema === 'sistema' ? consultaOscuro().matches : tema === 'oscuro';
   document.documentElement.classList.toggle('dark', oscuro);
-  const fondo = getComputedStyle(document.documentElement).getPropertyValue('--fondo').trim();
+  const barra = getComputedStyle(document.documentElement).getPropertyValue('--barra').trim();
   for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) {
     if (tema === 'sistema') {
-      meta.content = meta.media.includes('dark') ? '#0b1220' : '#f8fafc';
-    } else if (fondo) {
-      meta.content = fondo;
+      meta.content = meta.media.includes('dark') ? '#111a2c' : '#0b1220';
+    } else if (barra) {
+      meta.content = barra;
     }
   }
 }

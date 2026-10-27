@@ -14,9 +14,9 @@ export const alturaAsomada = (altoMapa: number): number =>
 
 const ALTURA: Record<Exclude<PosicionHoja, 'asomada'>, string> = {
   media: '55%',
-  // Deja a la vista la barra, el selector y la leyenda (se puede cambiar de servicio con la hoja
-  // abierta) y, entre ellos y la hoja, la atribución.
-  completa: 'calc(100% - 172px)',
+  // Deja a la vista el selector y la leyenda (se puede cambiar de servicio con la hoja abierta) y,
+  // entre ellos y la hoja, la atribución. La barra de la marca queda fuera del mapa (D-038).
+  completa: 'calc(100% - 120px)',
 };
 
 /** Un toque recorre las tres posiciones; un arrastre de más de 30 px sube o baja una. */
