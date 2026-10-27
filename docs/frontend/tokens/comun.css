@@ -45,7 +45,9 @@
 
 :root.dark {
   --estado-con-servicio-relleno: #5b9bd5;
-  --estado-con-servicio-opacidad: 0.55;
+  /* Tenue: lo normal no compite con los cortes (D-035). En claro no baja de 0,6: se confundiría
+     con "sin datos" (verificar-tokens, ΔE < 15). */
+  --estado-con-servicio-opacidad: 0.25;
   --estado-con-servicio-trazo: #9cc7f0;
   --estado-con-servicio-chip: #13293f;
   --estado-con-servicio-tinta: #a8cef2;

@@ -13,6 +13,10 @@ dev-dist/
 .env.*
 !.env.example
 
+# Informes y resultados de las pruebas E2E (e2e/)
+e2e/informe/
+e2e/resultados/
+
 # Registros
 *.log
 

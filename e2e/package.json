@@ -1,0 +1,18 @@
+{
+  "name": "blackout-e2e",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Pruebas de punta a punta de la PWA con Playwright. Corren en Docker: pnpm e2e (ver docs/despliegue.md §7).",
+  "license": "MIT",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
+    "@playwright/test": "1.56.1"
+  },
+  "overrides": {
+    "playwright-core": "1.56.1"
+  }
+}

@@ -1,3 +1,27 @@
 packages:
   - apps/*
   - packages/*
+
+# Versiones que comparten todos los paquetes (D-016). Un paquete las usa con "typescript": "catalog:".
+# La 7.x (la que instala npm por defecto) todavía no la soportan typescript-eslint ni ts-jest.
+catalog:
+  typescript: ~5.9.3
+
+# pnpm 10 no ejecuta los scripts de instalación de las dependencias si no se autorizan. El de esbuild
+# solo cambia su shim de JS por el binario nativo (arranque más rápido): tsup y Vite funcionan igual
+# sin él, así que se ignora de forma explícita y no corre código de terceros en la instalación.
+#
+# Lo mismo con @parcel/watcher y unrs-resolver (binarios nativos opcionales: sus paquetes de
+# plataforma ya los traen compilados) y con @scarf/scarf (solo telemetría de instalación).
+ignoredBuiltDependencies:
+  - '@parcel/watcher'
+  - '@scarf/scarf'
+  - esbuild
+  - unrs-resolver
+
+# Dependencias transitivas de @nestjs/platform-express con avisos altos de DoS (body-parser
+# GHSA-27r3-jxmh-p828, multer GHSA-q7qp-rjg7-q26m). Se suben a la versión parcheada; se pueden
+# quitar cuando platform-express las traiga por su cuenta.
+overrides:
+  body-parser: ^2.4.0
+  multer: ^2.5.0

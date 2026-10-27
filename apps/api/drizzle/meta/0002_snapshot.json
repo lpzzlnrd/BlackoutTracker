@@ -1,0 +1,515 @@
+{
+  "id": "4d75588e-830d-46ed-94a7-b166ed2a3ee3",
+  "prevId": "5efecccc-ead4-4584-9c86-6f4db1bd8595",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.estado_sector": {
+      "name": "estado_sector",
+      "schema": "",
+      "columns": {
+        "sector_id": {
+          "name": "sector_id",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tipo_servicio": {
+          "name": "tipo_servicio",
+          "type": "tipo_servicio",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "estado": {
+          "name": "estado",
+          "type": "estado_servicio",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'con_servicio'"
+        },
+        "reportes_sin_confirmar": {
+          "name": "reportes_sin_confirmar",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "evento_id": {
+          "name": "evento_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "desde": {
+          "name": "desde",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "actualizado_en": {
+          "name": "actualizado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "estado_sector_sector_id_sectores_id_fk": {
+          "name": "estado_sector_sector_id_sectores_id_fk",
+          "tableFrom": "estado_sector",
+          "columnsFrom": [
+            "sector_id"
+          ],
+          "tableTo": "sectores",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "estado_sector_evento_id_eventos_sector_id_fk": {
+          "name": "estado_sector_evento_id_eventos_sector_id_fk",
+          "tableFrom": "estado_sector",
+          "columnsFrom": [
+            "evento_id"
+          ],
+          "tableTo": "eventos_sector",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "estado_sector_sector_id_tipo_servicio_pk": {
+          "name": "estado_sector_sector_id_tipo_servicio_pk",
+          "columns": [
+            "sector_id",
+            "tipo_servicio"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.eventos_sector": {
+      "name": "eventos_sector",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "sector_id": {
+          "name": "sector_id",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tipo_servicio": {
+          "name": "tipo_servicio",
+          "type": "tipo_servicio",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "inicio_en": {
+          "name": "inicio_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fin_en": {
+          "name": "fin_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "confirmado_en": {
+          "name": "confirmado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "restablecido_en": {
+          "name": "restablecido_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "origen": {
+          "name": "origen",
+          "type": "origen_evento",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'consenso'"
+        }
+      },
+      "indexes": {
+        "eventos_abierto_unico": {
+          "name": "eventos_abierto_unico",
+          "columns": [
+            {
+              "expression": "sector_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "tipo_servicio",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "with": {},
+          "method": "btree",
+          "where": "\"eventos_sector\".\"fin_en\" IS NULL",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "eventos_sector_sector_id_sectores_id_fk": {
+          "name": "eventos_sector_sector_id_sectores_id_fk",
+          "tableFrom": "eventos_sector",
+          "columnsFrom": [
+            "sector_id"
+          ],
+          "tableTo": "sectores",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "eventos_fin_despues_de_inicio": {
+          "name": "eventos_fin_despues_de_inicio",
+          "value": "\"eventos_sector\".\"fin_en\" IS NULL OR \"eventos_sector\".\"fin_en\" >= \"eventos_sector\".\"inicio_en\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.reportes": {
+      "name": "reportes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "residente_id": {
+          "name": "residente_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sector_id": {
+          "name": "sector_id",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tipo_servicio": {
+          "name": "tipo_servicio",
+          "type": "tipo_servicio",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "inicio_en": {
+          "name": "inicio_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fin_en": {
+          "name": "fin_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "recibido_en": {
+          "name": "recibido_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "cerrado_recibido_en": {
+          "name": "cerrado_recibido_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "vencido": {
+          "name": "vencido",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {
+        "reportes_abierto_unico": {
+          "name": "reportes_abierto_unico",
+          "columns": [
+            {
+              "expression": "residente_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "tipo_servicio",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "with": {},
+          "method": "btree",
+          "where": "\"reportes\".\"fin_en\" IS NULL AND NOT \"reportes\".\"vencido\"",
+          "concurrently": false
+        },
+        "reportes_sector_servicio_inicio": {
+          "name": "reportes_sector_servicio_inicio",
+          "columns": [
+            {
+              "expression": "sector_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "tipo_servicio",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "inicio_en",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "reportes_residente_id_residentes_id_fk": {
+          "name": "reportes_residente_id_residentes_id_fk",
+          "tableFrom": "reportes",
+          "columnsFrom": [
+            "residente_id"
+          ],
+          "tableTo": "residentes",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "reportes_sector_id_sectores_id_fk": {
+          "name": "reportes_sector_id_sectores_id_fk",
+          "tableFrom": "reportes",
+          "columnsFrom": [
+            "sector_id"
+          ],
+          "tableTo": "sectores",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "reportes_fin_despues_de_inicio": {
+          "name": "reportes_fin_despues_de_inicio",
+          "value": "\"reportes\".\"fin_en\" IS NULL OR \"reportes\".\"fin_en\" >= \"reportes\".\"inicio_en\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.residentes": {
+      "name": "residentes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "sector_id": {
+          "name": "sector_id",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ubicacion": {
+          "name": "ubicacion",
+          "type": "geometry(Point, 4326)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "creado_en": {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "residentes_sector_id_sectores_id_fk": {
+          "name": "residentes_sector_id_sectores_id_fk",
+          "tableFrom": "residentes",
+          "columnsFrom": [
+            "sector_id"
+          ],
+          "tableTo": "sectores",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.sectores": {
+      "name": "sectores",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "smallint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "name": "sectores_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "32767",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public",
+            "type": "byDefault"
+          }
+        },
+        "nombre": {
+          "name": "nombre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "geom": {
+          "name": "geom",
+          "type": "geometry(MultiPolygon, 4326)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "sectores_geom_gist": {
+          "name": "sectores_geom_gist",
+          "columns": [
+            {
+              "expression": "geom",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "gist",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "sectores_nombre_unique": {
+          "name": "sectores_nombre_unique",
+          "columns": [
+            "nombre"
+          ],
+          "nullsNotDistinct": false
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.estado_servicio": {
+      "name": "estado_servicio",
+      "schema": "public",
+      "values": [
+        "con_servicio",
+        "sin_servicio"
+      ]
+    },
+    "public.origen_evento": {
+      "name": "origen_evento",
+      "schema": "public",
+      "values": [
+        "consenso",
+        "campo"
+      ]
+    },
+    "public.tipo_servicio": {
+      "name": "tipo_servicio",
+      "schema": "public",
+      "values": [
+        "agua",
+        "electricidad"
+      ]
+    }
+  },
+  "schemas": {},
+  "views": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

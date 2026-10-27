@@ -1,0 +1,877 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/salud": {
+      "get": {
+        "operationId": "SaludController_obtener",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Estado de la API y de la base (sirve también de keep-alive)",
+        "tags": [
+          "salud"
+        ]
+      }
+    },
+    "/api/registro/validar-pin": {
+      "post": {
+        "operationId": "ResidentesController_validarPin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SectorAsignadoRespuesta"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "PIN_FUERA_DE_GUAPARO"
+          }
+        },
+        "summary": "Valida que el pin esté dentro de Guaparo y dice en qué sector cae",
+        "tags": [
+          "registro"
+        ]
+      }
+    },
+    "/api/residentes/me": {
+      "post": {
+        "operationId": "ResidentesController_registrar",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SectorAsignadoRespuesta"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "RESIDENTE_YA_REGISTRADO"
+          },
+          "422": {
+            "description": "PIN_FUERA_DE_GUAPARO"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crea el perfil del residente con su pin (una sola vez)",
+        "tags": [
+          "registro"
+        ]
+      },
+      "get": {
+        "operationId": "ResidentesController_yo",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SectorAsignadoRespuesta"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "REGISTRO_INCOMPLETO"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Sector del residente. Nunca devuelve coordenadas (NF-06)",
+        "tags": [
+          "registro"
+        ]
+      }
+    },
+    "/api/reportes/mios": {
+      "get": {
+        "description": "Solo los del residente autenticado. Con `abiertos=true`, los que siguen abiertos.",
+        "operationId": "ReportesController_mios",
+        "parameters": [
+          {
+            "name": "abiertos",
+            "required": false,
+            "in": "query",
+            "description": "Solo los reportes abiertos (sin cierre y no vencidos). Por defecto, todos.",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReporteRespuesta"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "DATOS_INVALIDOS (cuerpo o id mal formados)"
+          },
+          "401": {
+            "description": "NO_AUTENTICADO (sin token, vencido o firma inválida)"
+          },
+          "429": {
+            "description": "DEMASIADAS_SOLICITUDES"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mis reportes (para recuperar el estado en otro dispositivo)",
+        "tags": [
+          "reportes"
+        ]
+      }
+    },
+    "/api/reportes/{id}": {
+      "put": {
+        "description": "El `id` es un UUID generado por el cliente. Reintentar el mismo PUT devuelve el mismo reporte (200). Se guarda la hora de `ocurridoEn`, no la del envío.",
+        "operationId": "ReportesController_iniciar",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IniciarReporteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReporteRespuesta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "DATOS_INVALIDOS (cuerpo o id mal formados)"
+          },
+          "401": {
+            "description": "NO_AUTENTICADO (sin token, vencido o firma inválida)"
+          },
+          "403": {
+            "description": "REGISTRO_INCOMPLETO"
+          },
+          "409": {
+            "description": "REPORTE_ABIERTO_DUPLICADO (REP-05) o REPORTE_CONFLICTO (mismo id, otro contenido)"
+          },
+          "422": {
+            "description": "HORA_INVALIDA (futuro o demasiado antigua)"
+          },
+          "429": {
+            "description": "DEMASIADAS_SOLICITUDES"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Inicio de un corte (idempotente)",
+        "tags": [
+          "reportes"
+        ]
+      }
+    },
+    "/api/reportes/{id}/cierre": {
+      "patch": {
+        "description": "Calcula y devuelve la duración. Un id inexistente o ajeno es 404 (un cierre sin inicio se bloquea); el cliente lo reintenta porque el inicio puede estar en camino.",
+        "operationId": "ReportesController_cerrar",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CerrarReporteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReporteRespuesta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "DATOS_INVALIDOS (cuerpo o id mal formados)"
+          },
+          "401": {
+            "description": "NO_AUTENTICADO (sin token, vencido o firma inválida)"
+          },
+          "404": {
+            "description": "REPORTE_NO_ENCONTRADO"
+          },
+          "409": {
+            "description": "REPORTE_CONFLICTO (ya cerrado con otra hora)"
+          },
+          "422": {
+            "description": "HORA_INVALIDA (fin anterior al inicio, REP-07)"
+          },
+          "429": {
+            "description": "DEMASIADAS_SOLICITUDES"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cierre de un corte: volvió el servicio (idempotente)",
+        "tags": [
+          "reportes"
+        ]
+      }
+    },
+    "/api/sectores/{id}/historial": {
+      "get": {
+        "description": "Solo eventos cerrados, el de fin más reciente primero, con su duración. Paginado por cursor: pasa `siguienteCursor` como `cursor` para la página siguiente (nulo en la última).",
+        "operationId": "HistorialController_listar",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Id del sector.",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "tipoServicio",
+            "required": false,
+            "in": "query",
+            "description": "Sin filtro, ambos servicios.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "agua",
+                "electricidad"
+              ]
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "`siguienteCursor` de la página anterior.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limite",
+            "required": false,
+            "in": "query",
+            "description": "Eventos por página.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistorialRespuesta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "DATOS_INVALIDOS (parámetros o cursor)"
+          },
+          "404": {
+            "description": "SECTOR_NO_ENCONTRADO"
+          },
+          "429": {
+            "description": "DEMASIADAS_SOLICITUDES"
+          }
+        },
+        "summary": "Historial de cortes cerrados de un sector",
+        "tags": [
+          "sectores"
+        ]
+      }
+    },
+    "/api/estimaciones": {
+      "get": {
+        "description": "Mediana de la duración de los cortes cerrados del sector y servicio. Con menos de n_min cortes devuelve `suficiente: false` y solo el n (EST-04). La cifra siempre va con su n.",
+        "operationId": "EstimacionController_estimar",
+        "parameters": [
+          {
+            "name": "sectorId",
+            "required": true,
+            "in": "query",
+            "description": "Id del sector.",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "tipoServicio",
+            "required": true,
+            "in": "query",
+            "description": "Agua y luz nunca se mezclan (EST-05).",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "agua",
+                "electricidad"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EstimacionRespuesta"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "SECTOR_NO_ENCONTRADO"
+          },
+          "429": {
+            "description": "DEMASIADAS_SOLICITUDES"
+          }
+        },
+        "summary": "Estimación estadística de la duración de un corte",
+        "tags": [
+          "estimaciones"
+        ]
+      }
+    },
+    "/api/sectores": {
+      "get": {
+        "operationId": "SectoresController_listar",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SectoresGeoJsonRespuesta"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "DEMASIADAS_SOLICITUDES"
+          }
+        },
+        "summary": "Los sectores de Guaparo como GeoJSON (id, nombre y polígono)",
+        "tags": [
+          "sectores"
+        ]
+      }
+    },
+    "/api/sectores/{id}/resumen": {
+      "get": {
+        "description": "Un elemento por servicio (agua y luz nunca se mezclan). La estimación siempre lleva su n y, con menos de n_min cortes, no lleva cifra (EST-04). Recalcula el estado si una ventana de consenso venció desde la última escritura (CON-07).",
+        "operationId": "ResumenController_obtener",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Id del sector.",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumenSectorRespuesta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "DATOS_INVALIDOS (id)"
+          },
+          "404": {
+            "description": "SECTOR_NO_ENCONTRADO"
+          },
+          "429": {
+            "description": "DEMASIADAS_SOLICITUDES"
+          }
+        },
+        "summary": "Resumen de un sector: estado, estimación y últimos cortes de cada servicio",
+        "tags": [
+          "sectores"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "BlackoutTracker API",
+    "description": "Monitoreo colaborativo de cortes de agua y electricidad (piloto: Guaparo).\n\n## Contrato de sincronización (cola offline)\n\nQué hace el cliente con la respuesta de `PUT /reportes/:id` y `PATCH /reportes/:id/cierre`. Las dos operaciones son idempotentes, así que reintentar es seguro (OFF-05). Se guarda la hora del evento (`ocurridoEn`), no la del envío (OFF-03), y la cola envía en orden cronológico (OFF-04).\n\n| Respuesta | Qué hace el cliente |\n|---|---|\n| 2xx | Éxito: lo saca de la cola |\n| Sin respuesta (red caída o corte a mitad del envío), 5xx o 429 | Reintenta, con backoff |\n| 404 en un cierre (el inicio aún no llega) | Reintenta |\n| 400, 409 o 422 | Error permanente: lo saca de la cola, lo marca `error` y avisa al usuario |\n| 401 | Refresca la sesión y reintenta |\n\nTodo error lleva un campo `codigo` (enum `CodigoError` de `@blackout/shared`). La tabla está implementada en `accionDeRespuesta` (`@blackout/shared`).",
+    "version": "0.1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "PinDto": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number",
+            "example": 10.2075,
+            "description": "Latitud (−90 a 90)"
+          },
+          "lng": {
+            "type": "number",
+            "example": -68.003,
+            "description": "Longitud (−180 a 180)"
+          }
+        },
+        "required": [
+          "lat",
+          "lng"
+        ]
+      },
+      "SectorAsignadoRespuesta": {
+        "type": "object",
+        "properties": {
+          "sectorId": {
+            "type": "number"
+          },
+          "sectorNombre": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sectorId",
+          "sectorNombre"
+        ]
+      },
+      "ReporteRespuesta": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tipoServicio": {
+            "type": "string",
+            "enum": [
+              "agua",
+              "electricidad"
+            ]
+          },
+          "sectorId": {
+            "type": "number"
+          },
+          "inicioEn": {
+            "type": "string"
+          },
+          "finEn": {
+            "type": "string",
+            "nullable": true
+          },
+          "duracionMin": {
+            "type": "number",
+            "nullable": true
+          },
+          "recibidoEn": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tipoServicio",
+          "sectorId",
+          "inicioEn",
+          "finEn",
+          "duracionMin",
+          "recibidoEn"
+        ]
+      },
+      "IniciarReporteDto": {
+        "type": "object",
+        "properties": {
+          "tipoServicio": {
+            "type": "string",
+            "enum": [
+              "agua",
+              "electricidad"
+            ]
+          },
+          "ocurridoEn": {
+            "type": "string",
+            "example": "2026-10-07T10:30:00Z",
+            "description": "Hora real del corte (no la del envío). ISO 8601 con zona horaria."
+          }
+        },
+        "required": [
+          "tipoServicio",
+          "ocurridoEn"
+        ]
+      },
+      "CerrarReporteDto": {
+        "type": "object",
+        "properties": {
+          "ocurridoEn": {
+            "type": "string",
+            "example": "2026-10-07T12:30:00Z",
+            "description": "Hora real en que volvió el servicio (no la del envío). ISO 8601 con zona horaria."
+          }
+        },
+        "required": [
+          "ocurridoEn"
+        ]
+      },
+      "EventoSectorRespuesta": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "sectorId": {
+            "type": "number"
+          },
+          "tipoServicio": {
+            "type": "string",
+            "enum": [
+              "agua",
+              "electricidad"
+            ]
+          },
+          "inicioEn": {
+            "type": "string"
+          },
+          "finEn": {
+            "type": "string",
+            "nullable": true
+          },
+          "duracionMin": {
+            "type": "number",
+            "nullable": true
+          },
+          "confirmadoEn": {
+            "type": "string"
+          },
+          "origen": {
+            "type": "string",
+            "enum": [
+              "consenso",
+              "campo"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "sectorId",
+          "tipoServicio",
+          "inicioEn",
+          "finEn",
+          "duracionMin",
+          "confirmadoEn",
+          "origen"
+        ]
+      },
+      "HistorialRespuesta": {
+        "type": "object",
+        "properties": {
+          "eventos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventoSectorRespuesta"
+            }
+          },
+          "siguienteCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "eventos",
+          "siguienteCursor"
+        ]
+      },
+      "EstimacionRespuesta": {
+        "type": "object",
+        "properties": {
+          "suficiente": {
+            "type": "boolean",
+            "description": "false con menos de n_min cortes cerrados: no hay cifra (EST-04)."
+          },
+          "n": {
+            "type": "number",
+            "example": 12,
+            "description": "Cortes cerrados que entran en el cálculo."
+          },
+          "medianaMin": {
+            "type": "number",
+            "example": 240,
+            "description": "Mediana de la duración, en minutos."
+          },
+          "q1Min": {
+            "type": "number",
+            "description": "Primer cuartil, en minutos."
+          },
+          "q3Min": {
+            "type": "number",
+            "description": "Tercer cuartil, en minutos."
+          }
+        },
+        "required": [
+          "suficiente",
+          "n"
+        ]
+      },
+      "SectorPropiedades": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "nombre": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "nombre"
+        ]
+      },
+      "SectorGeometria": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "MultiPolygon"
+          },
+          "coordinates": {
+            "description": "Coordenadas [lng, lat] por polígono, anillo y vértice",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "coordinates"
+        ]
+      },
+      "SectorFeature": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "Feature"
+          },
+          "id": {
+            "type": "number"
+          },
+          "properties": {
+            "$ref": "#/components/schemas/SectorPropiedades"
+          },
+          "geometry": {
+            "$ref": "#/components/schemas/SectorGeometria"
+          }
+        },
+        "required": [
+          "type",
+          "id",
+          "properties",
+          "geometry"
+        ]
+      },
+      "SectoresGeoJsonRespuesta": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "FeatureCollection"
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SectorFeature"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "features"
+        ]
+      },
+      "ResumenServicioRespuesta": {
+        "type": "object",
+        "properties": {
+          "tipoServicio": {
+            "type": "string",
+            "enum": [
+              "agua",
+              "electricidad"
+            ]
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "con_servicio",
+              "sin_servicio"
+            ]
+          },
+          "reportesSinConfirmar": {
+            "type": "number",
+            "description": "Reportes de inicio que todavía no alcanzan el consenso (CON-01)."
+          },
+          "desde": {
+            "type": "string",
+            "nullable": true,
+            "description": "Inicio del corte en curso."
+          },
+          "estimacion": {
+            "$ref": "#/components/schemas/EstimacionRespuesta"
+          },
+          "ultimosEventos": {
+            "description": "Los 5 más recientes, el más nuevo primero; incluye el corte en curso.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventoSectorRespuesta"
+            }
+          }
+        },
+        "required": [
+          "tipoServicio",
+          "estado",
+          "reportesSinConfirmar",
+          "desde",
+          "estimacion",
+          "ultimosEventos"
+        ]
+      },
+      "ResumenSectorRespuesta": {
+        "type": "object",
+        "properties": {
+          "sectorId": {
+            "type": "number"
+          },
+          "sectorNombre": {
+            "type": "string"
+          },
+          "servicios": {
+            "description": "Un elemento por servicio.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResumenServicioRespuesta"
+            }
+          }
+        },
+        "required": [
+          "sectorId",
+          "sectorNombre",
+          "servicios"
+        ]
+      }
+    }
+  }
+}

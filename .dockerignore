@@ -1,0 +1,22 @@
+# Contexto de build de `apps/api/Dockerfile` y `apps/web/Dockerfile` (la raíz del repo).
+
+# Dependencias y salidas: se instalan y compilan dentro de la imagen
+**/node_modules
+**/dist
+**/dev-dist
+**/coverage
+**/*.tsbuildinfo
+.pnpm-store
+
+# Git, editores y worktrees hermanos
+.git
+.github
+.idea
+.vscode
+**/*.log
+
+# Variables de entorno: ninguna entra a una imagen (D-030). La API recibe el .env de la raíz con
+# `env_file` al arrancar, y la web, sus VITE_* como build args (docker-compose.yml).
+**/.env
+**/.env.*
+!**/.env.example

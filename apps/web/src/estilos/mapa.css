@@ -1,0 +1,89 @@
+/*
+  Mapa (CANON §4). Los polígonos se estilan con clases, no con colores en línea, para que el modo
+  oscuro cambie solo con la clase `dark`. Las superposiciones (selector, leyenda, atribución,
+  hoja) son hermanas del contenedor de Leaflet y van por encima de sus capas (z-index ≥ 1000).
+*/
+
+.leaflet-container {
+  background: var(--mapa-base); /* sin destello blanco mientras cargan las teselas */
+  font: inherit;
+}
+
+.teselas {
+  filter: grayscale(0.85) contrast(0.92) brightness(1.06);
+}
+
+.dark .teselas {
+  filter: invert(1) hue-rotate(180deg) grayscale(0.6) brightness(0.8) contrast(0.9);
+}
+
+/* ─── Estados de los sectores (§4.2) ─────────────────────────────────────────────────────── */
+
+.sector {
+  stroke-width: 2px;
+  stroke-linejoin: round;
+}
+
+.sector--con-servicio {
+  fill: var(--estado-con-servicio-relleno);
+  fill-opacity: var(--estado-con-servicio-opacidad);
+  stroke: var(--estado-con-servicio-trazo);
+}
+
+.sector--sin-servicio {
+  fill: var(--estado-sin-servicio-relleno);
+  fill-opacity: var(--estado-sin-servicio-opacidad);
+  stroke: var(--estado-sin-servicio-trazo);
+}
+
+.sector--sin-confirmar {
+  fill: url(#trama);
+  fill-opacity: 1;
+  stroke: var(--estado-sin-confirmar-trazo);
+}
+
+.sector--sin-datos {
+  fill: var(--estado-sin-datos-relleno);
+  fill-opacity: var(--estado-sin-datos-opacidad);
+  stroke: var(--estado-sin-datos-trazo);
+  stroke-dasharray: 4.5 3.8;
+}
+
+/* Sector neutro (registro: dónde cae el pin, sin estado). */
+.sector--neutro {
+  fill: var(--acento);
+  fill-opacity: 0.06;
+  stroke: var(--borde-control);
+  stroke-width: 1.5px;
+}
+
+/* Fuera de Guaparo, las teselas se apagan hacia la base del mapa: así los sectores resaltan solos
+   y se ve dónde termina la urbanización (D-035). */
+.mascara {
+  fill: var(--mapa-base);
+  fill-opacity: 0.6;
+  stroke: none;
+}
+
+/* Contorno grueso de "tu sector" y del sector seleccionado (§4.3). */
+.sector-contorno {
+  fill: none;
+  stroke: var(--texto);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+.trama-fondo {
+  fill: var(--estado-sin-confirmar-relleno);
+  fill-opacity: var(--estado-sin-confirmar-opacidad);
+}
+
+.trama-linea {
+  stroke: var(--estado-sin-confirmar-trazo);
+}
+
+/* Los divIcon de Leaflet traen fondo y borde blancos por defecto. */
+.leaflet-div-icon.icono-mapa {
+  background: none;
+  border: none;
+}

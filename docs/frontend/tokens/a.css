@@ -85,4 +85,8 @@
   /* Extrapolado: sombras casi invisibles sobre fondos oscuros */
   --sombra-flotante: 0 1px 3px rgba(0, 0, 0, 0.5);
   --sombra-hoja: 0 -6px 24px rgba(0, 0, 0, 0.5);
+
+  /* El mismo de comun.css: sin repetirlo aquí, el claro de esta propuesta (mismo peso, cargado
+     después) ganaba también en oscuro. */
+  --mapa-base: #1a1f29;
 }

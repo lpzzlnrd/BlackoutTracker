@@ -14,16 +14,31 @@
     "lint": "eslint . --max-warnings 0 && prettier --check .",
     "format": "prettier --write .",
     "typecheck": "pnpm -r --if-present run typecheck",
-    "test": "pnpm -r --if-present run test",
-    "test:int": "pnpm -r --if-present run test:int"
+    "test": "pnpm -r --if-present run test && node --test \"scripts/*.test.mjs\"",
+    "test:int": "pnpm -r --if-present run test:int",
+    "db:up": "docker compose up -d --wait db",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d --wait db",
+    "app:up": "docker compose --profile app up -d --build --wait",
+    "app:logs": "docker compose --profile app logs -f api web",
+    "e2e": "docker compose --profile e2e run --rm --build e2e",
+    "db:generate": "pnpm --filter @blackout/api db:generate",
+    "db:migrate": "pnpm --filter @blackout/api db:migrate",
+    "db:studio": "pnpm --filter @blackout/api db:studio",
+    "db:seed": "pnpm --filter @blackout/api db:seed",
+    "db:seed:campo": "pnpm --filter @blackout/api db:seed:campo",
+    "db:seed:demo": "pnpm --filter @blackout/api db:seed:demo",
+    "docs:openapi": "pnpm --filter @blackout/api openapi:export",
+    "docs:trazabilidad": "node scripts/trazabilidad.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.13.0",
     "prettier": "^3.9.9",
-    "typescript": "~5.9.3",
+    "typescript": "catalog:",
     "typescript-eslint": "^8.71.1"
   }
 }
