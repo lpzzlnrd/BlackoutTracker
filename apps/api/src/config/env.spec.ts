@@ -31,6 +31,14 @@ describe('validarEnv', () => {
     expect(() => validarEnv({ SUPABASE_URL: BASE.SUPABASE_URL })).toThrow(/DATABASE_URL/);
   });
 
+  it('DATABASE_URL tiene que ser una cadena de Postgres', () => {
+    expect(() => validarEnv({ ...BASE, DATABASE_URL: '<la de tu .env' })).toThrow(/DATABASE_URL/);
+    expect(() => validarEnv({ ...BASE, DATABASE_URL: 'mysql://u:p@h/b' })).toThrow(/DATABASE_URL/);
+    const pooler =
+      'postgresql://postgres.ref:clave@aws-0-us-east-1.pooler.supabase.com:6543/postgres';
+    expect(validarEnv({ ...BASE, DATABASE_URL: pooler }).DATABASE_URL).toBe(pooler);
+  });
+
   it('CORS_ORIGINS no admite el comodín', () => {
     expect(() => validarEnv({ ...BASE, CORS_ORIGINS: '*' })).toThrow(/CORS_ORIGINS/);
     expect(() => validarEnv({ ...BASE, CORS_ORIGINS: 'https://a.app,*' })).toThrow(/CORS_ORIGINS/);

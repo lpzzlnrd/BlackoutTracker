@@ -10,7 +10,7 @@
 3. **Render**: crear el servicio de la API y anotar su URL (§3).
 4. **Vercel**: crear la web con la URL de la API y anotar la suya (§4).
 5. **Cerrar el círculo**: poner la URL de Vercel en `CORS_ORIGINS` (Render) y en la *Site URL* (Supabase).
-6. **GitHub**: añadir el *deploy hook* y el *keep-alive* (§5).
+6. **GitHub**: environments `prod-api` y `prod-web` para el CD y variables del repo para el *keep-alive* (§5).
 7. **Verificar** (§6). Para probar todo en local antes de desplegar: Docker (§7).
 
 ---
@@ -45,11 +45,12 @@ La API **solo acepta tokens ES256/RS256** (D-021). Con la clave HS256 heredada, 
 |---|---|---|---|
 | **Project URL** `https://<ref>.supabase.co` | *Project Settings → Data API* | No | API y web |
 | **Publishable key** (`sb_publishable_…`, o la `anon` heredada) | *Project Settings → API Keys* | No (es pública) | Solo la web |
-| **Cadena de conexión de Postgres** | *Connect →* **Session pooler** (puerto **5432**) | **Sí** | Solo la API |
+| **Cadena de conexión de Postgres** | *Connect →* **Transaction pooler** (puerto **6543**) | **Sí** | Solo la API |
 | `service_role` / *secret key* | — | **Sí** | **En ningún lado.** No se usa. |
 
-- **Formato de la cadena:** `postgresql://postgres.<ref>:<clave>@aws-0-us-east-1.pooler.supabase.com:5432/postgres` (el host exacto cópialo del panel).
-- **Por qué el *Session pooler* y no la conexión directa:** la directa es solo IPv6, y Render no sale por IPv6.
+- **Formato de la cadena:** `postgresql://postgres.<ref>:<clave>@aws-0-us-east-1.pooler.supabase.com:6543/postgres` (el host exacto cópialo del panel).
+- **Por qué el pooler y no la conexión directa:** la directa es solo IPv6, y Render no sale por IPv6.
+- **Por qué el 6543 (transaction) y no el 5432 (session):** en el proyecto de staging el 5432 no contestaba el saludo de Postgres (27-oct). La API detecta el 6543 y desactiva las sentencias preparadas, que ese modo no admite (`db.module.ts`). Si en otro proyecto el 5432 sí responde, también sirve.
 - Si la clave tiene símbolos (`@`, `#`, `/`, `%`…), escríbelos codificados para URL: `@` → `%40`, `#` → `%23`.
 
 ### 1.6 Después de migrar (§2), comprobar
@@ -71,7 +72,7 @@ Hay **un solo `.env`, en la raíz del repo** (D-030). Plantilla: [`.env.example`
 
 Tres advertencias:
 - **`DATABASE_URL` es la base de Supabase**, la misma que lee la web por Realtime. Si apuntas la API a la base local, el mapa no se entera de ningún cambio.
-- **Usa el *Session pooler* (puerto 5432)**, no la conexión directa (§1.5).
+- **Usa el *Transaction pooler* (puerto 6543)**, no la conexión directa (§1.5).
 - **`DATABASE_URL_TEST` siempre apunta a la base local** de Docker (`pnpm db:up`), nunca a Supabase: los tests la vacían.
 
 ### Migrar y sembrar Supabase (una vez, desde tu máquina)
@@ -92,16 +93,18 @@ pnpm db:seed:demo      # sectores + historial de demo + corte en vivo (docs/demo
 
 | Campo | Valor |
 |---|---|
-| Branch | `staging` para probar hoy; `main` cuando se promueva |
+| Branch | `main` |
 | Region | **Virginia (US East)**, junto a Supabase |
 | Root Directory | *(vacío: la raíz del repo, porque es un monorepo)* |
 | Runtime | Node |
-| Build Command | `npm i -g pnpm@10.33.2 && pnpm install --frozen-lockfile && pnpm --filter @blackout/shared build && pnpm --filter @blackout/api build` |
+| Build Command | `npm i -g pnpm@10.33.2 && pnpm install --frozen-lockfile --filter @blackout/api... && pnpm --filter @blackout/shared build && pnpm --filter @blackout/api build` |
 | Start Command | `cd apps/api && node dist/main.js` |
-| Health Check Path | `/api/salud` |
+| Health Check Path | `/api/salud` (en *Advanced*) |
 | Instance Type | Free |
-| Auto-Deploy | **No** si usas el *deploy hook* de §5 (si no, despliega dos veces); **Yes** si no lo usas |
+| Auto-Deploy | **Off**: despliega el CI/CD tras los tests (§5). Con *On Commit* se desplegaría dos veces |
 
+- **El servicio actual** (creado el 27-oct): `blackouttracker`, `https://blackouttracker.onrender.com`, id `srv-dbgdjdd9fdbs73e0gb5g` (*Settings*, arriba; también sale en el log).
+- `--filter @blackout/api...` instala solo la API y sus dependencias del workspace (`shared`), sin las de la web.
 - Si `npm i -g` falla en el build, cambia cada `pnpm` del comando por `npx --yes pnpm@10.33.2`.
 - **No pongas `NODE_ENV=production`:** `pnpm install` omitiría las devDependencies y `nest build` fallaría.
 
@@ -110,7 +113,7 @@ pnpm db:seed:demo      # sectores + historial de demo + corte en vivo (docs/demo
 | Variable | Valor |
 |---|---|
 | `NODE_VERSION` | `22` |
-| `DATABASE_URL` | La del *Session pooler* (§1.5) |
+| `DATABASE_URL` | La del *Transaction pooler* (§1.5), la misma de tu `.env` |
 | `SUPABASE_URL` | `https://<ref>.supabase.co` |
 | `JWT_AUDIENCE` | `authenticated` |
 | `CORS_ORIGINS` | `https://<app>.vercel.app` (paso 5; separa con coma si son varios, nunca `*`) |
@@ -123,8 +126,9 @@ pnpm db:seed:demo      # sectores + historial de demo + corte en vivo (docs/demo
 | `REPORTE_VENCE_HORAS` | `48` |
 | `CRON_ACTIVO` | `true` |
 
-- `PORT` no se pone: lo asigna Render.
-- **Anota la URL** que te da Render: `https://<servicio>.onrender.com`.
+- `PORT` no se pone: lo asigna Render. `DATABASE_URL_TEST`, `DATABASE_PASSWORD` y las `VITE_*` tampoco.
+- *Add from .env* acepta varias líneas `CLAVE=valor` pegadas de una vez. Pega valores reales: en el primer despliegue entró un texto de ejemplo en `DATABASE_URL` y Nest no arrancó (ahora la validación lo dice por su nombre).
+- Si cambias una variable, *Save and deploy* reinicia el servicio con ella; no hace falta un commit.
 - El plan Free se duerme a los 15 min sin tráfico y tarda ~1 min en despertar; §5 lo mantiene despierto.
 
 ---
@@ -143,7 +147,9 @@ pnpm db:seed:demo      # sectores + historial de demo + corte en vivo (docs/demo
 | Node.js Version | 22.x (*Settings → General*) |
 | Production Branch | `main` (*Settings → Git*); cada rama tiene además su preview |
 
-- `apps/web/vercel.json`, con la regla que manda las rutas de la app a `index.html`, entra con el frontend (S0).
+- `apps/web/vercel.json` manda las rutas de la app a `index.html`.
+- **Apaga el despliegue automático de `main`:** *Settings → Git* (o *Build and Deployment*) *→ Ignored Build Step →* **Only build Preview** (o *Custom* con `[ "$VERCEL_GIT_COMMIT_REF" = "main" ] && exit 0 || exit 1`; salir con 0 salta el build). Producción la despliega el CI/CD tras los tests (§5) y las ramas siguen teniendo su preview automática. Se hace en el panel y no con `git.deploymentEnabled` en `vercel.json` para no tocar `apps/web`.
+- Al importar el proyecto Vercel hace un primer despliegue de producción; desde ahí, el de `main` sale por GitHub Actions.
 
 ### Variables (*Settings → Environment Variables*, marcar **Production** y **Preview**)
 
@@ -162,14 +168,36 @@ pnpm db:seed:demo      # sectores + historial de demo + corte en vivo (docs/demo
 
 ## 5. GitHub (CD y keep-alive)
 
-*Settings → Environments → New environment →* `produccion`:
+`ci.yml` (*CI/CD*, D-039): en cada push a `main` (o *Actions → CI/CD → Run workflow* sobre `main`), si `verificar` pasa:
 
-| Tipo | Nombre | Valor | Para qué |
-|---|---|---|---|
-| Secret | `RENDER_DEPLOY_HOOK_URL` | Render → servicio → *Settings → Deploy Hook* | `deploy-api.yml`: despliega tras un CI verde en `main` |
-| Variable | `API_URL` | `https://<servicio>.onrender.com` (**sin** `/api`) | `keepalive.yml`: llama a `/api/salud` cada 14 min (Render no se duerme y Supabase no se pausa) |
+1. **`desplegar-api`** (environment `prod-api`) pide a la API de Render el despliegue del commit exacto, consulta su estado cada 15 s hasta `live` (o falla con `build_failed`, `update_failed`…) y comprueba `/api/salud`.
+2. **`desplegar-web`** (environment `prod-web`), después de la API: `vercel pull` → `vercel build --prod` → `vercel deploy --prebuilt --prod`, y comprueba que la web responda.
 
-Sin estos valores, los dos workflows se saltan sin fallar.
+Cada job deja su despliegue en la portada del repo (*Deployments*) con el resultado real y la URL. Son dos environments y no uno porque GitHub marca como *inactive* el despliegue anterior del mismo environment: con uno solo, desplegar la web haría parecer caída la API.
+
+### Variables del repo (*Settings → Secrets and variables → Actions → Variables*)
+
+| Nombre | Valor | Para qué |
+|---|---|---|
+| `RENDER_SERVICE_ID` | `srv-dbgdjdd9fdbs73e0gb5g` | Activa `desplegar-api`. Sin ella, el job se salta |
+| `API_URL` | `https://blackouttracker.onrender.com` (**sin** `/api`) | La comprobación de salud, el enlace del despliegue y `keepalive.yml` (ping a `/api/salud` cada 14 min: Render no se duerme y Supabase no se pausa) |
+| `VERCEL_ORG_ID` | `orgId` de `.vercel/project.json` tras `vercel link` en `apps/web`, o *Team Settings → General → Team ID* | La CLI de Vercel |
+| `VERCEL_PROJECT_ID` | `projectId` del mismo archivo, o *Project Settings → General → Project ID* | Activa `desplegar-web`. Sin ella, el job se salta |
+| `WEB_URL` | `https://<app>.vercel.app` | El enlace del despliegue y la comprobación de la web |
+
+Son variables del repo y no de un environment porque el `if` de cada job se evalúa antes de entrar al environment, y el keep-alive no declara ninguno (si lo hiciera, registraría un "despliegue" cada 14 min). Ninguna es secreta.
+
+### Environments (*Settings → Environments → New environment*)
+
+| Environment | Secreto | De dónde sale |
+|---|---|---|
+| `prod-api` | `RENDER_API_KEY` | Render → *Account Settings → API Keys → Create API Key* |
+| `prod-web` | `VERCEL_TOKEN` | Vercel → *Account Settings → Tokens → Create* (alcance: tu cuenta o el equipo del proyecto) |
+
+En los dos, *Deployment branches and tags → Selected branches →* `main`: así ninguna otra rama puede usar las claves. La clave de Render da acceso a toda la cuenta; si se filtra, se revoca en el mismo panel.
+
+- Si existe la variable pero falta el secreto, el job falla con un mensaje que dice cuál falta.
+- El environment viejo `produccion` y el secreto `RENDER_DEPLOY_HOOK_URL` ya no se usan (`deploy-api.yml` se eliminó): se pueden borrar.
 
 ---
 
@@ -179,6 +207,7 @@ Sin estos valores, los dos workflows se saltan sin fallar.
 - [ ] `https://<ref>.supabase.co/auth/v1/settings` (con la cabecera `apikey: <publishable key>`) → `"mailer_autoconfirm": true`. Si sale `false`, falta desactivar *Confirm email* (§1.4): nadie podrá crear cuenta, porque el correo gratuito solo llega a los miembros del proyecto. En staging pasó el 27-oct.
 - [ ] `https://<servicio>.onrender.com/api/salud` → `{"estado":"ok", "baseDeDatos":"ok", …}`.
 - [ ] `https://<servicio>.onrender.com/api/docs` → abre Swagger.
+- [ ] Tras un push a `main`: *Actions → CI/CD* con `verificar`, `desplegar-api` y `desplegar-web` en verde, y en la portada del repo, *Deployments* con `prod-api` y `prod-web` activos.
 - [ ] En `https://<app>.vercel.app` se ven el mapa y los colores de los sectores sin iniciar sesión.
 - [ ] Crear una cuenta, poner el pin y reportar: llega a la API (Network → 200) y no hay errores de CORS en la consola.
 - [ ] Con dos navegadores, al completar el consenso con 3 cuentas, el otro cambia de color sin recargar (Realtime).

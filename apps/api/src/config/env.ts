@@ -27,8 +27,16 @@ const aEntero = () =>
 export class Env {
   @IsInt() @Min(1) @Max(65535) @aEntero() PORT: number = 3000;
 
-  /** Conexión a Postgres (pooler de Supabase en modo session, o el PostGIS local). */
-  @IsString() DATABASE_URL!: string;
+  /**
+   * Conexión a Postgres (pooler de Supabase en modo transaction, puerto 6543, o el PostGIS local).
+   * Se comprueba el esquema para que un valor mal pegado falle aquí con su nombre y no como un
+   * "Invalid URL" del driver (pasó en el primer despliegue a Render, T-053).
+   */
+  @Matches(/^postgres(ql)?:\/\/\S+$/, {
+    message: 'DATABASE_URL debe ser una cadena postgresql://usuario:clave@host:puerto/base',
+  })
+  @IsString()
+  DATABASE_URL!: string;
 
   /** Origen de Supabase: de aquí salen el JWKS y el issuer que verifica el guard JWT. */
   @IsUrl({ require_tld: false }) SUPABASE_URL!: string;

@@ -1,15 +1,22 @@
-name: CI
+name: CI/CD
 
 # Corre en cada PR y en cada push a main y a staging. El `build` va primero porque `@blackout/shared` se consume
 # desde `dist/` (D-017): sin compilarlo, ni el typecheck ni los tests de la API lo encuentran.
+#
+# CD (T-053, D-039): un push a main (o "Run workflow" sobre main) que pasa `verificar` despliega la
+# API en Render y después la web en Vercel. Cada job declara su environment (`prod-api`, `prod-web`),
+# así que GitHub registra el despliegue en *Deployments* con su resultado real y su URL. Si falta la
+# variable del repo de un servicio (RENDER_SERVICE_ID, VERCEL_PROJECT_ID), su job se salta sin fallar.
 on:
   pull_request:
   push:
     branches: [main, staging]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # En main no se cancela: cortar un despliegue a medias deja a GitHub sin saber cómo terminó.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: read
@@ -82,3 +89,130 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: pnpm audit (solo dependencias de producción, nivel alto)
         run: pnpm audit --prod --audit-level high
+
+  desplegar-api:
+    # Render con Auto-Deploy en Off: el despliegue lo pide este job, con el commit exacto que pasó
+    # `verificar`, y espera a que Render diga cómo terminó. Así GitHub muestra el resultado real.
+    needs: verificar
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.RENDER_SERVICE_ID != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment:
+      name: prod-api
+      url: ${{ vars.API_URL }}/api/docs
+    concurrency:
+      group: prod-api
+      cancel-in-progress: false
+    env:
+      RENDER: https://api.render.com/v1/services/${{ vars.RENDER_SERVICE_ID }}/deploys
+      RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+      API_URL: ${{ vars.API_URL }}
+    steps:
+      - name: Pedir el despliegue a Render
+        id: pedir
+        run: |
+          if [ -z "$RENDER_API_KEY" ]; then
+            echo "::error::Falta el secreto RENDER_API_KEY en el environment prod-api."; exit 1
+          fi
+          auth=(-H "Authorization: Bearer $RENDER_API_KEY" -H 'Accept: application/json')
+          respuesta=$(curl --fail-with-body --silent --show-error -X POST "$RENDER" "${auth[@]}" \
+            -H 'Content-Type: application/json' -d "{\"commitId\":\"$GITHUB_SHA\"}")
+          id=$(echo "$respuesta" | jq -r '.id // empty' 2>/dev/null || true)
+          # Si Render lo encola (202) puede no devolver el deploy: se busca por el commit.
+          if [ -z "$id" ]; then
+            id=$(curl --fail --silent --show-error "$RENDER?limit=10" "${auth[@]}" \
+              | jq -r --arg sha "$GITHUB_SHA" '[.[].deploy | select(.commit.id == $sha)][0].id // empty')
+          fi
+          if [ -z "$id" ]; then echo "::error::Render no devolvió el id del despliegue."; exit 1; fi
+          echo "Despliegue $id del commit $GITHUB_SHA"
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
+      - name: Esperar a que Render termine
+        env:
+          ID: ${{ steps.pedir.outputs.id }}
+        run: |
+          # El build tarda 2-4 min en el plan gratis; se consulta cada 15 s, hasta 20 min.
+          for _ in $(seq 1 80); do
+            estado=$(curl --fail --silent --show-error "$RENDER/$ID" \
+              -H "Authorization: Bearer $RENDER_API_KEY" -H 'Accept: application/json' | jq -r '.status')
+            echo "$(date -u +%T) $estado"
+            case "$estado" in
+              live) exit 0 ;;
+              build_failed|update_failed|pre_deploy_failed|canceled|deactivated)
+                echo "::error::Render terminó en '$estado'. El log está en el dashboard de Render."; exit 1 ;;
+            esac
+            sleep 15
+          done
+          echo "::error::Render no terminó en 20 min."; exit 1
+
+      - name: Comprobar /api/salud
+        if: env.API_URL != ''
+        run: |
+          for _ in $(seq 1 10); do
+            if curl --fail --silent --max-time 30 "$API_URL/api/salud" | grep -q '"estado":"ok"'; then
+              echo "API arriba y con base de datos."; exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::$API_URL/api/salud no respondió \"estado\":\"ok\"."; exit 1
+
+  desplegar-web:
+    # Después de la API, para que nunca quede una web nueva hablando con una API vieja. Se construye
+    # aquí con la CLI de Vercel (las VITE_* salen de `vercel pull`) y se sube ya construida. Las
+    # previews de las ramas siguen siendo las de la integración de Vercel; main la tiene apagada en
+    # el panel (Ignored Build Step: "Only build Preview", docs/despliegue.md §4).
+    needs: [verificar, desplegar-api]
+    if: >-
+      !cancelled() && needs.verificar.result == 'success' && needs.desplegar-api.result != 'failure'
+      && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+      && vars.VERCEL_PROJECT_ID != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: prod-web
+      url: ${{ vars.WEB_URL || steps.desplegar.outputs.url }}
+    concurrency:
+      group: prod-web
+      cancel-in-progress: false
+    env:
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      WEB_URL: ${{ vars.WEB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Instalar la CLI de Vercel
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::Falta el secreto VERCEL_TOKEN en el environment prod-web."; exit 1
+          fi
+          npm i -g vercel@64.7.0
+
+      # Desde la raíz del repo: la CLI aplica el Root Directory (apps/web) de la configuración del
+      # proyecto y deja el resultado en .vercel/output.
+      - name: Traer la configuración y las variables de producción
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - name: Build
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+
+      - name: Desplegar
+        id: desplegar
+        run: |
+          url=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          echo "Desplegado en $url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Comprobar la web
+        if: env.WEB_URL != ''
+        run: |
+          # La URL única del despliegue puede pedir login (Deployment Protection); el dominio de
+          # producción no.
+          curl --fail --silent --show-error --max-time 30 -o /dev/null "$WEB_URL"
+          echo "Web arriba en $WEB_URL"

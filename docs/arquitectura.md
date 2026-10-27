@@ -236,8 +236,8 @@ Nadie puede ver las coordenadas de otro residente; solo datos agregados por sect
 
 | Componente | Dónde | Notas |
 |---|---|---|
-| Web | Vercel, Netlify o Cloudflare Pages (gratis) | Lo despliega Freddy |
-| API | Render (plan gratis) o el Coolify de Botinfy | `deploy-api.yml` dispara el *deploy hook* tras un CI verde; se duerme sin tráfico (arranque en frío de 30–60 s), por eso `keepalive.yml` hace ping a `/api/salud` |
+| Web | Vercel (gratis) | Job `desplegar-web` de `ci.yml` (environment `prod-web`): build con la CLI de Vercel tras la API (D-039) |
+| API | Render (plan gratis), `https://blackouttracker.onrender.com` | Job `desplegar-api` de `ci.yml` (environment `prod-api`): pide el despliegue del commit que pasó los tests por la API de Render y espera a `live` (D-039); se duerme sin tráfico (arranque en frío de 30–60 s), por eso `keepalive.yml` hace ping a `/api/salud` |
 | Base | Supabase: un proyecto de piloto y uno de staging | El plan gratis **se pausa tras ~7 días sin actividad**: despausarlo antes de las pruebas de campo y de la defensa |
 
 Las migraciones se aplican con el migrador propio (`pnpm db:migrate`, D-020) y los sectores con `pnpm db:seed`. En Supabase, PostGIS vive en el esquema `extensions`; la conexión fija `search_path=public,extensions` para que el mismo SQL corra en local y en la nube.
