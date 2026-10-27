@@ -98,15 +98,15 @@ describe('marcadorSector', () => {
     expect(html).not.toContain('Sector 1');
     expect(html).not.toContain('Tu sector');
     expect(html).toContain('marcador-insignia--sin-servicio');
-    expect(ancla).toEqual([11, 11]);
+    expect(ancla).toEqual([12, 12]);
   });
 
-  it('VIS-01: el ancla cae en el centro del nombre, también con la píldora encima', () => {
+  it('VIS-01: el ancla cae en el centro de la píldora, también con "Tu sector" encima', () => {
     expect(marcadorSector({ nombre: 'S', estado: 'con-servicio', propio: false }).ancla).toEqual([
-      80, 10,
+      100, 15,
     ]);
     expect(marcadorSector({ nombre: 'S', estado: 'con-servicio', propio: true }).ancla).toEqual([
-      80, 34,
+      100, 39,
     ]);
   });
 });
@@ -118,9 +118,10 @@ describe('anchoNombre', () => {
     expect(anchoNombre('Norte', 18)).toBeGreaterThan(corto);
   });
 
-  it('VIS-05: "Guaparo Noroeste" no cabe en un sector de 125 px de ancho a 18 px; "Noroeste" sí', () => {
-    // El caso de la captura del 27-oct: con el zoom alejado, los nombres vecinos se pisaban.
-    expect(anchoNombre('Guaparo Noroeste', 18)).toBeGreaterThan(125);
-    expect(anchoNombre('Noroeste', 18)).toBeLessThanOrEqual(125);
+  it('VIS-05: "Guaparo Noroeste" no cabe en un sector de 160 px de ancho a 16 px; "Noroeste" sí', () => {
+    // El caso de la captura del 27-oct: con el zoom alejado, los nombres vecinos se pisaban. La
+    // píldora de D-038 suma la insignia y el relleno al texto.
+    expect(anchoNombre('Guaparo Noroeste', 16)).toBeGreaterThan(160);
+    expect(anchoNombre('Noroeste', 16)).toBeLessThanOrEqual(160);
   });
 });

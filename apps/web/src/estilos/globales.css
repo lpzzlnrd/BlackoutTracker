@@ -34,6 +34,9 @@
   --barra-texto: #ffffff;
   --barra-apoyo: #a3b1c6;
   --barra-borde: #0b1220;
+  /* Texto sobre un estado sólido (el bloque "Sin luz", la insignia del mapa): blanco en los dos
+     temas; sobre el bermellón da 5,5:1 en claro y 4,9:1 en oscuro. */
+  --sobre-estado: #ffffff;
   --fuente-display: 'Bricolage Grotesque Variable', var(--fuente-ui);
 }
 
@@ -52,6 +55,7 @@
   --color-barra-texto: var(--barra-texto);
   --color-barra-apoyo: var(--barra-apoyo);
   --color-barra-borde: var(--barra-borde);
+  --color-sobre-estado: var(--sobre-estado);
   --font-display: var(--fuente-display);
 }
 

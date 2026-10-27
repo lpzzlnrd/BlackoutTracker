@@ -27,19 +27,28 @@
 .sector--con-servicio {
   fill: var(--estado-con-servicio-relleno);
   fill-opacity: var(--estado-con-servicio-opacidad);
-  stroke: var(--estado-con-servicio-trazo);
 }
 
 .sector--sin-servicio {
   fill: var(--estado-sin-servicio-relleno);
   fill-opacity: var(--estado-sin-servicio-opacidad);
-  stroke: var(--estado-sin-servicio-trazo);
 }
 
 .sector--sin-confirmar {
   fill: url(#trama);
   fill-opacity: 1;
-  stroke: var(--estado-sin-confirmar-trazo);
+}
+
+/*
+  Flat (D-038): los sectores con estado se separan con una línea del color del halo (blanco en
+  claro, el fondo en oscuro), como piezas recortadas. El estado ya lo dicen el relleno, la trama
+  de "sin confirmar" y la insignia de cada sector; "sin datos" conserva su trazo punteado.
+*/
+.sector--con-servicio,
+.sector--sin-servicio,
+.sector--sin-confirmar {
+  stroke: var(--mapa-halo);
+  stroke-width: 2.5px;
 }
 
 .sector--sin-datos {

@@ -1,5 +1,5 @@
 import './pantalla-mapa.css';
-import type { SectoresGeoJsonDto } from '@blackout/shared';
+import { TipoServicio, type SectoresGeoJsonDto } from '@blackout/shared';
 import { geoJSON, type Map as MapaLeaflet } from 'leaflet';
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { Boton } from '../componentes/ui/Boton';
@@ -15,16 +15,27 @@ import { CapaSectores, encuadrar, type Relleno } from './CapaSectores';
 import { DetalleSector } from './DetalleSector';
 import { alturaAsomada, HojaSector, useEsEscritorio, type PosicionHoja } from './HojaSector';
 import { AtribucionOSM, DefinicionesMapa, limitesDe, MapaBase } from './MapaBase';
-import { anunciosDeCambio, etiquetaMapa } from './textos';
+import { anunciosDeCambio, estadoDeSector, etiquetaMapa } from './textos';
 
-/** La leyenda: tres estados, en el orden de la maqueta (CANON §4.5). "Sin datos" no va. */
-const LEYENDA: readonly EstadoVisual[] = ['con-servicio', 'sin-confirmar', 'sin-servicio'];
+/**
+ * La leyenda: tres estados, de más a menos grave, como el panel (D-038; CANON §4.5 los ponía al
+ * revés). "Sin datos" no va.
+ */
+const LEYENDA: readonly EstadoVisual[] = ['sin-servicio', 'sin-confirmar', 'con-servicio'];
+
+/** Cuántos sectores están sin un servicio: la insignia del selector (D-038). */
+const sinServicio = (
+  sectores: readonly { id: number }[],
+  estados: EstadoSector[] | undefined,
+  servicio: TipoServicio,
+): number =>
+  sectores.filter((s) => estadoDeSector(estados, s.id, servicio) === 'sin-servicio').length;
 
 // Lo que tapan las superposiciones, para que el encuadre deje los sectores a la vista (A §3). En
 // el teléfono, arriba el selector y la leyenda (la barra de la marca ya no está sobre el mapa,
 // D-038); abajo, la hoja asomada más la atribución que flota sobre ella.
 const rellenoTelefono = (hoja: number): Relleno => ({
-  arribaIzquierda: [24, 100],
+  arribaIzquierda: [24, 108],
   abajoDerecha: [24, hoja + 30],
 });
 const RELLENO_ESCRITORIO: Relleno = { arribaIzquierda: [32, 88], abajoDerecha: [32, 100] };
@@ -51,6 +62,10 @@ export function PantallaMapa() {
 
   const lista = sectores.data?.features ?? [];
   const nombres = lista.map((f) => f.properties);
+  const cortes = {
+    [TipoServicio.Electricidad]: sinServicio(nombres, estados.data, TipoServicio.Electricidad),
+    [TipoServicio.Agua]: sinServicio(nombres, estados.data, TipoServicio.Agua),
+  };
   const propio = perfil.data?.sectorId;
   // Por defecto, el sector del vecino; sin cuenta, el primero (A §5).
   const seleccionado = elegido ?? propio ?? nombres[0]?.id;
@@ -129,19 +144,21 @@ export function PantallaMapa() {
           </button>
         )}
 
-        {/* La marca y los pendientes viven en la barra superior del marco (D-038). */}
-        <div className="absolute top-2 left-1/2 z-[1000] -translate-x-1/2 lg:top-4 lg:left-4 lg:translate-x-0">
+        {/* La marca y los pendientes viven en la barra superior del marco; el selector va a todo
+            el ancho y dice cuántos sectores están sin cada servicio (D-038). */}
+        <div className="absolute inset-x-4 top-2 z-[1000] lg:inset-x-auto lg:top-4 lg:left-4">
           <SelectorServicio
             valor={servicio}
             onChange={elegirServicio}
-            ancho={escritorio ? 112 : 120}
+            ancho={escritorio ? 112 : 'completo'}
+            cortes={cortes}
           />
         </div>
 
         {/* Leyenda: chips en fila en el teléfono, tarjeta en el escritorio (A §3 y §4). */}
         <ul
           aria-label="Leyenda"
-          className="absolute inset-x-4 top-[62px] z-[1000] flex flex-wrap gap-1.5 lg:hidden"
+          className="absolute inset-x-4 top-[70px] z-[1000] flex flex-wrap gap-1.5 lg:hidden"
         >
           {LEYENDA.map((estado) => (
             <li key={estado}>

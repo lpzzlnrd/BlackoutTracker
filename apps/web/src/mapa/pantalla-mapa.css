@@ -1,6 +1,7 @@
 /*
-  Marcadores de los sectores (CANON §4.3 y §4.4, escala del teléfono de A). Van en `L.divIcon`, así
-  que se estilan aquí con los tokens; nada de hex.
+  Marcadores de los sectores (CANON §4.3 y §4.4, con el estilo de D-038): "Tu sector" en tinta y,
+  debajo, una píldora con la insignia del estado y el nombre en la fuente de títulos. Van en
+  `L.divIcon`, así que se estilan aquí con los tokens; nada de hex.
 */
 
 .marcador-sector {
@@ -16,71 +17,74 @@
   align-items: center;
   height: 20px;
   padding: 0 8px;
-  border-radius: 999px;
+  border-radius: var(--radio-etiqueta);
   background: var(--texto);
   color: var(--superficie);
   font-size: 11px; /* la etiqueta no baja de 11 px (CANON §4.4) */
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.marcador-pildora {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px 0 5px;
+  border-radius: 999px;
+  background: var(--superficie);
+  color: var(--texto);
+  font-family: var(--fuente-display);
+  font-size: 14px;
   font-weight: 700;
   white-space: nowrap;
 }
 
-.marcador-nombre {
-  display: block;
-  overflow: visible;
-}
-
-.marcador-nombre text {
-  font-family: var(--fuente-ui);
-  font-size: 14px;
-  font-weight: 700;
-  fill: var(--texto);
-  paint-order: stroke;
-  stroke: var(--mapa-halo);
-  stroke-width: 4px;
-  stroke-linejoin: round;
-}
-
+/* El corte es lo único sólido; el resto, en el tono suave de su chip (D-035, D-038). */
 .marcador-insignia {
   display: grid;
+  flex: none;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 999px;
-  background: var(--mapa-insignia);
-  border: 1px solid currentColor;
 }
 
-.marcador-insignia--con-servicio {
-  color: var(--estado-con-servicio-tinta);
+/* Sin sitio para el nombre: la insignia sola, con un aro para que se lea sobre el sector. */
+.marcador-sector--compacto .marcador-insignia {
+  width: 24px;
+  height: 24px;
+  box-sizing: border-box;
+  border: 2px solid var(--superficie);
 }
 
 .marcador-insignia--sin-servicio {
-  color: var(--estado-sin-servicio-tinta);
+  background: var(--estado-sin-servicio-relleno);
+  color: var(--sobre-estado);
 }
 
 .marcador-insignia--sin-confirmar {
+  background: var(--estado-sin-confirmar-chip);
   color: var(--estado-sin-confirmar-tinta);
 }
 
+.marcador-insignia--con-servicio {
+  background: var(--estado-con-servicio-chip);
+  color: var(--estado-con-servicio-tinta);
+}
+
 .marcador-insignia--sin-datos {
+  background: var(--estado-sin-datos-chip);
   color: var(--estado-sin-datos-tinta);
 }
 
 /* En escritorio el mapa es más grande: escala "mapa grande de A" aproximada (CANON §4.4). */
 @media (min-width: 1024px) {
-  .marcador-nombre text {
-    font-size: 18px;
-    stroke-width: 5px;
-  }
-
-  .marcador-insignia {
-    width: 30px;
-    height: 30px;
-  }
-
-  .marcador-insignia svg {
-    width: 22px;
-    height: 22px;
+  .marcador-pildora {
+    height: 34px;
+    font-size: 16px;
   }
 
   .sector {
