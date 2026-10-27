@@ -53,6 +53,8 @@ Del proyecto ([`CLAUDE.md`](../../CLAUDE.md) §2 y §7):
 
 Los tres iconos base están en [`referencia/icono-a.svg`](referencia/icono-a.svg), `icono-b.svg` e `icono-c.svg`: 512 × 512, fondo del color de la propuesta a sangre y el pin con el rayo centrado a **72 % del alto**, dentro de la zona segura de un icono _maskable_ (verificado con máscara circular y con esquinas redondeadas, y legible a 32 px).
 
+**Desde D-038** la app usa [`apps/web/public/icono.svg`](../../apps/web/public/icono.svg): la tinta (`#0b1220`) a sangre y el rayo blanco de la marca al **70 % del alto**, también dentro de la zona segura. Los cuatro PNG se renderizan de ese SVG en Chromium a los tamaños de la tabla.
+
 | Archivo                  | Tamaño       | Uso                                                         |
 | ------------------------ | ------------ | ----------------------------------------------------------- |
 | `pwa-192.png`            | 192 × 192    | Manifest                                                    |
@@ -182,7 +184,7 @@ Se **autoalojan**: ninguna petición a Google Fonts en producción (por velocida
 
 | Propuesta | Paquetes                                                                                   | Archivos a importar                                                    |
 | --------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
-| A         | Ninguno (fuente del sistema)                                                               | —                                                                      |
+| A         | Ninguno (fuente del sistema). **D-038:** `@fontsource-variable/bricolage-grotesque` para títulos y cifras | Solo el `woff2` latino con peso y tamaño óptico (`@font-face` propio en `globales.css`) |
 | B         | `@fontsource/atkinson-hyperlegible`                                                        | `latin-400.css`, `latin-700.css`                                       |
 | C         | `@fontsource/ibm-plex-sans`, `@fontsource/ibm-plex-mono`                                   | Sans: `latin-400.css`, `latin-500.css`, `latin-600.css`; Mono: `latin-400.css`, `latin-500.css` |
 
