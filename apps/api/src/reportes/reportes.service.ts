@@ -7,6 +7,7 @@ import {
   type ReporteDto,
 } from '@blackout/shared';
 import { ErrorNegocio } from '../comun/error-negocio';
+import { RELOJ, type Reloj } from '../comun/reloj';
 import { ConsensoService } from '../consenso/consenso.service';
 import { type BaseDeDatos, DB, type Transaccion } from '../db/db.module';
 import { reportes } from '../db/schema';
@@ -25,9 +26,8 @@ const LIMITE_MIOS = 100;
 
 export type FilaReporte = typeof reportes.$inferSelect;
 
-/** Reloj inyectable: los tests lo reemplazan para fijar "ahora". */
-export const RELOJ = Symbol('RELOJ');
-export type Reloj = () => Date;
+// Se reexporta: los tests y otros módulos lo importan desde aquí.
+export { RELOJ, type Reloj };
 
 export function aReporteDto(fila: FilaReporte): ReporteDto {
   return {

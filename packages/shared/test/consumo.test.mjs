@@ -36,6 +36,12 @@ test('se importa por su nombre desde ESM y desde CJS y exporta lo mismo', async 
 
   assert.deepEqual(Object.keys(esm).sort(), Object.keys(cjs).sort());
   for (const clave of Object.keys(esm)) {
+    if (typeof esm[clave] === 'function') {
+      // Cada formato compila su propia función: se comparan por tipo y nombre, no por identidad.
+      assert.equal(typeof cjs[clave], 'function', clave);
+      assert.equal(cjs[clave].name, esm[clave].name, clave);
+      continue;
+    }
     assert.deepEqual(cjs[clave], esm[clave], clave);
   }
 });

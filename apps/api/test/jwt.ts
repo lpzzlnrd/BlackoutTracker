@@ -27,9 +27,11 @@ export class EmisorJwt {
       /** Segundos desde ahora (negativo = ya vencido). */
       expira?: number;
       kid?: string;
+      /** Claims adicionales (p. ej. `role` o `app_metadata` de Supabase). */
+      claims?: Record<string, unknown>;
     } = {},
   ): Promise<string> {
-    const jwt = new SignJWT({})
+    const jwt = new SignJWT({ ...opciones.claims })
       .setProtectedHeader({ alg: 'ES256', kid: opciones.kid ?? 'clave-de-prueba' })
       .setIssuer(opciones.issuer ?? ISSUER_TEST)
       .setAudience(opciones.audience ?? 'authenticated')

@@ -10,7 +10,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { ReporteDto } from '@blackout/shared';
+import { THROTTLE_ESCRITURA, THROTTLE_LECTURA } from '../comun/limites';
 import { PerfilActual, RegistroGuard } from '../residentes/registro.guard';
 import type { PerfilResidente } from '../residentes/residentes.service';
 import { CerrarReporteDto } from './dto/cerrar-reporte.dto';
@@ -20,11 +22,15 @@ import { ReportesService } from './reportes.service';
 
 @ApiTags('reportes')
 @ApiBearerAuth()
+@ApiResponse({ status: 400, description: 'DATOS_INVALIDOS (cuerpo o id mal formados)' })
+@ApiResponse({ status: 401, description: 'NO_AUTENTICADO (sin token, vencido o firma inválida)' })
+@ApiResponse({ status: 429, description: 'DEMASIADAS_SOLICITUDES' })
 @UseGuards(RegistroGuard)
 @Controller('reportes')
 export class ReportesController {
   constructor(private readonly reportes: ReportesService) {}
 
+  @Throttle(THROTTLE_LECTURA)
   @Get('mios')
   @ApiOperation({
     summary: 'Mis reportes (para recuperar el estado en otro dispositivo)',
@@ -39,6 +45,7 @@ export class ReportesController {
     return this.reportes.mios(perfil, query.abiertos ?? false);
   }
 
+  @Throttle(THROTTLE_ESCRITURA)
   @Put(':id')
   @ApiOperation({
     summary: 'Inicio de un corte (idempotente)',
@@ -62,6 +69,7 @@ export class ReportesController {
     return this.reportes.iniciar(perfil, id, cuerpo);
   }
 
+  @Throttle(THROTTLE_ESCRITURA)
   @Patch(':id/cierre')
   @ApiOperation({
     summary: 'Cierre de un corte: volvió el servicio (idempotente)',
