@@ -18,6 +18,7 @@ Secciones por versión: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**
 
 ### Corregido
 - `nuevoId` arma el UUID v4 con `crypto.getRandomValues` cuando `crypto.randomUUID` no existe (origen no seguro: la app abierta por la IP de la red local o en las E2E); antes no se podía guardar ningún aviso (F-002).
+- Realtime de `estado_sector`: un solo canal compartido por todos los `useEstadosSector` (se abre con el primer oyente y se cierra con el último, con nombre nuevo en cada apertura). Antes la app se caía con "cannot add `postgres_changes` callbacks … after `subscribe()`", porque `supabase.channel()` devuelve el canal ya suscrito si el nombre se repite (mapa y detalle a la vez, o StrictMode). Test VIS-03 del adaptador (F-002).
 
 ### Cambiado
 - `GET /estimaciones`, `GET /sectores/:id/historial` y `GET /sectores/:id/resumen` son públicos: mirar no pide cuenta (D-029). Tests EST-01 y VIS-04 sin sesión y barrido NF-06 sin token (F-002).
