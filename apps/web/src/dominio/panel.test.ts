@@ -1,6 +1,15 @@
 import { EstadoServicio, TipoServicio } from '@blackout/shared';
 import { describe, expect, it } from 'vitest';
-import { filasPanel, intervalo, leerSectorId, lineaEstado, recuentoPorEstado } from './panel';
+import {
+  filasPanel,
+  intervalo,
+  leerSectorId,
+  lineaEstado,
+  lineaTarjeta,
+  recuentoPorEstado,
+  sectoresSinServicio,
+  type FilaPanel,
+} from './panel';
 import type { EstadoSector } from './tipos';
 
 const SECTORES = [1, 2, 3, 4].map((id) => ({ id, nombre: `Sector ${id}` }));
@@ -100,5 +109,34 @@ describe('leerSectorId', () => {
     for (const malo of [null, '', '0', '-1', '1.5', 'abc', '2x']) {
       expect(leerSectorId(malo)).toBeNull();
     }
+  });
+});
+
+describe('sectoresSinServicio (D-038)', () => {
+  it('VIS-02: cuenta los sectores sin cada servicio por separado; sin estados, ninguno', () => {
+    expect(sectoresSinServicio(SECTORES, ESTADOS, TipoServicio.Electricidad)).toBe(1);
+    expect(sectoresSinServicio(SECTORES, ESTADOS, TipoServicio.Agua)).toBe(1);
+    expect(sectoresSinServicio(SECTORES, undefined, TipoServicio.Agua)).toBe(0);
+  });
+});
+
+describe('lineaTarjeta (D-038)', () => {
+  // Por gravedad: Sector 3 sin luz, Sector 2 con 2 reportes sin confirmar, Sector 1 con luz.
+  const [sinLuz, sinConfirmar, conLuz] = filasPanel(
+    SECTORES,
+    ESTADOS,
+    TipoServicio.Electricidad,
+  ) as [FilaPanel, FilaPanel, FilaPanel];
+
+  it('VIS-04: sin servicio dice cuál falta y desde qué hora', () => {
+    expect(lineaTarjeta(sinLuz, TipoServicio.Electricidad, 3)).toBe('Sin luz desde las 14:20');
+  });
+
+  it('CON-01: sin confirmar dice cuántos reportes hay de los N que hacen falta', () => {
+    expect(lineaTarjeta(sinConfirmar, TipoServicio.Electricidad, 3)).toBe('2 de 3 reportes');
+  });
+
+  it('VIS-04: con servicio, el titular del estado', () => {
+    expect(lineaTarjeta(conLuz, TipoServicio.Electricidad, 3)).toBe('Con luz');
   });
 });

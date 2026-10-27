@@ -3,6 +3,8 @@
 > **Referencias:** [`a-telefono.html`](referencia/a-telefono.html) (390 × 844) y [`a-escritorio.html`](referencia/a-escritorio.html) (1280 × 860).
 > **Tokens:** [`tokens/comun.css`](tokens/comun.css) + [`tokens/a.css`](tokens/a.css). Si una tabla de este documento y un token difieren, manda el token; si el token y la referencia difieren, manda la referencia.
 > **Fundamentos que no se repiten aquí:** [`CANON.md`](CANON.md) (responsive, estados, mapa, iconos, textos, accesibilidad).
+>
+> **D-038 (27-oct-2026), flat con carácter:** la app de A se rediseñó sobre esta base. Las secciones 2 a 7 describen las maquetas originales; lo que D-038 cambia está en el **§8** y manda sobre ellas.
 
 ## 1. Qué es
 
@@ -176,3 +178,38 @@ Raíz: `display: flex; flex-wrap: wrap; min-height: 860px; background: var(--fon
 - [ ] La atribución de OSM se ve con la hoja asomada, media y completa.
 - [ ] Todo lo tocable mide al menos 44 × 44.
 - [ ] axe sin violaciones graves; navegación completa por teclado.
+
+## 8. Flat con carácter (D-038)
+
+Lo aprobó Leonardo el 27-oct-2026 sobre un lienzo de Claude Design que compara la app de entonces con la propuesta, con los mismos datos de ejemplo (privado, hay que pedir acceso): <https://claude.ai/artifact/TxiRcKrAmb59GgHNFQ5krd>. Sigue siendo flat (D-028): sin sombras ni degradados. Los tokens del canon no se tocan: se sobrescriben en `apps/web/src/estilos/globales.css`.
+
+### Tokens
+
+| Token             | Claro                         | Oscuro    | Dónde                                                                    |
+| ----------------- | ----------------------------- | --------- | ------------------------------------------------------------------------ |
+| `--acento`        | `#0b1220` (tinta)             | `#f1f5f9` | Botones principales, servicio elegido, navegación activa, marca          |
+| `--sobre-acento`  | `#ffffff`                     | `#0b1220` | Texto sobre el acento                                                    |
+| `--acento-suave`  | `#e5e7eb`                     | `#243049` | Pestaña activa, etiqueta "Tu sector"                                     |
+| `--tinta-acento`  | `#0b1220`                     | `#f1f5f9` | Texto sobre `--acento-suave`                                             |
+| `--fondo`         | `#f4f6f9`                     | `#0b1220` | Fondo de las pantallas                                                   |
+| `--barra`         | `#0b1220`                     | `#111a2c` | Barra superior del teléfono; `theme-color` y `theme_color` del manifest  |
+| `--barra-texto`   | `#ffffff`                     | `#f1f5f9` | Marca sobre la barra                                                     |
+| `--barra-apoyo`   | `#a3b1c6`                     | `#a3b1c6` | "En línea · 15:06"                                                       |
+| `--sobre-estado`  | `#ffffff`                     | `#ffffff` | Texto sobre un estado sólido (bloque "Sin luz", insignias)               |
+| `--fuente-display` | Bricolage Grotesque variable | igual     | Títulos, marca, cifras (solo latín, ~77 KB, servida por la app)          |
+
+El azul queda para "con servicio" y para el foco (`--foco`, sin cambios), así que el único color con croma en pantalla es el de los estados (§1.1 del canon). Los contrastes están en D-038.
+
+### Teléfono
+
+- **Barra superior** fija (52 px, `--barra`): la marca (un rayo en un bloque redondeado, invertido sobre la tinta) y, a la derecha, el botón de pendientes o "En línea · hora". Sin conexión, la franja de §3 va encima. Sale la barra flotante del mapa.
+- **Selector Luz/Agua** a todo el ancho, con una insignia bermellón con los sectores sin ese servicio (también en su nombre accesible). En el mapa va arriba; la leyenda, debajo, de más a menos grave.
+- **Mapa:** los sectores se separan con una línea del color de `--mapa-halo`; el nombre va en una píldora de la superficie con la insignia del estado (sólida solo sin servicio) y "Tu sector" en mayúsculas encima.
+- **Hoja del sector** (asomada: 368 px o el 52 % del mapa): título con "Tu sector"; el **bloque de estado** (sólido en bermellón para "Sin luz · desde las 14:20" con "Confirmado por al menos 3 vecinos" en barritas; en el tono del chip para los demás); la estimación con su **barra** (lo que lleva el corte, la mediana y el rango intercuartílico) y el texto "Llevas 46 min · lo habitual: entre 2 h 30 min y 6 h"; y el **botón de reportar**, que ya se ve asomada y queda por encima del círculo de Reportar.
+- **Panel:** resumen "La luz ahora" con barra apilada y recuento; tarjetas con un cuadro de 44 px del estado, la línea de estado y la cifra a la derecha. El detalle usa el bloque de estado y la barra del mapa.
+- **Reportar:** una tarjeta por servicio con el corte propio ("Corte abierto · Desde las 14:20" o "Sin cortes tuyos"), el aviso como pregunta ("¿Ya volvió la luz?"), "Ahora · 15:06 / Fue antes", el botón de 60 px y "Después de avisar" (cola, envío y consenso).
+- El contenido de las pantallas deja 40 px abajo: el círculo de Reportar sobresale 24 px (D-037).
+
+### Escritorio
+
+Misma estructura de §4, con la marca nueva en la barra lateral, el acento de tinta, la fuente de títulos y el detalle del sector con el bloque de estado y la barra de la estimación.

@@ -63,6 +63,28 @@ export function EstadoChip({
   );
 }
 
+const CUADRO: Record<EstadoVisual, string> = {
+  'sin-servicio': 'bg-estado-sin-servicio-relleno text-sobre-estado',
+  'sin-confirmar': 'bg-estado-sin-confirmar-chip text-estado-sin-confirmar-tinta',
+  'con-servicio': 'bg-estado-con-servicio-chip text-estado-con-servicio-tinta',
+  'sin-datos': 'bg-estado-sin-datos-chip text-estado-sin-datos-tinta',
+};
+
+/**
+ * Cuadro de 44 px con el glifo del estado, al inicio de las tarjetas del panel (D-038): sólido
+ * solo si está sin servicio. Es decorativo: el texto del estado va siempre a su lado.
+ */
+export function CuadroEstado({ estado }: { estado: EstadoVisual }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`grid h-11 w-11 flex-none place-items-center rounded-bloque ${CUADRO[estado]}`}
+    >
+      <Icono nombre={ICONO_COMPACTO[estado]} tamano={22} grosor={2.8} />
+    </span>
+  );
+}
+
 const SYNC: Record<EstadoAviso, { texto: string; icono: NombreIcono; color: string }> = {
   pendiente: {
     texto: 'Pendiente',

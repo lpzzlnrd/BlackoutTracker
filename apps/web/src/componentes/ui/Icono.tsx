@@ -140,6 +140,27 @@ const TRAZOS = {
     </>
   ),
   'chevron-left': <polyline points="15 18 9 12 15 6" />,
+  // "Después de avisar" en Reportar (D-038).
+  smartphone: (
+    <>
+      <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+      <line x1="12" y1="18" x2="12.01" y2="18" />
+    </>
+  ),
+  send: (
+    <>
+      <line x1="22" y1="2" x2="11" y2="13" />
+      <polygon points="22 2 15 22 11 13 2 9 22 2" />
+    </>
+  ),
+  users: (
+    <>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </>
+  ),
   'refresh-cw': (
     <>
       <polyline points="23 4 23 10 17 10" />
@@ -181,21 +202,35 @@ export function Icono({
   );
 }
 
-/** La marca: un pin con un rayo recortado, en el acento y con el rayo del color de la superficie. */
-export function Marca({ tamano = 24 }: { tamano?: number }) {
+/**
+ * La marca (D-038): un rayo en un bloque redondeado, en el acento. Sobre la barra de tinta se
+ * invierte: bloque del color del texto de la barra y rayo del color de la barra.
+ */
+export function Marca({
+  tamano = 24,
+  sobreBarra = false,
+}: {
+  tamano?: number;
+  sobreBarra?: boolean;
+}) {
   return (
     <svg
       width={tamano}
       height={tamano}
-      viewBox="0 0 24 24"
+      viewBox="0 0 28 28"
       aria-hidden="true"
       style={{ flex: 'none' }}
     >
-      <path
-        d="M12 2.2c-3.9 0-7 3-7 6.9 0 5.2 7 12.7 7 12.7s7-7.5 7-12.7c0-3.9-3.1-6.9-7-6.9z"
-        fill="var(--acento)"
+      <rect
+        width="28"
+        height="28"
+        rx="8"
+        fill={sobreBarra ? 'var(--barra-texto)' : 'var(--acento)'}
       />
-      <path d="M12.9 5.6 8.9 10.6h2.7l-.6 3.8 4.1-5.1h-2.7z" fill="var(--superficie)" />
+      <path
+        d="M15.6 4.5 8 16h5.2l-1.4 7.5L20 12h-5.3z"
+        fill={sobreBarra ? 'var(--barra)' : 'var(--sobre-acento)'}
+      />
     </svg>
   );
 }

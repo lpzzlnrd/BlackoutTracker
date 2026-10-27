@@ -1,30 +1,34 @@
 import './pantalla-mapa.css';
-import type { SectoresGeoJsonDto } from '@blackout/shared';
+import { TipoServicio, type SectoresGeoJsonDto } from '@blackout/shared';
 import { geoJSON, type Map as MapaLeaflet } from 'leaflet';
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { Boton } from '../componentes/ui/Boton';
-import { BotonPendientes } from '../componentes/ui/BotonPendientes';
 import { EstadoChip } from '../componentes/ui/Chips';
-import { Icono, Marca } from '../componentes/ui/Icono';
+import { Icono } from '../componentes/ui/Icono';
 import { Esqueleto, Mensaje } from '../componentes/ui/Mensaje';
 import { SelectorServicio } from '../componentes/ui/SelectorServicio';
-import { useColaAvisos, useEstadosSector, usePerfil, useSectores } from '../datos/consultas';
+import { useEstadosSector, usePerfil, useSectores } from '../datos/consultas';
 import { useServicio } from '../datos/preferencias';
+import { sectoresSinServicio } from '../dominio/panel';
 import type { EstadoSector, EstadoVisual } from '../dominio/tipos';
-import { Enlace, navegar } from '../navegacion/ruta';
+import { Enlace } from '../navegacion/ruta';
 import { CapaSectores, encuadrar, type Relleno } from './CapaSectores';
 import { DetalleSector } from './DetalleSector';
 import { alturaAsomada, HojaSector, useEsEscritorio, type PosicionHoja } from './HojaSector';
 import { AtribucionOSM, DefinicionesMapa, limitesDe, MapaBase } from './MapaBase';
 import { anunciosDeCambio, etiquetaMapa } from './textos';
 
-/** La leyenda: tres estados, en el orden de la maqueta (CANON §4.5). "Sin datos" no va. */
-const LEYENDA: readonly EstadoVisual[] = ['con-servicio', 'sin-confirmar', 'sin-servicio'];
+/**
+ * La leyenda: tres estados, de más a menos grave, como el panel (D-038; CANON §4.5 los ponía al
+ * revés). "Sin datos" no va.
+ */
+const LEYENDA: readonly EstadoVisual[] = ['sin-servicio', 'sin-confirmar', 'con-servicio'];
 
 // Lo que tapan las superposiciones, para que el encuadre deje los sectores a la vista (A §3). En
-// el teléfono, abajo va la hoja asomada más la atribución que flota sobre ella.
+// el teléfono, arriba el selector y la leyenda (la barra de la marca ya no está sobre el mapa,
+// D-038); abajo, la hoja asomada más la atribución que flota sobre ella.
 const rellenoTelefono = (hoja: number): Relleno => ({
-  arribaIzquierda: [24, 152],
+  arribaIzquierda: [24, 108],
   abajoDerecha: [24, hoja + 30],
 });
 const RELLENO_ESCRITORIO: Relleno = { arribaIzquierda: [32, 88], abajoDerecha: [32, 100] };
@@ -38,7 +42,6 @@ export function PantallaMapa() {
   const sectores = useSectores();
   const estados = useEstadosSector();
   const perfil = usePerfil();
-  const cola = useColaAvisos();
   const escritorio = useEsEscritorio();
   const [elegido, setElegido] = useState<number | null>(null);
   const [posicion, setPosicion] = useState<PosicionHoja>('asomada');
@@ -52,11 +55,18 @@ export function PantallaMapa() {
 
   const lista = sectores.data?.features ?? [];
   const nombres = lista.map((f) => f.properties);
+  const cortes = {
+    [TipoServicio.Electricidad]: sectoresSinServicio(
+      nombres,
+      estados.data,
+      TipoServicio.Electricidad,
+    ),
+    [TipoServicio.Agua]: sectoresSinServicio(nombres, estados.data, TipoServicio.Agua),
+  };
   const propio = perfil.data?.sectorId;
   // Por defecto, el sector del vecino; sin cuenta, el primero (A §5).
   const seleccionado = elegido ?? propio ?? nombres[0]?.id;
   const sector = nombres.find((s) => s.id === seleccionado);
-  const pendientes = (cola.data ?? []).filter((a) => a.estado === 'pendiente').length;
   const anuncio = useAnuncio(estados.data, (id) => nombres.find((s) => s.id === id)?.nombre);
 
   // Tocar el sector propio vuelve a la vista por defecto.
@@ -131,27 +141,21 @@ export function PantallaMapa() {
           </button>
         )}
 
-        {/* Teléfono: barra flotante con la marca y los pendientes (A §3). */}
-        <div className="absolute inset-x-4 top-2 z-[1000] flex items-center justify-between gap-2 lg:hidden">
-          <p className="flex h-11 items-center gap-2 rounded-chip border border-borde bg-superficie pr-3.5 pl-2.5 text-[15px] font-bold">
-            <Marca tamano={24} />
-            BlackoutTracker
-          </p>
-          <BotonPendientes cantidad={pendientes} onClick={() => navegar('/avisos')} />
-        </div>
-
-        <div className="absolute top-[60px] left-1/2 z-[1000] -translate-x-1/2 lg:top-4 lg:left-4 lg:translate-x-0">
+        {/* La marca y los pendientes viven en la barra superior del marco; el selector va a todo
+            el ancho y dice cuántos sectores están sin cada servicio (D-038). */}
+        <div className="absolute inset-x-4 top-2 z-[1000] lg:inset-x-auto lg:top-4 lg:left-4">
           <SelectorServicio
             valor={servicio}
             onChange={elegirServicio}
-            ancho={escritorio ? 112 : 120}
+            ancho={escritorio ? 112 : 'completo'}
+            cortes={cortes}
           />
         </div>
 
         {/* Leyenda: chips en fila en el teléfono, tarjeta en el escritorio (A §3 y §4). */}
         <ul
           aria-label="Leyenda"
-          className="absolute inset-x-4 top-[114px] z-[1000] flex flex-wrap gap-1.5 lg:hidden"
+          className="absolute inset-x-4 top-[70px] z-[1000] flex flex-wrap gap-1.5 lg:hidden"
         >
           {LEYENDA.map((estado) => (
             <li key={estado}>

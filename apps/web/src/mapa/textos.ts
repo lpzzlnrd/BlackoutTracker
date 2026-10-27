@@ -136,6 +136,17 @@ const NOMBRE_EN_FRASE: Record<TipoServicio, string> = {
 export const textoAccion = (servicio: TipoServicio, accion: AccionAviso): string =>
   `${accion === 'inicio' ? 'Se fue' : 'Volvió'} ${NOMBRE_EN_FRASE[servicio]}`;
 
+/**
+ * Bajo "Sin luz": el corte se confirmó porque lo reportaron al menos N vecinos distintos (CON-01).
+ * El número exacto (P2) no está en la API, así que se dice el mínimo, que siempre es cierto.
+ */
+export const textoConsenso = (consensoN: number): string =>
+  `Confirmado por al menos ${consensoN} vecinos`;
+
+/** Minutos que lleva un corte en curso, desde su inicio hasta ahora; nunca negativos. */
+export const minutosDesde = (desde: string, ahora: string): number =>
+  Math.max(0, Math.floor((Date.parse(ahora) - Date.parse(desde)) / 60_000));
+
 /** Botón principal según el estado del sector (CANON §7.1). */
 export const textoBotonPrincipal = (estado: EstadoVisual, servicio: TipoServicio): string =>
   estado === 'sin-servicio'

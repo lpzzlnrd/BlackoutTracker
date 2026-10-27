@@ -1,6 +1,6 @@
 import { EstadoServicio, type EventoSectorDto, type TipoServicio } from '@blackout/shared';
 import { hora } from '../utils/formato';
-import { estadoVisual, GRAVEDAD } from './estado-visual';
+import { estadoVisual, GRAVEDAD, titularEstado } from './estado-visual';
 import type { EstadoSector, EstadoVisual } from './tipos';
 
 // Lógica del Panel (S4): la lista de sectores es la alternativa accesible al mapa (CANON §4.6).
@@ -53,6 +53,39 @@ export function recuentoPorEstado(filas: readonly FilaPanel[]): [EstadoVisual, n
       filas.filter((f) => f.estado === estado).length,
     ])
     .filter(([, cantidad]) => cantidad > 0);
+}
+
+/**
+ * Cuántos sectores están sin un servicio: la insignia del selector Luz/Agua del mapa y del panel
+ * (D-038). Agua y luz se cuentan por separado (VIS-02).
+ */
+export function sectoresSinServicio(
+  sectores: readonly { id: number }[],
+  estados: readonly EstadoSector[] | undefined,
+  servicio: TipoServicio,
+): number {
+  return sectores.filter(
+    (s) =>
+      estadoVisual(estados?.find((e) => e.sectorId === s.id && e.tipoServicio === servicio)) ===
+      'sin-servicio',
+  ).length;
+}
+
+/**
+ * La línea de estado de la tarjeta del teléfono (D-038), junto al cuadro del estado: "Sin luz
+ * desde las 14:20", "2 de 3 reportes" (al lado de las barritas del consenso), "Con luz"…
+ */
+export function lineaTarjeta(fila: FilaPanel, servicio: TipoServicio, consensoN: number): string {
+  switch (fila.estado) {
+    case 'sin-servicio':
+      return fila.fila?.desde
+        ? `${titularEstado(fila.estado, servicio)} desde las ${hora(fila.fila.desde)}`
+        : titularEstado(fila.estado, servicio);
+    case 'sin-confirmar':
+      return `${fila.fila?.reportesSinConfirmar ?? 0} de ${consensoN} reportes`;
+    default:
+      return titularEstado(fila.estado, servicio);
+  }
 }
 
 /**

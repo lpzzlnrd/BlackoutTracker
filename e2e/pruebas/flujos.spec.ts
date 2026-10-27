@@ -39,13 +39,13 @@ test('OFF-01: sin conexión el aviso queda pendiente y se enviará al reconectar
   await expect(page.locator('#cola').getByText('Pendiente').first()).toBeVisible();
 });
 
-test('VIS-02: el filtro Agua del panel cambia la tabla de sectores', async ({ page }) => {
+test('VIS-02: el filtro Agua del panel cambia el resumen y los sectores', async ({ page }) => {
   await page.goto('/panel?demo=en-linea');
-  await expect(page.getByText('Sectores · Luz')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'La luz ahora' })).toBeVisible();
   const agua = page.getByRole('group', { name: 'Servicio' }).getByRole('button', { name: 'Agua' });
   await agua.click();
   await expect(agua).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.getByText('Sectores · Agua')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'El agua ahora' })).toBeVisible();
 });
 
 test('VIS-04: el detalle de un sector muestra estado, estimación y últimos cortes', async ({
