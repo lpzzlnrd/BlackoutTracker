@@ -13,33 +13,42 @@ import { Campo } from '../componentes/ui/Campo';
 import { ChipSync } from '../componentes/ui/Chips';
 import { Icono } from '../componentes/ui/Icono';
 import { Mensaje } from '../componentes/ui/Mensaje';
-import { SelectorServicio } from '../componentes/ui/SelectorServicio';
 import { useColaAvisos } from '../datos/consultas';
 import { usePuertos } from '../datos/contexto';
 import { textoAccion, textoBotonReportar } from '../dominio/aviso';
 import { mensajeDeError } from '../dominio/errores';
+import { minutosDesde } from '../mapa/textos';
 import { Enlace } from '../navegacion/ruta';
-import { hora } from '../utils/formato';
+import { duracion, hora, nombreServicio } from '../utils/formato';
 
 type Cuando = 'ahora' | 'antes';
+
+/** "Tu corte lleva 46 min abierto, desde las 14:20…"; recién abierto, sin los "0 min". */
+function textoCorteAbierto(abierto: CorteAbierto, ahora: string): string {
+  const minutos = minutosDesde(abierto.inicioEn, ahora);
+  const desde = hora(abierto.inicioEn);
+  return minutos === 0
+    ? `Tu corte está abierto desde las ${desde}. Avisa cuando vuelva.`
+    : `Tu corte lleva ${duracion(minutos)} abierto, desde las ${desde}. Avisa cuando vuelva.`;
+}
 
 const DIA_MS = 86_400_000;
 
 /**
  * El aviso del vecino: "Se fue…" si no tiene un corte abierto de ese servicio, "Ya volvió…" si lo
  * tiene. La hora es la del evento, no la del envío (OFF-03): "Ahora" o la que indique. El aviso
- * va siempre a la cola y se ve al instante, haya o no conexión (OFF-01).
+ * va siempre a la cola y se ve al instante, haya o no conexión (OFF-01). En el estilo de D-038,
+ * el aviso se plantea como pregunta ("¿Ya volvió la luz?") y el botón mide 60 px; el servicio se
+ * elige fuera, en las tarjetas de Reportar.
  */
 export function FormularioAviso({
   servicio,
-  onCambiarServicio,
   abierto,
   consensoN,
   sinRed,
   sincronizar,
 }: {
   servicio: TipoServicio;
-  onCambiarServicio: (servicio: TipoServicio) => void;
   abierto: CorteAbierto | null;
   consensoN: number;
   sinRed: boolean;
@@ -56,6 +65,7 @@ export function FormularioAviso({
 
   const ultimo = ultimoId ? cola.data?.find((a) => a.id === ultimoId) : undefined;
   const ahoraLocal = localCaracasDesdeIso(reloj.ahora());
+  const accion = textoBotonReportar(abierto !== null, servicio);
   const minimo = abierto
     ? localCaracasDesdeIso(abierto.inicioEn)
     : localCaracasDesdeIso(
@@ -112,26 +122,28 @@ export function FormularioAviso({
       onSubmit={(e) => void enviar(e)}
       noValidate
       aria-labelledby="titulo-aviso"
-      className="flex flex-col gap-4 rounded-tarjeta border border-borde bg-superficie p-4"
+      className="flex flex-col gap-4 rounded-tarjeta border border-borde bg-superficie p-5"
     >
-      <h2 id="titulo-aviso" className="text-base font-bold">
-        Nuevo aviso
-      </h2>
-
-      <SelectorServicio valor={servicio} onChange={onCambiarServicio} />
-
-      <p className="text-sm text-secundario">
-        {abierto
-          ? `Tienes un corte abierto desde las ${hora(abierto.inicioEn)}. Avisa cuando vuelva.`
-          : 'No tienes ningún corte abierto de este servicio.'}
-      </p>
+      <div className="flex flex-col gap-1.5">
+        <h2
+          id="titulo-aviso"
+          className="font-display text-[26px] leading-[1.1] font-extrabold tracking-[-0.02em]"
+        >
+          ¿{accion}?
+        </h2>
+        <p className="text-sm leading-[1.4] text-secundario">
+          {abierto
+            ? textoCorteAbierto(abierto, reloj.ahora())
+            : `Si en tu casa no hay ${nombreServicio(servicio).toLowerCase()}, avisa: con ${consensoN} vecinos se confirma el corte del sector.`}
+        </p>
+      </div>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 text-sm font-semibold">¿Cuándo pasó?</legend>
+        <legend className="mb-2 text-[13px] font-extrabold text-texto-2">¿Cuándo pasó?</legend>
         <div
           role="group"
           aria-label="Cuándo pasó"
-          className="inline-flex w-fit gap-1 rounded-tarjeta border border-borde bg-superficie p-1"
+          className="flex gap-1 rounded-tarjeta bg-superficie-2 p-1"
         >
           {(['ahora', 'antes'] as const).map((opcion) => (
             <button
@@ -139,11 +151,20 @@ export function FormularioAviso({
               type="button"
               aria-pressed={cuando === opcion}
               onClick={() => elegirCuando(opcion)}
-              className={`h-11 rounded-control px-4 text-[15px] font-semibold ${
-                cuando === opcion ? 'bg-acento-suave text-tinta-acento' : 'text-texto-2'
+              className={`inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-control border text-[15px] ${
+                cuando === opcion
+                  ? 'border-borde bg-superficie font-bold text-texto'
+                  : 'border-transparent font-semibold text-texto-2'
               }`}
             >
               {opcion === 'ahora' ? 'Ahora' : 'Fue antes'}
+              {/* El espacio no se ve (es un hijo de flex), pero separa el nombre accesible. */}
+              {opcion === 'ahora' && ' '}
+              {opcion === 'ahora' && (
+                <span className="font-semibold text-secundario tabular-nums">
+                  {hora(reloj.ahora())}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -165,8 +186,14 @@ export function FormularioAviso({
         {cuando === 'ahora' && errorHora && <Mensaje tono="error">{errorHora}</Mensaje>}
       </fieldset>
 
-      <Boton type="submit" ancho cargando={guardando}>
-        {textoBotonReportar(abierto !== null, servicio)}
+      <Boton
+        type="submit"
+        variante="grande"
+        icono={abierto ? 'check' : 'x-circle'}
+        ancho
+        cargando={guardando}
+      >
+        {accion}
       </Boton>
 
       {errorGuardar && (
@@ -178,10 +205,10 @@ export function FormularioAviso({
       {ultimo && (
         <div
           role="status"
-          className="flex flex-col gap-1.5 rounded-bloque border border-borde bg-superficie-2 px-3 py-2.5"
+          className="flex flex-col gap-1.5 rounded-bloque border border-borde bg-superficie-2 px-3.5 py-3"
         >
           <div className="flex items-center justify-between gap-2">
-            <p className="font-semibold">Aviso guardado</p>
+            <p className="font-display text-lg font-extrabold">Aviso guardado</p>
             <ChipSync estado={ultimo.estado} />
           </div>
           <p className="text-sm">

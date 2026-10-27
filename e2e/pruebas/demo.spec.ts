@@ -86,6 +86,56 @@ test('Avisos vacío explica qué aparecerá y lleva a Reportar', async ({ page }
   await expect(page).toHaveURL(/\/reportar\?demo=en-linea/);
 });
 
+test('D-038: la hoja del mapa abre con el estado, el consenso y el botón de reportar', async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== 'telefono', 'La hoja inferior es solo del teléfono');
+  await page.goto('/?demo=en-linea');
+  const hoja = page.getByRole('region', { name: 'Sector 1' });
+  await expect(hoja.getByText('Sin luz', { exact: true })).toBeVisible();
+  await expect(hoja.getByText('Confirmado por al menos 3 vecinos')).toBeVisible();
+  await expect(hoja.getByText(/^Llevas \d+ min · lo habitual/)).toBeVisible();
+  // Sin expandir la hoja, el botón ya se ve y el círculo de Reportar no lo tapa.
+  const boton = await hoja.getByRole('button', { name: 'Ya volvió la luz' }).boundingBox();
+  const circulo = await navPrincipal(page)
+    .getByRole('link', { name: 'Reportar' })
+    .locator('span')
+    .first()
+    .boundingBox();
+  if (!boton || !circulo) throw new Error('La hoja o la barra no se dibujaron');
+  expect(boton.y + boton.height).toBeLessThanOrEqual(circulo.y);
+});
+
+test('D-038: el selector dice cuántos sectores están sin cada servicio', async ({ page }) => {
+  await page.goto('/?demo=en-linea');
+  const servicios = page.getByRole('group', { name: 'Servicio' });
+  await expect(servicios.getByRole('button', { name: /Luz.*1 sector sin servicio/ })).toBeVisible();
+  await expect(servicios.getByRole('button', { name: 'Agua' })).not.toHaveAccessibleName(
+    /sin servicio/,
+  );
+});
+
+test('D-038: el panel resume cuántos sectores hay en cada estado', async ({ page }) => {
+  await page.goto('/panel?demo=en-linea');
+  await expect(
+    page.getByRole('list', { name: 'Sectores por estado' }).getByRole('listitem'),
+  ).toHaveText([/1\s*Sin servicio/, /1\s*Sin confirmar/, /2\s*Con servicio/]);
+});
+
+test('D-038: Reportar dice qué servicio tiene un corte propio y qué pasa después', async ({
+  page,
+}) => {
+  await page.goto('/reportar?demo=en-linea');
+  const servicios = page.getByRole('group', { name: 'Servicio' });
+  await expect(servicios.getByRole('button', { name: /Luz.*Corte abierto/ })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await expect(servicios.getByRole('button', { name: /Agua.*Sin cortes tuyos/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '¿Ya volvió la luz?' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Después de avisar' })).toBeVisible();
+});
+
 for (const ruta of RUTAS) {
   test(`VIS-05: sin scroll horizontal a 320 px en ${ruta}`, async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 640 });

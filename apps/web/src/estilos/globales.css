@@ -18,6 +18,64 @@
   --sombra-hoja: none;
 }
 
+/*
+  Flat con carácter (D-038): la tinta reemplaza al azul como acento de la interfaz, así el único
+  color con croma en pantalla es el de los estados (CANON §1.1). Se suman la barra superior de
+  tinta y una fuente para títulos y cifras. Como D-028, se sobrescribe aquí y el canon no se toca;
+  el foco sigue azul para que se vea sobre los botones de tinta.
+*/
+:root[data-diseno='a'] {
+  --fondo: #f4f6f9;
+  --acento: #0b1220;
+  --sobre-acento: #ffffff;
+  --acento-suave: #e5e7eb;
+  --tinta-acento: #0b1220;
+  --barra: #0b1220;
+  --barra-texto: #ffffff;
+  --barra-apoyo: #a3b1c6;
+  --barra-borde: #0b1220;
+  /* Texto sobre un estado sólido (el bloque "Sin luz", la insignia del mapa): blanco en los dos
+     temas; sobre el bermellón da 5,5:1 en claro y 4,9:1 en oscuro. */
+  --sobre-estado: #ffffff;
+  --fuente-display: 'Bricolage Grotesque Variable', var(--fuente-ui);
+}
+
+:root[data-diseno='a'].dark {
+  --acento: #f1f5f9;
+  --sobre-acento: #0b1220;
+  --acento-suave: #243049;
+  --tinta-acento: #f1f5f9;
+  --barra: #111a2c;
+  --barra-texto: #f1f5f9;
+  --barra-borde: #243049;
+}
+
+@theme inline {
+  --color-barra: var(--barra);
+  --color-barra-texto: var(--barra-texto);
+  --color-barra-apoyo: var(--barra-apoyo);
+  --color-barra-borde: var(--barra-borde);
+  --color-sobre-estado: var(--sobre-estado);
+  --font-display: var(--fuente-display);
+}
+
+/*
+  La fuente de títulos (D-038): Bricolage Grotesque variable, con peso y tamaño óptico, solo el
+  subconjunto latino (cubre el español, unos 77 KB). Se sirve desde la app, así que entra en la
+  caché offline del service worker (PWA.md §4).
+*/
+@font-face {
+  font-family: 'Bricolage Grotesque Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-opsz-normal.woff2')
+    format('woff2-variations');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 @layer base {
   html {
     /* Las referencias usan el interlineado normal; el preflight de Tailwind pone 1.5 (CANON §2). */

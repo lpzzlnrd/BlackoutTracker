@@ -2,13 +2,16 @@ import type { ReactNode } from 'react';
 import { useColaAvisos } from '../../datos/consultas';
 import { usePuertos, useObservable } from '../../datos/contexto';
 import { resumenCola, textoSinEnviar, type ResumenCola } from '../../dominio/aviso';
-import { Enlace, useRuta, type Ruta } from '../../navegacion/ruta';
+import type { EstadoConexion } from '../../dominio/tipos';
+import { Enlace, navegar, useRuta, type Ruta } from '../../navegacion/ruta';
+import { hora } from '../../utils/formato';
 import { AvisoConexion, EstadoConexionLinea } from '../ui/AvisoConexion';
+import { BotonPendientes } from '../ui/BotonPendientes';
 import { Icono, Marca, type NombreIcono } from '../ui/Icono';
 
-// El armazón de la propuesta A (A §3 y §4), en flat (D-028): navegación inferior en el teléfono y
-// barra lateral desde 1024 px, el único punto de quiebre (CANON §2). Lo fijo no hace scroll; el
-// contenido central sí.
+// El armazón de la propuesta A (A §3 y §4), en flat (D-028) y con la barra de tinta de D-038:
+// barra superior y navegación inferior en el teléfono, barra lateral desde 1024 px, el único punto
+// de quiebre (CANON §2). Lo fijo no hace scroll; el contenido central sí.
 
 interface ElementoNav {
   ruta: Ruta;
@@ -34,7 +37,9 @@ export function Marco({ children, pie }: { children: ReactNode; pie?: ReactNode 
   const { conexion } = usePuertos();
   const estadoConexion = useObservable(conexion);
   const activa = seccionActiva(useRuta());
-  const resumen = resumenCola(useColaAvisos().data);
+  const cola = useColaAvisos().data;
+  const resumen = resumenCola(cola);
+  const pendientes = (cola ?? []).filter((a) => a.estado === 'pendiente').length;
 
   return (
     <div className="flex h-dvh flex-col bg-fondo lg:flex-row">
@@ -43,8 +48,9 @@ export function Marco({ children, pie }: { children: ReactNode; pie?: ReactNode 
         <EstadoConexionLinea conexion={estadoConexion} />
       </BarraLateral>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <div className="lg:hidden">
+        <div className="flex-none lg:hidden">
           <AvisoConexion conexion={estadoConexion} />
+          <BarraSuperior conexion={estadoConexion} pendientes={pendientes} />
         </div>
         <main id="contenido" className="relative min-h-0 flex-1 overflow-y-auto">
           {children}
@@ -52,6 +58,37 @@ export function Marco({ children, pie }: { children: ReactNode; pie?: ReactNode 
         <NavInferior activa={activa} resumen={resumen} />
       </div>
     </div>
+  );
+}
+
+/**
+ * Barra superior del teléfono (D-038): la marca sobre tinta y, a la derecha, los avisos pendientes
+ * de envío (llevan a Avisos) o, si no hay, la hora de la última actualización. Sin conexión no se
+ * repite nada: el aviso de encima ya lo dice.
+ */
+function BarraSuperior({ conexion, pendientes }: { conexion: EstadoConexion; pendientes: number }) {
+  return (
+    <header className="flex h-[52px] items-center justify-between gap-2 border-b border-barra-borde bg-barra px-4">
+      <Enlace
+        a="/"
+        className="flex min-h-11 items-center gap-2.5 font-display text-lg font-extrabold tracking-[-0.01em] text-barra-texto"
+      >
+        <Marca tamano={28} sobreBarra />
+        <span>
+          Blackout<span className="font-semibold opacity-70">Tracker</span>
+        </span>
+      </Enlace>
+      {pendientes > 0 ? (
+        <BotonPendientes cantidad={pendientes} onClick={() => navegar('/avisos')} />
+      ) : conexion.modo === 'en-linea' ? (
+        <p className="flex items-center gap-1.5 text-[13px] font-semibold whitespace-nowrap text-barra-apoyo">
+          <Icono nombre="wifi" tamano={16} grosor={2.2} />
+          {conexion.ultimaSincronizacion
+            ? `En línea · ${hora(conexion.ultimaSincronizacion)}`
+            : 'En línea'}
+        </p>
+      ) : null}
+    </header>
   );
 }
 
@@ -165,9 +202,14 @@ function BarraLateral({
 }) {
   return (
     <aside className="hidden w-[232px] flex-none flex-col gap-6 border-r border-borde bg-superficie px-4 py-5 lg:flex">
-      <Enlace a="/" className="flex items-center gap-2 px-2 text-[17px] font-bold">
+      <Enlace
+        a="/"
+        className="flex items-center gap-2.5 px-2 font-display text-lg font-extrabold tracking-[-0.01em]"
+      >
         <Marca tamano={28} />
-        BlackoutTracker
+        <span>
+          Blackout<span className="font-semibold text-secundario">Tracker</span>
+        </span>
       </Enlace>
       <nav aria-label="Principal" className="flex flex-col gap-1">
         {NAVEGACION.map(({ ruta, texto, icono, iconoEscritorio }) => {
@@ -214,7 +256,9 @@ export function EncabezadoPantalla({
   return (
     <header className="flex flex-col gap-1">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-[22px] leading-tight font-bold lg:text-2xl">{titulo}</h1>
+        <h1 className="font-display text-[32px] leading-[1.05] font-extrabold tracking-[-0.02em]">
+          {titulo}
+        </h1>
         {accion}
       </div>
       {descripcion && <p className="text-sm text-secundario">{descripcion}</p>}
@@ -222,7 +266,10 @@ export function EncabezadoPantalla({
   );
 }
 
-/** Columna de contenido de las pantallas de lista y formularios: 640 px como máximo, centrada. */
+/**
+ * Columna de contenido de las pantallas de lista y formularios: 640 px como máximo, centrada. En
+ * el teléfono deja 40 px abajo: el círculo de Reportar sobresale 24 px de la barra (D-037).
+ */
 export function Contenido({
   children,
   ancho = 'normal',
@@ -232,7 +279,7 @@ export function Contenido({
 }) {
   return (
     <div
-      className={`mx-auto flex w-full flex-col gap-5 px-4 py-5 lg:px-8 lg:py-8 ${
+      className={`mx-auto flex w-full flex-col gap-5 px-4 pt-5 pb-10 lg:px-8 lg:py-8 ${
         ancho === 'amplio' ? 'max-w-5xl' : 'max-w-[640px]'
       }`}
     >

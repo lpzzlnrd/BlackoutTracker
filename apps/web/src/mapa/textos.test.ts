@@ -7,9 +7,11 @@ import {
   etiquetaMapa,
   intervaloCorte,
   lineaEstado,
+  minutosDesde,
   nombreEnMapa,
   textoAvisoPendiente,
   textoBotonPrincipal,
+  textoConsenso,
 } from './textos';
 
 const AHORA = '2026-10-07T19:06:00Z'; // 15:06 en Caracas
@@ -203,5 +205,16 @@ describe('nombreEnMapa', () => {
     expect(nombreEnMapa('Sector 1')).toBe('Sector 1');
     // Un sector que se llame solo "Guaparo" conserva su nombre.
     expect(nombreEnMapa('Guaparo')).toBe('Guaparo');
+  });
+});
+
+describe('bloque de estado del detalle (D-038)', () => {
+  it('CON-01: un corte confirmado lo reportaron al menos N vecinos distintos', () => {
+    expect(textoConsenso(3)).toBe('Confirmado por al menos 3 vecinos');
+  });
+
+  it('lo que lleva un corte en curso, en minutos enteros y nunca negativo', () => {
+    expect(minutosDesde('2026-10-07T18:20:00Z', AHORA)).toBe(46);
+    expect(minutosDesde('2026-10-07T19:10:00Z', AHORA)).toBe(0);
   });
 });

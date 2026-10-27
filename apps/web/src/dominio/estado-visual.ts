@@ -1,4 +1,5 @@
-import { EstadoServicio } from '@blackout/shared';
+import { EstadoServicio, type TipoServicio } from '@blackout/shared';
+import { nombreServicio } from '../utils/formato';
 import type { EstadoSector, EstadoVisual } from './tipos';
 
 /** Texto corto de los chips (CANON §3). */
@@ -8,6 +9,21 @@ export const ETIQUETA_ESTADO: Readonly<Record<EstadoVisual, string>> = {
   'sin-servicio': 'Sin servicio',
   'sin-datos': 'Sin datos',
 };
+
+/** Titular del estado en el detalle y en el panel (D-038): "Sin luz", "Con agua"… */
+export function titularEstado(estado: EstadoVisual, servicio: TipoServicio): string {
+  const nombre = nombreServicio(servicio).toLowerCase();
+  switch (estado) {
+    case 'sin-servicio':
+      return `Sin ${nombre}`;
+    case 'con-servicio':
+      return `Con ${nombre}`;
+    case 'sin-confirmar':
+      return 'Reportes sin confirmar';
+    case 'sin-datos':
+      return 'Sin datos';
+  }
+}
 
 /** Orden de gravedad, de peor a mejor: así se ordenan los "otros sectores" de B. */
 export const GRAVEDAD: Readonly<Record<EstadoVisual, number>> = {

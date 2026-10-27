@@ -17,6 +17,8 @@ Son tres diseños completos, **no temas intercambiables** de las mismas pantalla
 
 El origen de los diseños es un lienzo de Claude Design (privado, hay que pedir acceso): <https://claude.ai/artifact/R1oScZR9sCphSuDmrcvAS9>. **La fuente de verdad en el repo es la carpeta [`referencia/`](referencia/).**
 
+> **La app usa A con los ajustes de D-038** (flat con carácter: acento de tinta, barra superior, fuente de títulos, bloque de estado): ver [`propuesta-a.md`](propuesta-a.md) §8 y el lienzo de la comparación, <https://claude.ai/artifact/TxiRcKrAmb59GgHNFQ5krd>. Las referencias de A son las de antes de D-038.
+
 ## 2. Orden de trabajo: A → B → C
 
 1. **A primero**, porque construye lo que los otros reutilizan: los primitivos (`EstadoChip`, `ChipSync`, `AvisoConexion`, `SelectorServicio`, `BloqueEstimacion`), el mapa de sectores con su leyenda y atribución, la navegación inferior y las hojas. B y C usan el mapa de A en su pestaña "Mapa" y al tocar un sector.

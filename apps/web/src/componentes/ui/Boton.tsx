@@ -5,6 +5,9 @@ import { Icono, type NombreIcono } from './Icono';
 
 const VARIANTE = {
   primario: 'h-12 rounded-boton bg-acento px-5 text-base text-sobre-acento',
+  // La acción principal de una pantalla (el aviso de Reportar, D-038): 60 px y fuente de títulos.
+  grande:
+    'h-15 rounded-tarjeta bg-acento px-5 font-display text-lg font-extrabold text-sobre-acento',
   secundario:
     'h-11 rounded-control border border-borde-control bg-superficie px-4 text-sm text-texto',
   peligro:

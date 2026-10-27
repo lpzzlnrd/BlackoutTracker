@@ -1,22 +1,26 @@
 import { useRef, useSyncExternalStore, type PointerEvent, type ReactNode } from 'react';
 import { AtribucionOSM } from './MapaBase';
 
-// Hoja inferior del teléfono (A §5): asomada (la maqueta, 250 px), media y completa (hasta debajo
-// de la barra flotante). Se mueve con el botón del tirador o arrastrándolo en vertical.
+// Hoja inferior del teléfono (A §5): asomada (con el estado y el botón de reportar, D-038), media y
+// completa (hasta debajo del selector y la leyenda). Se mueve con el botón del tirador o arrastrándolo en vertical.
 
 export type PosicionHoja = 'asomada' | 'media' | 'completa';
 
 const ORDEN: readonly PosicionHoja[] = ['asomada', 'media', 'completa'];
 
-/** Alto de la hoja asomada: 250 px como la maqueta, o el 40 % del mapa si es más bajo. */
+/**
+ * Alto de la hoja asomada (D-038): lo justo para el estado, la estimación con su barra y el botón
+ * de reportar sin que los tape el círculo de Reportar, que sobresale 24 px de la barra (D-037); o
+ * algo más de la mitad del mapa, si es más bajo.
+ */
 export const alturaAsomada = (altoMapa: number): number =>
-  Math.round(Math.min(250, altoMapa * 0.4));
+  Math.round(Math.min(368, altoMapa * 0.52));
 
 const ALTURA: Record<Exclude<PosicionHoja, 'asomada'>, string> = {
-  media: '55%',
-  // Deja a la vista la barra, el selector y la leyenda (se puede cambiar de servicio con la hoja
-  // abierta) y, entre ellos y la hoja, la atribución.
-  completa: 'calc(100% - 172px)',
+  media: '68%',
+  // Deja a la vista el selector y la leyenda (se puede cambiar de servicio con la hoja abierta) y,
+  // entre ellos y la hoja, la atribución. La barra de la marca queda fuera del mapa (D-038).
+  completa: 'calc(100% - 130px)',
 };
 
 /** Un toque recorre las tres posiciones; un arrastre de más de 30 px sube o baja una. */

@@ -4,8 +4,10 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vite';
 import { alias } from './vite.alias.ts';
 
-// Colores del manifest: el `--fondo` claro de la propuesta A (PWA.md §2).
+// Colores del manifest: el `--fondo` claro de la propuesta A (PWA.md §2) para la pantalla de
+// arranque, y la `--barra` de D-038 para la barra del sistema.
 const COLOR_FONDO = '#f8fafc';
+const COLOR_BARRA = '#0b1220';
 
 export default defineConfig({
   plugins: [
@@ -27,7 +29,7 @@ export default defineConfig({
         scope: '/',
         display: 'standalone',
         background_color: COLOR_FONDO,
-        theme_color: COLOR_FONDO,
+        theme_color: COLOR_BARRA,
         icons: [
           { src: '/pwa-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/pwa-512.png', sizes: '512x512', type: 'image/png' },

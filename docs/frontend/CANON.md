@@ -7,7 +7,7 @@
 
 ## 1. Principios
 
-1. **El color solo significa estado.** Azul, bermellón, ámbar y gris están reservados para los estados del sector. El acento de la interfaz (azul en A, verde en B, ninguno en C) nunca se usa para comunicar un estado.
+1. **El color solo significa estado.** Azul, bermellón, ámbar y gris están reservados para los estados del sector. El acento de la interfaz (en A, tinta desde D-038; verde en B; ninguno en C) nunca se usa para comunicar un estado.
 2. **Nunca solo color.** Cada estado lleva color, icono y texto; en el mapa, además, trama o trazo.
 3. **El mapa no muestra personas.** Solo polígonos de sector. Ningún pin, ni siquiera el del propio vecino (NF-06).
 4. **Honestidad sin conexión.** Siempre se muestra la última información guardada con el aviso "datos no actualizados (HH:mm)". Lo que el vecino hace sin red aparece al instante como _pendiente_.
@@ -258,7 +258,7 @@ Las maquetas dibujan el mapa como un SVG que se amplía o reduce con su contened
 
 ### 4.5 Leyenda
 
-Tres chips de estado (con servicio, sin confirmar, sin servicio), en el orden de la maqueta. No incluye "sin datos". El formato (chips en fila, tarjeta con título "Leyenda", recuento por estado) es propio de cada propuesta.
+Tres chips de estado (con servicio, sin confirmar, sin servicio), en el orden de la maqueta; en A, desde D-038, de más a menos grave, como el panel. No incluye "sin datos". El formato (chips en fila, tarjeta con título "Leyenda", recuento por estado) es propio de cada propuesta.
 
 ### 4.6 Accesibilidad del mapa
 
@@ -487,6 +487,8 @@ src/
 ---
 
 ## 11. Pruebas de fidelidad
+
+> **A, desde D-038:** la app de A ya no es la de `a-telefono.html` ni `a-escritorio.html` (acento de tinta, barra superior, fuente de títulos, bloque de estado; ver [`propuesta-a.md`](propuesta-a.md) §8). Mientras no se rehagan esas referencias, la comparación de píxeles no aplica a A; B y C no cambian.
 
 "Igualito" se demuestra comparando la app con la referencia, en el mismo navegador y a los mismos tamaños. Cada pantalla de las maquetas es un caso:
 
