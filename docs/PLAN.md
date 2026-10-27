@@ -149,9 +149,11 @@ eventos_sector (                                -- el corte confirmado por conse
   confirmado_en   timestamptz NOT NULL,         -- cuándo se alcanzó el consenso
   restablecido_en timestamptz NULL,
   origen          origen_evento DEFAULT 'consenso',
-  CHECK (fin_en IS NULL OR fin_en >= inicio_en)
+  incompleto      boolean DEFAULT false,        -- sus reportes vencieron sin cierre: sin fin_en (T-050, D-024)
+  CHECK (fin_en IS NULL OR fin_en >= inicio_en),
+  CHECK (NOT incompleto OR fin_en IS NULL)
 )
-UNIQUE (sector_id, tipo_servicio) WHERE fin_en IS NULL     -- a lo sumo 1 evento abierto (CON-03)
+UNIQUE (sector_id, tipo_servicio) WHERE fin_en IS NULL AND NOT incompleto   -- a lo sumo 1 evento abierto (CON-03)
 
 estado_sector (                                 -- lo único que el front lee directo (Realtime)
   sector_id               smallint FK,
@@ -235,6 +237,7 @@ Notas:
 - **Entrada:** el evento abierto y los reportes del (sector, servicio) **cerrados** con `fin_en ≥ evento.inicio_en`.
 - **Regla:** se cierra cuando hay ≥ N residentes distintos con `fin_en` dentro de una misma ventana `W`, **o** cuando ya no queda ningún reporte abierto en el sector y el servicio (todos los que reportaron dijeron que volvió). Esta segunda condición evita que un evento quede abierto para siempre cuando solo hubo N reportantes y cerraron en momentos distintos.
 - `fin` del evento = la mediana de los `fin_en` que dispararon el cierre (CON-06).
+- Si no queda ningún reporte vivo y **nadie** cerró (todos vencieron, D-015), el evento termina como `incompleto` y sin `fin`: no entra en la mediana (T-050, D-024).
 
 ### 6.3 Orquestación (`ConsensoService`)
 Tras cada inicio o cierre, en la **misma transacción** que la escritura del reporte:

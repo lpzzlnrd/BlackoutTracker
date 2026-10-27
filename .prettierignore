@@ -14,3 +14,6 @@ docs/frontend/referencia/
 
 # Migraciones: las genera drizzle-kit (meta/*.json) o van a mano en SQL
 apps/api/drizzle/
+
+# OpenAPI exportado por `pnpm docs:openapi` (JSON.stringify, no Prettier)
+docs/openapi.json

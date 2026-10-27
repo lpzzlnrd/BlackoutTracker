@@ -30,4 +30,10 @@ describe('validarEnv', () => {
   it('exige DATABASE_URL', () => {
     expect(() => validarEnv({ SUPABASE_URL: BASE.SUPABASE_URL })).toThrow(/DATABASE_URL/);
   });
+
+  it('CORS_ORIGINS no admite el comodín', () => {
+    expect(() => validarEnv({ ...BASE, CORS_ORIGINS: '*' })).toThrow(/CORS_ORIGINS/);
+    expect(() => validarEnv({ ...BASE, CORS_ORIGINS: 'https://a.app,*' })).toThrow(/CORS_ORIGINS/);
+    expect(validarEnv({ ...BASE, CORS_ORIGINS: 'https://a.app,https://b.app' })).toBeDefined();
+  });
 });

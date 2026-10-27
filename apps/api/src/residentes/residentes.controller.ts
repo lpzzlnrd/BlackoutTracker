@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 import { Throttle } from '@nestjs/throttler';
 import type { SectorAsignadoDto } from '@blackout/shared';
 import { Public } from '../auth/publico.decorator';
+import { THROTTLE_LECTURA, THROTTLE_REGISTRO } from '../comun/limites';
 import { ResidenteActual } from '../auth/residente-actual.decorator';
 import { PinDto, SectorAsignadoRespuesta } from './dto/pin.dto';
 import { PerfilActual, RegistroGuard } from './registro.guard';
@@ -25,6 +26,7 @@ export class ResidentesController {
   }
 
   @ApiBearerAuth()
+  @Throttle(THROTTLE_REGISTRO)
   @Post('residentes/me')
   @ApiOperation({ summary: 'Crea el perfil del residente con su pin (una sola vez)' })
   @ApiResponse({ status: 201, type: SectorAsignadoRespuesta })
@@ -39,6 +41,7 @@ export class ResidentesController {
 
   @ApiBearerAuth()
   @UseGuards(RegistroGuard)
+  @Throttle(THROTTLE_LECTURA)
   @Get('residentes/me')
   @ApiOperation({ summary: 'Sector del residente. Nunca devuelve coordenadas (NF-06)' })
   @ApiResponse({ status: 200, type: SectorAsignadoRespuesta })
