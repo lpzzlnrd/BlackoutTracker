@@ -7,7 +7,7 @@
 ## Estado
 
 - **Fase actual:** 4-5. Fases 0 a 3 hechas en el backend salvo T-007 (Supabase, la hace Leonardo) y T-035 (humo de Realtime, espera a T-007). De la fase 4 están T-040, T-041 y T-042; de la fase 5, T-051 en parte.
-- **Próxima tarea:** T-050 (ciclos incompletos), en curso en su rama; después, el resto de T-051, T-054, T-044 (el importador; los datos de campo aún no existen), T-060 y T-061.
+- **Próxima tarea:** el resto de T-051, T-054, T-044 (el importador; los datos de campo aún no existen), T-060 y T-061.
 - **Bloqueos:** T-007 (Supabase staging) bloquea T-035 y la parte de RLS con la clave anon de T-051; T-044 espera los datos de la campaña; T-012 usa un polígono provisional mientras no exista el GeoJSON real (D-005).
 - **Decisiones por confirmar con Leonardo:** D-002, D-003, D-004, D-007, D-008, D-013, D-015 a D-022 (D-023 va en el PR #30 del frontend) y las peticiones P1 a P4 del frontend (`docs/frontend/datos.md` §3). Las sesiones pueden avanzar con la propuesta, que siempre es configurable o fácil de cambiar; P1 a P4 no entran en `shared` hasta que se decidan.
 - **Última actualización:** 2026-10-25, integración de los PR #19 a #29 (T-030 a T-034, T-040 a T-042, T-011, T-014, T-016 y T-051 parcial) en la rama `chore/integracion-pr-19-29`.
@@ -150,8 +150,9 @@
 
 ## Fase 5 — Refinamiento y pruebas (S10–S13) → `v0.9.0`
 
-- [ ] **T-050 · Ciclos incompletos** (L) — dep: T-033
+- [x] **T-050 · Ciclos incompletos** (L) — dep: T-033
   El cron marca `vencido` los reportes abiertos hace más de `REPORTE_VENCE_HORAS` (D-015). Los vencidos no cuentan para el consenso ni para REP-05. Se revisan los eventos abiertos que se quedaron sin reportes vivos.
+  *Nota (hecha):* `reportes/vencimiento.puro.ts` (`limiteDeVencimiento`, `haVencido`: vence si `inicio_en` es estrictamente anterior a `ahora − horas`). `ConsensoService.vencerReportes(par?)` hace el `UPDATE … SET vencido` (idempotente, devuelve los pares tocados); `reevaluarVencidos` (cron) lo llama primero y reevalúa también los pares con evento abierto y sin reportes vivos; `refrescarSiViejo` vence el par antes de decidir si recalcula. Evento sin reportes vivos: con algún cierre se cierra por `sin_abiertos` (fin = mediana de los cierres); sin ningún cierre, `evaluarRestablecimiento` devuelve `motivo: 'incompleto'` y el evento queda `incompleto = true`, `restablecido_en = ahora` y **sin `fin_en`**: el mapa vuelve a «con servicio» con `desde` nulo y la mediana no lo ve (D-024). Un cierre tardío de un reporte vencido se acepta en el reporte pero no reabre el evento. Migración **`0003_ciclos_incompletos`** (la 0002 es la de T-011; el snapshot encadena con el suyo): al integrar, el `_journal.json` debe quedar 0000, 0001, 0002 (T-011), 0003. Al integrar con T-034/T-043, el historial debe mostrar los eventos `incompleto` como «sin fin registrado» y no como «en curso». Tests: `vencimiento.puro.spec.ts`, los de `incompleto` en `consenso.puro.spec.ts` y `test/vencimiento.e2e-spec.ts`.
 - [~] **T-051 · Seguridad** (L)
   Throttle por ruta, límite de tamaño del body, CORS estricto, `pnpm audit`, `/security-review`, NF-06 completo (T-016 ampliado) y RLS contra staging con la clave anon.
   *Nota (parcial):* hechos el throttle por ruta, el límite del body, el CORS estricto y `pnpm audit` (sin avisos altos). Al integrar T-016 con T-014, T-034 y T-042, el barrido NF-06 cubre también `GET /sectores` (los polígonos de los sectores son públicos: solo esas claves `geometry`/`coordinates` quedan exentas; el chequeo por valor sigue), `GET /sectores/:id/historial` y `GET /estimaciones`, con sus errores 404 y 400. Faltan `/security-review` y la prueba de RLS contra staging con la clave anon (esperan a T-007).
