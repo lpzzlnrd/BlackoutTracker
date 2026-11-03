@@ -1,17 +1,17 @@
-import { CodigoError, type PinDto, type SectorAsignadoDto } from '@blackout/shared';
+import { CodigoError, type PinDto, type PinValidadoDto } from '@blackout/shared';
 import { useQueryClient } from '@tanstack/react-query';
-import { divIcon, type Map as MapaLeaflet } from 'leaflet';
+import { divIcon, geoJSON, type Map as MapaLeaflet } from 'leaflet';
 import { useEffect, useState } from 'react';
 import { GeoJSON, Marker, useMap, useMapEvents } from 'react-leaflet';
 import { Contenido, EncabezadoPantalla } from '../componentes/marco/Marco';
 import { Boton } from '../componentes/ui/Boton';
 import { Icono } from '../componentes/ui/Icono';
-import { Esqueleto, Mensaje } from '../componentes/ui/Mensaje';
-import { claves, useSectores, useSesion } from '../datos/consultas';
+import { Mensaje } from '../componentes/ui/Mensaje';
+import { claves, useSectores, useSesion, useZona } from '../datos/consultas';
 import { usePuertos } from '../datos/contexto';
+import { dentroDeZona } from '../dominio/dentro-de-zona';
 import { ErrorApiCliente, mensajeDeError } from '../dominio/errores';
-import { sectorDelPin } from '../dominio/sector-del-pin';
-import { AtribucionOSM, MapaBase, limitesDe } from '../mapa/MapaBase';
+import { AtribucionOSM, limitesDe, MapaBase, Mascara } from '../mapa/MapaBase';
 
 // El pin, en el acento y con borde del color de la superficie: se lee sobre cualquier tesela.
 const ICONO_PIN = divIcon({
@@ -44,6 +44,15 @@ function ControlPin({
   return null;
 }
 
+/** Al confirmar, acerca el mapa al hexágono que le tocó al vecino. */
+function EncuadreSector({ sector }: { sector: PinValidadoDto }) {
+  const mapa = useMap();
+  useEffect(() => {
+    mapa.fitBounds(geoJSON(sector.geometria).getBounds(), { padding: [32, 32], maxZoom: 15 });
+  }, [mapa, sector]);
+  return null;
+}
+
 /** Mensaje de un fallo de la API al validar o crear el perfil. */
 const mensajeRegistro = (error: unknown): string =>
   error instanceof ErrorApiCliente && error.esDeRed
@@ -52,26 +61,26 @@ const mensajeRegistro = (error: unknown): string =>
 
 /**
  * Registro en dos pasos (REG, D-014): el pin sobre la vivienda, una sola vez y a mano (sin pedir
- * la ubicación del teléfono, REG-06), y la confirmación del sector que dice el servidor. El pin
- * solo viaja a la API; al terminar se olvida (NF-06).
+ * la ubicación del teléfono, REG-06), y la confirmación del sector que dice el servidor: el
+ * hexágono H3 de la Gran Valencia en el que cae el pin (D-040). El pin solo viaja a la API; al
+ * terminar se olvida (NF-06).
  */
 export function PantallaRegistro() {
   const { residente } = usePuertos();
   const usuario = useSesion();
   const sectores = useSectores();
+  const zona = useZona();
   const cliente = useQueryClient();
   const [mapa, setMapa] = useState<MapaLeaflet | null>(null);
 
   const [pin, setPin] = useState<PinDto | null>(null);
-  const [asignado, setAsignado] = useState<SectorAsignadoDto | null>(null);
+  const [asignado, setAsignado] = useState<PinValidadoDto | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
 
   const confirmando = asignado !== null;
-  const local = pin && sectores.data ? sectorDelPin(sectores.data, pin) : null;
-  const sectorLocal = local
-    ? sectores.data?.features.find((f) => f.properties.id === local.id)
-    : undefined;
+  // Sin el contorno (no llegó todavía o no hay red) no hay aviso inmediato: decide el servidor.
+  const enZona = pin && zona.data ? dentroDeZona(zona.data, pin) : null;
 
   const colocar = (nuevo: PinDto) => {
     setPin(nuevo);
@@ -103,6 +112,8 @@ export function PantallaRegistro() {
     try {
       await residente.crear(pin);
       setPin(null);
+      // El sector pudo nacer con este registro (D-040): el mapa lo tiene que traer.
+      await cliente.invalidateQueries({ queryKey: claves.sectores });
       await cliente.invalidateQueries({ queryKey: claves.perfil(usuario?.id) });
     } catch (e) {
       if (e instanceof ErrorApiCliente && e.codigo === CodigoError.ResidenteYaRegistrado) {
@@ -122,53 +133,54 @@ export function PantallaRegistro() {
         descripcion={
           confirmando
             ? 'Paso 2 de 2 · Confirma tu sector.'
-            : 'Paso 1 de 2 · Toca el mapa justo sobre tu casa. Se hace una sola vez.'
+            : 'Paso 1 de 2 · Acerca el mapa hasta tu calle y toca justo sobre tu casa. Se hace una sola vez.'
         }
       />
 
       <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:items-start lg:gap-6">
         <div className="relative h-[52dvh] min-h-[300px] overflow-hidden rounded-tarjeta border border-borde lg:order-2 lg:h-[560px]">
-          {sectores.isPending ? (
-            <Esqueleto className="h-full rounded-none" />
-          ) : (
-            <MapaBase
-              limites={limitesDe(sectores.data)}
-              etiqueta="Mapa de Guaparo para marcar tu vivienda"
-            >
-              {sectores.data && (
+          <MapaBase
+            limites={limitesDe(sectores.data)}
+            etiqueta="Mapa de la Gran Valencia para marcar tu vivienda"
+          >
+            {zona.data && <Mascara zona={zona.data} />}
+            {sectores.data && (
+              <GeoJSON
+                key={sectores.data.features.length}
+                data={sectores.data}
+                interactive={false}
+                style={() => ({ className: 'sector sector--neutro' })}
+              />
+            )}
+            {asignado && (
+              <>
                 <GeoJSON
-                  data={sectores.data}
-                  interactive={false}
-                  style={() => ({ className: 'sector sector--neutro' })}
-                />
-              )}
-              {sectorLocal && (
-                <GeoJSON
-                  key={sectorLocal.properties.id}
-                  data={sectorLocal}
+                  key={JSON.stringify(asignado.geometria.coordinates[0]?.[0]?.[0])}
+                  data={asignado.geometria}
                   interactive={false}
                   style={() => ({ className: 'sector-contorno' })}
                 />
-              )}
-              {pin && (
-                <Marker
-                  position={[pin.lat, pin.lng]}
-                  icon={ICONO_PIN}
-                  interactive={false}
-                  keyboard={false}
-                />
-              )}
-              <ControlPin activo={!confirmando && !ocupado} alTocar={colocar} alListo={setMapa} />
-            </MapaBase>
-          )}
+                <EncuadreSector sector={asignado} />
+              </>
+            )}
+            {pin && (
+              <Marker
+                position={[pin.lat, pin.lng]}
+                icon={ICONO_PIN}
+                interactive={false}
+                keyboard={false}
+              />
+            )}
+            <ControlPin activo={!confirmando && !ocupado} alTocar={colocar} alListo={setMapa} />
+          </MapaBase>
           <AtribucionOSM className="absolute right-2 bottom-2" />
         </div>
 
         <section aria-label="Tu vivienda" className="flex flex-col gap-4 lg:order-1">
-          {sectores.isError && (
+          {zona.isError && (
             <Mensaje tono="error">
-              No se pudo cargar el mapa de Guaparo.{' '}
-              <button type="button" className="underline" onClick={() => void sectores.refetch()}>
+              No se pudo cargar el mapa de la Gran Valencia.{' '}
+              <button type="button" className="underline" onClick={() => void zona.refetch()}>
                 Reintentar
               </button>
             </Mensaje>
@@ -179,7 +191,14 @@ export function PantallaRegistro() {
               <div>
                 <p className="text-xs text-secundario">Tu sector</p>
                 <p className="text-2xl leading-tight font-bold">{asignado.sectorNombre}</p>
+                <p className="text-sm text-secundario">Municipio {asignado.municipio}</p>
               </div>
+              <p className="text-sm">
+                {asignado.sectorId === null &&
+                  'Serás el primer vecino registrado en este sector: aparece en el mapa al confirmar. '}
+                Tu sector es el hexágono marcado, de unos 0,7 km²: todos los vecinos que viven
+                dentro comparten su estado.
+              </p>
               <p className="text-sm text-secundario">{PRIVACIDAD}</p>
               <Boton ancho cargando={ocupado} onClick={() => void confirmar()}>
                 Confirmar mi vivienda
@@ -199,18 +218,25 @@ export function PantallaRegistro() {
           ) : (
             <div className="flex flex-col gap-4 rounded-tarjeta border border-borde bg-superficie p-4">
               {!pin ? (
-                <Mensaje>Toca el mapa sobre tu vivienda para poner el pin.</Mensaje>
-              ) : local ? (
+                <Mensaje>
+                  Acerca el mapa hasta tu calle y toca sobre tu vivienda para poner el pin.
+                </Mensaje>
+              ) : enZona === false ? (
+                <Mensaje tono="error">{mensajeDeError(CodigoError.PinFueraDeZona)}</Mensaje>
+              ) : (
                 <p role="status" className="flex items-center gap-2 text-[15px]">
                   <Icono nombre="check-circle" tamano={20} className="text-acento" />
                   <span>
-                    El pin cae en <strong>{local.nombre}</strong>.
+                    El pin está en la <strong>Gran Valencia</strong>. Continúa para ver tu sector.
                   </span>
                 </p>
-              ) : (
-                <Mensaje tono="error">{mensajeDeError(CodigoError.PinFueraDeZona)}</Mensaje>
               )}
-              <Boton ancho disabled={!local} cargando={ocupado} onClick={() => void continuar()}>
+              <Boton
+                ancho
+                disabled={!pin || enZona === false}
+                cargando={ocupado}
+                onClick={() => void continuar()}
+              >
                 Continuar
               </Boton>
               <Boton

@@ -1,4 +1,4 @@
-import type { ReporteDto, SectoresGeoJsonDto } from '@blackout/shared';
+import type { ReporteDto, SectoresGeoJsonDto, ZonaDto } from '@blackout/shared';
 import type { Puertos } from '../../puertos';
 import { crearColaAvisosMock } from './cola-avisos.mock';
 import { crearConexionMock, crearSondaSaludMock, type ConexionMock } from './conexion.mock';
@@ -31,6 +31,8 @@ export interface OpcionesDemo {
   escenario: EscenarioDemo;
   /** Retardo simulado por llamada (ms). 0 por defecto. */
   latenciaMs?: number;
+  /** El vecino tiene cuenta pero todavía no marcó su vivienda (`&vecino=nuevo`). */
+  vecinoNuevo?: boolean;
 }
 
 /**
@@ -41,7 +43,8 @@ export interface OpcionesDemo {
 export function crearPuertosDemo(
   datos: DatosEjemplo,
   geoJson: SectoresGeoJsonDto,
-  { escenario, latenciaMs = 0 }: OpcionesDemo,
+  zona: ZonaDto,
+  { escenario, latenciaMs = 0, vecinoNuevo = false }: OpcionesDemo,
 ): PuertosDemo {
   const inicio = datos.escenarios[escenario];
   const reloj = crearRelojMock(datos.ahora);
@@ -55,7 +58,10 @@ export function crearPuertosDemo(
   const sector = datos.sectores.find((s) => s.id === datos.residente.sectorId);
   const residente = crearRepositorioResidenteMock(
     geoJson,
-    sector ? { sectorId: sector.id, sectorNombre: sector.nombre, municipio: 'Valencia' } : null,
+    zona,
+    sector && !vecinoNuevo
+      ? { sectorId: sector.id, sectorNombre: sector.nombre, municipio: 'Valencia' }
+      : null,
     entorno,
   );
 
@@ -81,7 +87,7 @@ export function crearPuertosDemo(
     sondaSalud: crearSondaSaludMock(conexion),
     configuracion: crearConfiguracionMock(datos.config),
     sesion,
-    sectores: crearRepositorioSectoresMock(geoJson, entorno),
+    sectores: crearRepositorioSectoresMock(geoJson, zona, entorno),
     residente,
     reportes: crearRepositorioReportesMock({
       entorno,

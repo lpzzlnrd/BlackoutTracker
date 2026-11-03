@@ -24,16 +24,34 @@
   tinta y una fuente para títulos y cifras. Como D-028, se sobrescribe aquí y el canon no se toca;
   el foco sigue azul para que se vea sobre los botones de tinta.
 */
+/*
+  Papel y tinta (T-070, D-040): los neutros pasan a los cálidos del sistema de diseño de Claude
+  Design; los estados (comun.css, verificados de contraste y daltonismo) y el foco azul no cambian.
+  Contraste comprobado en los dos temas: texto, texto-2, secundario y las tintas de estado ≥ 4,5:1
+  sobre fondo, superficie y superficie-2; borde-control, foco y trazos del mapa ≥ 3:1.
+*/
 :root[data-diseno='a'] {
-  --fondo: #f4f6f9;
-  --acento: #0b1220;
-  --sobre-acento: #ffffff;
-  --acento-suave: #e5e7eb;
-  --tinta-acento: #0b1220;
-  --barra: #0b1220;
-  --barra-texto: #ffffff;
-  --barra-apoyo: #a3b1c6;
-  --barra-borde: #0b1220;
+  --fondo: #f4f2ec;
+  --superficie: #ffffff;
+  --superficie-2: #e9e6de;
+  --borde: #dcd8ce;
+  --borde-2: #c9c4b8;
+  --borde-control: #85817a;
+  --texto: #16181d;
+  --texto-2: #555a63;
+  --secundario: #555a63;
+  --acento: #16181d;
+  --sobre-acento: #f4f2ec;
+  --acento-suave: #e9e6de;
+  --tinta-acento: #16181d;
+  --barra: #16181d;
+  --barra-texto: #f4f2ec;
+  --barra-apoyo: #aba69c;
+  --barra-borde: #16181d;
+  --mapa-base: #e4e1d9;
+  --inverso-fondo: #16181d;
+  --inverso-texto: #f4f2ec;
+  --inverso-sobre-acento: #121317;
   /* Texto sobre un estado sólido (el bloque "Sin luz", la insignia del mapa): blanco en los dos
      temas; sobre el bermellón da 5,5:1 en claro y 4,9:1 en oscuro. */
   --sobre-estado: #ffffff;
@@ -41,13 +59,27 @@
 }
 
 :root[data-diseno='a'].dark {
-  --acento: #f1f5f9;
-  --sobre-acento: #0b1220;
-  --acento-suave: #243049;
-  --tinta-acento: #f1f5f9;
-  --barra: #111a2c;
-  --barra-texto: #f1f5f9;
-  --barra-borde: #243049;
+  --fondo: #121317;
+  --superficie: #1b1d22;
+  --superficie-2: #262930;
+  --borde: #2e3138;
+  --borde-2: #3c3f47;
+  --borde-control: #717680;
+  --texto: #f1efe9;
+  --texto-2: #a9adb5;
+  --secundario: #a9adb5;
+  --acento: #f1efe9;
+  --sobre-acento: #121317;
+  --acento-suave: #262930;
+  --tinta-acento: #f1efe9;
+  --barra: #1b1d22;
+  --barra-texto: #f1efe9;
+  --barra-apoyo: #a9adb5;
+  --barra-borde: #2e3138;
+  --mapa-base: #1d1f24;
+  --inverso-fondo: #f1efe9;
+  --inverso-texto: #16181d;
+  --inverso-sobre-acento: #ffffff;
 }
 
 @theme inline {

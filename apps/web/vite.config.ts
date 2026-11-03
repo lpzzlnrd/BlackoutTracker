@@ -6,8 +6,8 @@ import { alias } from './vite.alias.ts';
 
 // Colores del manifest: el `--fondo` claro de la propuesta A (PWA.md §2) para la pantalla de
 // arranque, y la `--barra` de D-038 para la barra del sistema.
-const COLOR_FONDO = '#f8fafc';
-const COLOR_BARRA = '#0b1220';
+const COLOR_FONDO = '#f4f2ec';
+const COLOR_BARRA = '#16181d';
 
 export default defineConfig({
   plugins: [
@@ -23,7 +23,7 @@ export default defineConfig({
         id: '/',
         name: 'BlackoutTracker',
         short_name: 'Blackout',
-        description: 'Cortes de agua y luz en Guaparo, reportados por los vecinos.',
+        description: 'Cortes de agua y luz en la Gran Valencia, reportados por los vecinos.',
         lang: 'es-VE',
         start_url: '/',
         scope: '/',

@@ -1,11 +1,13 @@
 import type {
   EstimacionDto,
   HistorialDto,
+  PinValidadoDto,
   ReporteDto,
   ResumenSectorDto,
   SaludDto,
   SectorAsignadoDto,
   SectoresGeoJsonDto,
+  ZonaDto,
 } from '@blackout/shared';
 import type {
   RepositorioDetalleSector,
@@ -23,13 +25,14 @@ import type { ClienteHttp } from './cliente';
 export function crearRepositorioSectoresHttp(http: ClienteHttp): RepositorioSectores {
   return {
     obtenerGeoJson: () => http.pedir<SectoresGeoJsonDto>('GET', '/sectores', { conSesion: false }),
+    obtenerZona: () => http.pedir<ZonaDto>('GET', '/zona', { conSesion: false }),
   };
 }
 
 export function crearRepositorioResidenteHttp(http: ClienteHttp): RepositorioResidente {
   return {
     validarPin: (pin) =>
-      http.pedir<SectorAsignadoDto>('POST', '/registro/validar-pin', {
+      http.pedir<PinValidadoDto>('POST', '/registro/validar-pin', {
         cuerpo: pin,
         conSesion: false,
       }),

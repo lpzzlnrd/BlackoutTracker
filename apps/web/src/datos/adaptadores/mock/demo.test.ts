@@ -59,6 +59,19 @@ describe('demo: datos-ejemplo.json a través de los puertos', () => {
     expect(geo.features.every((f) => f.geometry.type === 'MultiPolygon')).toBe(true);
   });
 
+  it('D-040: la zona es el contorno de los cinco municipios de la Gran Valencia', async () => {
+    const p = await cargarPuertosDemo({ escenario: 'en-linea' });
+    const zona = await p.sectores.obtenerZona();
+    expect(zona.properties.municipios).toEqual([
+      'Valencia',
+      'Naguanagua',
+      'San Diego',
+      'Los Guayos',
+      'Libertador',
+    ]);
+    expect(zona.geometry.type).toBe('MultiPolygon');
+  });
+
   it('EST-01/EST-04: la estimación con cifra y la insuficiente, sin repetir claves de consulta', async () => {
     const p = await cargarPuertosDemo({ escenario: 'en-linea' });
     expect(await p.estimaciones.obtener(1, 'electricidad')).toEqual({

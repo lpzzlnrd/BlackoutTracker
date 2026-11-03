@@ -1,13 +1,13 @@
 import './pantalla-mapa.css';
 import { TipoServicio, type SectoresGeoJsonDto } from '@blackout/shared';
-import { geoJSON, type Map as MapaLeaflet } from 'leaflet';
+import type { Map as MapaLeaflet } from 'leaflet';
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { Boton } from '../componentes/ui/Boton';
 import { EstadoChip } from '../componentes/ui/Chips';
 import { Icono } from '../componentes/ui/Icono';
 import { Esqueleto, Mensaje } from '../componentes/ui/Mensaje';
 import { SelectorServicio } from '../componentes/ui/SelectorServicio';
-import { useEstadosSector, usePerfil, useSectores } from '../datos/consultas';
+import { useEstadosSector, usePerfil, useSectores, useSesion, useZona } from '../datos/consultas';
 import { useServicio } from '../datos/preferencias';
 import { sectoresSinServicio } from '../dominio/panel';
 import type { EstadoSector, EstadoVisual } from '../dominio/tipos';
@@ -47,8 +47,10 @@ const RELLENO_ESCRITORIO: Relleno = { arribaIzquierda: [32, 88], abajoDerecha: [
 export function PantallaMapa() {
   const [servicio, elegirServicio] = useServicio();
   const sectores = useSectores();
+  const zona = useZona();
   const estados = useEstadosSector();
   const perfil = usePerfil();
+  const usuario = useSesion();
   const escritorio = useEsEscritorio();
   const [elegido, setElegido] = useState<number | null>(null);
   const [posicion, setPosicion] = useState<PosicionHoja>('asomada');
@@ -96,6 +98,24 @@ export function PantallaMapa() {
       variante={escritorio ? 'panel' : 'hoja'}
       completo={escritorio || posicion !== 'asomada'}
     />
+  ) : sectores.data && lista.length === 0 ? (
+    // Recién lanzada en la Gran Valencia no hay ningún sector: nace con el primer vecino (D-040).
+    <div className="flex flex-col items-start gap-3">
+      <p className="font-display text-lg leading-tight font-bold">Aún no hay sectores</p>
+      <p className="text-sm text-secundario">
+        Cada sector es un hexágono de la Gran Valencia y aparece cuando se registra su primer
+        vecino. Marca tu vivienda para que el tuyo empiece a contar.
+      </p>
+      {!perfil.data && (
+        <Enlace
+          a={usuario ? '/registro' : '/entrar'}
+          consulta={usuario ? undefined : { siguiente: '/registro' }}
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-boton bg-acento px-5 text-base font-semibold text-sobre-acento"
+        >
+          Marcar mi vivienda
+        </Enlace>
+      )}
+    </div>
   ) : sectores.isError ? (
     <div className="flex flex-col gap-3">
       <Mensaje tono="error">No se pudieron cargar los sectores. Revisa tu conexión.</Mensaje>
@@ -133,6 +153,7 @@ export function PantallaMapa() {
           {sectores.data && (
             <CapaSectores
               sectores={sectores.data}
+              zona={zona.data}
               estados={estados.data}
               servicio={servicio}
               seleccionado={seleccionado}
@@ -151,7 +172,7 @@ export function PantallaMapa() {
             style={escritorio ? undefined : { bottom: hoja + 8 }}
           >
             <Icono nombre="map" tamano={18} />
-            Ver todo Guaparo
+            Ver toda la Gran Valencia
           </button>
         )}
 
@@ -230,8 +251,8 @@ function useAnuncio(
 }
 
 /**
- * Si la vista ya no muestra todos los sectores (el vecino acercó el mapa o lo movió): entonces se
- * ofrece volver al encuadre. Al cargar está encuadrado, así que basta con mirar al terminar cada
+ * Si la vista ya no muestra toda la Gran Valencia (el vecino acercó el mapa o lo movió): entonces
+ * se ofrece volver al encuadre. Al cargar está encuadrado, así que basta con mirar al terminar cada
  * movimiento.
  */
 function useFueraDeEncuadre(
@@ -240,8 +261,8 @@ function useFueraDeEncuadre(
 ): boolean {
   const [fuera, setFuera] = useState(false);
   useEffect(() => {
-    if (!mapa || !sectores?.features.length) return;
-    const limites = geoJSON(sectores).getBounds();
+    if (!mapa || !sectores) return;
+    const limites = limitesDe(sectores);
     const revisar = () => setFuera(!mapa.getBounds().contains(limites));
     mapa.on('moveend', revisar);
     return () => {

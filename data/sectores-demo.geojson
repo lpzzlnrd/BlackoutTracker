@@ -1,0 +1,10 @@
+{
+  "type": "FeatureCollection",
+  "nota": "Sectores del modo demo de la web (T-070, D-040): 4 hexágonos H3 de resolución 8 sobre Guaparo, los mismos que los sectores de prueba de la API (apps/api/test/fixtures/puntos.ts). La demo les pone los ids y nombres de docs/frontend/datos-ejemplo.json, en este orden.",
+  "features": [
+    {"type":"Feature","properties":{"celda_h3":"8867432a21fffff"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-68.0169932,10.2295921],[-68.0207005,10.2272676],[-68.0201277,10.2227994],[-68.0158476,10.2206559],[-68.0121405,10.2229807],[-68.0127133,10.2274487],[-68.0169932,10.2295921]]]]}},
+    {"type":"Feature","properties":{"celda_h3":"8867432a2bfffff"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-68.0090065,10.2297731],[-68.0127133,10.2274487],[-68.0121405,10.2229807],[-68.0078606,10.2208372],[-68.0041539,10.2231618],[-68.0047269,10.2276296],[-68.0090065,10.2297731]]]]}},
+    {"type":"Feature","properties":{"celda_h3":"8867432849fffff"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-68.0152747,10.2161874],[-68.018982,10.2138622],[-68.0184092,10.2093933],[-68.0141289,10.2072498],[-68.0104217,10.2095752],[-68.0109947,10.2140439],[-68.0152747,10.2161874]]]]}},
+    {"type":"Feature","properties":{"celda_h3":"8867432a35fffff"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-68.0072877,10.2163689],[-68.0109947,10.2140439],[-68.0104217,10.2095752],[-68.0061418,10.2074316],[-68.002435,10.2097568],[-68.003008,10.2142254],[-68.0072877,10.2163689]]]]}}
+  ]
+}

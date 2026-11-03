@@ -8,7 +8,6 @@ import {
   intervaloCorte,
   lineaEstado,
   minutosDesde,
-  nombreEnMapa,
   textoAvisoPendiente,
   textoBotonPrincipal,
   textoConsenso,
@@ -195,16 +194,6 @@ describe('textos de acción', () => {
       '09:10 a 12:40',
     );
     expect(intervaloCorte(evento('2026-10-07T18:20:00Z', null))).toBe('Desde las 14:20');
-  });
-});
-
-describe('nombreEnMapa', () => {
-  it('VIS-01: en el mapa sobra "Guaparo"; el resto del nombre queda igual', () => {
-    expect(nombreEnMapa('Guaparo Noroeste')).toBe('Noroeste');
-    expect(nombreEnMapa('guaparo  Sur')).toBe('Sur');
-    expect(nombreEnMapa('Sector 1')).toBe('Sector 1');
-    // Un sector que se llame solo "Guaparo" conserva su nombre.
-    expect(nombreEnMapa('Guaparo')).toBe('Guaparo');
   });
 });
 
