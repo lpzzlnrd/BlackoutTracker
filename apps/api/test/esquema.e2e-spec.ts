@@ -25,6 +25,9 @@ describe('esquema de la base (T-010)', () => {
       .insert(sectores)
       .values({
         nombre: 'Sector de prueba',
+        // Una celda cualquiera: este test no pasa por el registro (D-040).
+        celdaH3: '8867432a21fffff',
+        municipioId: sqlDrizzle`(select min(id) from municipios)`,
         geom: sqlDrizzle`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(cuadrado(-68.0, 10.2))}), 4326)`,
       })
       .returning({ id: sectores.id });

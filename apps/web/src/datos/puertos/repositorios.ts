@@ -22,7 +22,7 @@ export interface RepositorioSectores {
 
 /** Registro y perfil del residente (REG-*). */
 export interface RepositorioResidente {
-  /** `POST /registro/validar-pin`. 422 `PIN_FUERA_DE_GUAPARO` si cae fuera. */
+  /** `POST /registro/validar-pin`. 422 `PIN_FUERA_DE_ZONA` si cae fuera de la Gran Valencia. */
   validarPin(pin: ValidarPinSolicitud): Promise<SectorAsignadoDto>;
   /** `POST /residentes/me`. 409 si ya existe. */
   crear(pin: CrearResidenteSolicitud): Promise<SectorAsignadoDto>;

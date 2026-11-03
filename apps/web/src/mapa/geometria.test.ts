@@ -7,7 +7,7 @@ import { anchoNombre, escaparHtml, marcadorSector } from './marcador';
 const sector = (anillo: [number, number][]): SectorFeatureDto => ({
   type: 'Feature',
   id: 1,
-  properties: { id: 1, nombre: 'Sector 1' },
+  properties: { id: 1, nombre: 'Sector 1', municipio: 'Valencia' },
   geometry: { type: 'MultiPolygon', coordinates: [[anillo]] },
 });
 

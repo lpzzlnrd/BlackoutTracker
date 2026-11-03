@@ -55,7 +55,7 @@ export function crearPuertosDemo(
   const sector = datos.sectores.find((s) => s.id === datos.residente.sectorId);
   const residente = crearRepositorioResidenteMock(
     geoJson,
-    sector ? { sectorId: sector.id, sectorNombre: sector.nombre } : null,
+    sector ? { sectorId: sector.id, sectorNombre: sector.nombre, municipio: 'Valencia' } : null,
     entorno,
   );
 

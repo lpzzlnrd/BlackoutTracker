@@ -28,7 +28,8 @@ export interface GeometriaMultiPoligonoDto {
 export interface SectorFeatureDto {
   type: 'Feature';
   id: number;
-  properties: { id: number; nombre: string };
+  /** `municipio`: el que contiene el centro del hexágono (D-040). */
+  properties: { id: number; nombre: string; municipio: string };
   geometry: GeometriaMultiPoligonoDto;
 }
 
@@ -36,6 +37,17 @@ export interface SectorFeatureDto {
 export interface SectoresGeoJsonDto {
   type: 'FeatureCollection';
   features: SectorFeatureDto[];
+}
+
+/**
+ * `GET /zona` (D-040): el contorno de la zona de cobertura (los municipios de la Gran Valencia),
+ * simplificado a unos 30 m. Sirve para la máscara del mapa y para el aviso inmediato del registro;
+ * el servidor valida el pin contra el límite exacto.
+ */
+export interface ZonaDto {
+  type: 'Feature';
+  properties: { municipios: string[] };
+  geometry: GeometriaMultiPoligonoDto;
 }
 
 // ─── Registro y residente ────────────────────────────────────────────────────────────────────
@@ -53,12 +65,24 @@ export type ValidarPinSolicitud = PinDto;
 export type CrearResidenteSolicitud = PinDto;
 
 /**
- * Respuesta de `POST /registro/validar-pin`, de `POST /residentes/me` y de `GET /residentes/me`.
- * Nunca lleva coordenadas (NF-06).
+ * Respuesta de `POST /residentes/me` y de `GET /residentes/me`. Nunca lleva coordenadas (NF-06).
  */
 export interface SectorAsignadoDto {
   sectorId: number;
   sectorNombre: string;
+  municipio: string;
+}
+
+/**
+ * Respuesta de `POST /registro/validar-pin`: el sector en el que quedaría el residente. Si nadie se
+ * ha registrado todavía en esa celda, el sector no existe (`sectorId: null`) y se crea al confirmar
+ * con `POST /residentes/me` (D-040). `geometria` es el hexágono del sector, nunca el pin (NF-06).
+ */
+export interface PinValidadoDto {
+  sectorId: number | null;
+  sectorNombre: string;
+  municipio: string;
+  geometria: GeometriaMultiPoligonoDto;
 }
 
 // ─── Reportes ────────────────────────────────────────────────────────────────────────────────

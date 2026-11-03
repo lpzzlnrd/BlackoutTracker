@@ -208,7 +208,7 @@ export function PantallaRegistro() {
                   </span>
                 </p>
               ) : (
-                <Mensaje tono="error">{mensajeDeError(CodigoError.PinFueraDeGuaparo)}</Mensaje>
+                <Mensaje tono="error">{mensajeDeError(CodigoError.PinFueraDeZona)}</Mensaje>
               )}
               <Boton ancho disabled={!local} cargando={ocupado} onClick={() => void continuar()}>
                 Continuar

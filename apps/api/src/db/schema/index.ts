@@ -2,6 +2,7 @@
 export * from './enums';
 export * from './estado-sector';
 export * from './eventos-sector';
+export * from './municipios';
 export * from './reportes';
 export * from './residentes';
 export * from './sectores';

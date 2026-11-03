@@ -46,21 +46,25 @@ describe('mock del residente: registro con validación geográfica', () => {
       lat: (Math.min(...lats) + Math.max(...lats)) / 2,
     };
     const sector = await p.residente.validarPin(pin);
-    expect(sector).toEqual({ sectorId: 1, sectorNombre: 'Sector 1' });
+    expect(sector).toEqual({ sectorId: 1, sectorNombre: 'Sector 1', municipio: 'Valencia' });
     expect(sector).not.toHaveProperty('lat');
   });
 
-  it('REG-02: un pin fuera de Guaparo es 422 PIN_FUERA_DE_GUAPARO', async () => {
+  it('REG-02: un pin fuera de la zona es 422 PIN_FUERA_DE_ZONA', async () => {
     const p = await cargarPuertosDemo({ escenario: 'en-linea' });
     await expect(p.residente.validarPin({ lat: 0, lng: 0 })).rejects.toMatchObject({
       estado: 422,
-      codigo: 'PIN_FUERA_DE_GUAPARO',
+      codigo: 'PIN_FUERA_DE_ZONA',
     });
   });
 
   it('crear con perfil existente es 409; GET /residentes/me devuelve el sector de la demo', async () => {
     const p = await cargarPuertosDemo({ escenario: 'en-linea' });
-    expect(await p.residente.obtenerMio()).toEqual({ sectorId: 1, sectorNombre: 'Sector 1' });
+    expect(await p.residente.obtenerMio()).toEqual({
+      sectorId: 1,
+      sectorNombre: 'Sector 1',
+      municipio: 'Valencia',
+    });
     await expect(p.residente.crear({ lat: 10.2, lng: -68.0 })).rejects.toMatchObject({
       estado: 409,
       codigo: 'RESIDENTE_YA_REGISTRADO',

@@ -13,13 +13,13 @@ import { Contexto } from './contexto';
  * Además, el test falla si aparece una ruta nueva que no esté en `CASOS`: se amplía en cada fase.
  */
 
-// Sector 1 (noroeste) y sector 4 (sureste) de test/fixtures/puntos.ts, con decimales poco comunes
-// para que no se confundan con otro número de la respuesta.
-const A = { lat: 10.20751234, lng: -68.00912345 };
-const B = { lat: 10.20253579, lng: -68.00302468 };
-// El pin que envía quien se registra durante el barrido (sector 2, noreste).
-const PIN = { lat: 10.20746421, lng: -68.00387654 };
-// Un pin fuera de Guaparo, para el error 422 (la API no debe repetirlo en el mensaje).
+// Junto al centro de las celdas del sector 1 (noroeste) y del 4 (sureste) de test/fixtures/puntos.ts,
+// con decimales poco comunes para que no se confundan con otro número de la respuesta.
+const A = { lat: 10.22511234, lng: -68.01642345 };
+const B = { lat: 10.21193579, lng: -68.00672468 };
+// El pin que envía quien se registra durante el barrido (celda del sector 2, noreste).
+const PIN = { lat: 10.22536421, lng: -68.00847654 };
+// Un pin fuera de la Gran Valencia, para el error 422 (la API no debe repetirlo en el mensaje).
 const PIN_FUERA = { lat: 10.31415926, lng: -68.27182818 };
 
 /** Fragmentos que delatarían una coordenada: se omite el signo y se corta a 6 decimales. */
@@ -146,6 +146,7 @@ describe('Barrido de privacidad (NF-06, T-016)', () => {
         estado: 200,
         llamada: () => llamar('get', '/api/sectores', a.token),
       },
+      { swagger: 'GET /api/zona', estado: 200, llamada: () => llamar('get', '/api/zona') },
       // Historial, estimación y resumen son públicos (D-029): se barren sin token, como los ve
       // cualquiera que abra la app.
       {
@@ -167,16 +168,24 @@ describe('Barrido de privacidad (NF-06, T-016)', () => {
   };
 
   /**
-   * `GET /sectores` devuelve los polígonos de los sectores en GeoJSON: son límites públicos de la
-   * urbanización, no ubicaciones de residentes (D-005). Solo esas claves quedan exentas; el chequeo
-   * por valor (las coordenadas de los residentes) sigue aplicándose a toda la respuesta.
+   * Tres respuestas llevan geometría pública, que no es la ubicación de nadie (D-040): los hexágonos
+   * de los sectores (`GET /sectores`), el hexágono del sector en el que quedaría un pin (no el pin,
+   * en `validar-pin`) y el contorno de la zona (`GET /zona`, límites municipales de OSM). Solo esas
+   * claves quedan exentas; el chequeo por valor (las coordenadas de los residentes y del pin) sigue
+   * aplicándose a toda la respuesta.
    */
-  const POLIGONO_DE_SECTOR = /^\$\.features\[\d+\]\.geometry(\.coordinates)?$/;
-  const SCHEMA_DE_SECTOR = /^GET \/api\/sectores 200: SectoresGeoJsonRespuesta\.SectorFeature\./;
+  const GEOMETRIA_PUBLICA: Record<string, RegExp> = {
+    'GET /api/sectores': /^\$\.features\[\d+\]\.geometry(\.coordinates)?$/,
+    'POST /api/registro/validar-pin': /^\$\.geometria\.coordinates$/,
+    'GET /api/zona': /^\$\.geometry(\.coordinates)?$/,
+  };
+  const SCHEMA_PUBLICO = [
+    /^GET \/api\/sectores 200: SectoresGeoJsonRespuesta\.SectorFeature\./,
+    /^POST \/api\/registro\/validar-pin 200: PinValidadoRespuesta\.GeometriaMultiPoligono\.coordinates$/,
+    /^GET \/api\/zona 200: ZonaRespuesta\.(geometry|GeometriaMultiPoligono\.coordinates)$/,
+  ];
   const clavesDe = (caso: string, cuerpo: unknown) =>
-    clavesProhibidas(cuerpo).filter(
-      (c) => !(caso === 'GET /api/sectores' && POLIGONO_DE_SECTOR.test(c)),
-    );
+    clavesProhibidas(cuerpo).filter((c) => !GEOMETRIA_PUBLICA[caso]?.test(c));
 
   const documento = (): OpenAPIObject =>
     SwaggerModule.createDocument(ctx.app, new DocumentBuilder().build());
@@ -204,7 +213,7 @@ describe('Barrido de privacidad (NF-06, T-016)', () => {
     const sinPerfil = await ctx.emisor.firmar({ sub: randomUUID() });
     const errores: Array<[string, number, () => request.Test]> = [
       [
-        '422 pin fuera de Guaparo',
+        '422 pin fuera de la Gran Valencia',
         422,
         () => llamar('post', '/api/registro/validar-pin', undefined, PIN_FUERA),
       ],
@@ -327,7 +336,7 @@ describe('Barrido de privacidad (NF-06, T-016)', () => {
             vistos.clear();
             for (const p of propiedadesDe(medio.schema)) {
               const infraccion = `${metodo.toUpperCase()} ${ruta} ${estado}: ${p}`;
-              if (!SCHEMA_DE_SECTOR.test(infraccion)) infracciones.push(infraccion);
+              if (!SCHEMA_PUBLICO.some((r) => r.test(infraccion))) infracciones.push(infraccion);
             }
           }
         }
@@ -344,8 +353,8 @@ describe('Barrido de privacidad (NF-06, T-016)', () => {
     expect(clavesProhibidas([{ geom: 1 }, { ok: 1 }])).toEqual(['$[0].geom']);
     expect(clavesProhibidas({ sectorId: 1, sectorNombre: 'Noroeste' })).toEqual([]);
     expect(coordenadasFiltradas({ texto: `POINT(${A.lng} ${A.lat})` })).toEqual([
-      '10.207512',
-      '68.009123',
+      '10.225112',
+      '68.016423',
     ]);
     expect(coordenadasFiltradas({ sectorId: 1 })).toEqual([]);
   });

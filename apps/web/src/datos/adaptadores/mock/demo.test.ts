@@ -51,10 +51,10 @@ describe('demo: datos-ejemplo.json a través de los puertos', () => {
     const p = await cargarPuertosDemo({ escenario: 'en-linea' });
     const geo = await p.sectores.obtenerGeoJson();
     expect(geo.features.map((f) => f.properties)).toEqual([
-      { id: 1, nombre: 'Sector 1' },
-      { id: 2, nombre: 'Sector 2' },
-      { id: 3, nombre: 'Sector 3' },
-      { id: 4, nombre: 'Sector 4' },
+      { id: 1, nombre: 'Sector 1', municipio: 'Valencia' },
+      { id: 2, nombre: 'Sector 2', municipio: 'Valencia' },
+      { id: 3, nombre: 'Sector 3', municipio: 'Valencia' },
+      { id: 4, nombre: 'Sector 4', municipio: 'Valencia' },
     ]);
     expect(geo.features.every((f) => f.geometry.type === 'MultiPolygon')).toBe(true);
   });

@@ -22,8 +22,12 @@ export function crearRepositorioResidenteMock(
 
   const sectorDelPin = (lat: number, lng: number): SectorAsignadoDto => {
     const sector = geoJson.features.find((f) => puntoEnMultiPoligono(lng, lat, f.geometry));
-    if (!sector) throw new ErrorApiCliente(422, CodigoError.PinFueraDeGuaparo);
-    return { sectorId: sector.properties.id, sectorNombre: sector.properties.nombre };
+    if (!sector) throw new ErrorApiCliente(422, CodigoError.PinFueraDeZona);
+    return {
+      sectorId: sector.properties.id,
+      sectorNombre: sector.properties.nombre,
+      municipio: sector.properties.municipio,
+    };
   };
 
   return {

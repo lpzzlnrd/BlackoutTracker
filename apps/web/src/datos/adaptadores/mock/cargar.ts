@@ -25,7 +25,7 @@ export function geoJsonDemo(
             {
               type: 'Feature' as const,
               id: sector.id,
-              properties: { id: sector.id, nombre: sector.nombre },
+              properties: { id: sector.id, nombre: sector.nombre, municipio: 'Valencia' },
               geometry: origen.geometry,
             },
           ]

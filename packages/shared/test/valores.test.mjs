@@ -48,7 +48,7 @@ test('cada código de error tiene un estado HTTP de error, y no sobra ninguno', 
 });
 
 test('los códigos que fija el plan responden con el estado del plan', () => {
-  assert.equal(ESTADO_HTTP_DE_CODIGO[CodigoError.PinFueraDeGuaparo], 422); // PLAN §5, validar-pin
+  assert.equal(ESTADO_HTTP_DE_CODIGO[CodigoError.PinFueraDeZona], 422); // PLAN §5, validar-pin
   assert.equal(ESTADO_HTTP_DE_CODIGO[CodigoError.RegistroIncompleto], 403); // D-014
   assert.equal(ESTADO_HTTP_DE_CODIGO[CodigoError.ResidenteYaRegistrado], 409); // POST /residentes/me
   assert.equal(ESTADO_HTTP_DE_CODIGO[CodigoError.ReporteAbiertoDuplicado], 409); // REP-05

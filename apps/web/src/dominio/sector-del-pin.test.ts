@@ -25,13 +25,13 @@ const SECTORES: SectoresGeoJsonDto = {
     {
       type: 'Feature',
       id: 2,
-      properties: { id: 2, nombre: 'Este' },
+      properties: { id: 2, nombre: 'Este', municipio: 'Valencia' },
       geometry: cuadrado(-68, 10.2),
     },
     {
       type: 'Feature',
       id: 1,
-      properties: { id: 1, nombre: 'Oeste' },
+      properties: { id: 1, nombre: 'Oeste', municipio: 'Valencia' },
       geometry: cuadrado(-68.01, 10.2),
     },
   ],

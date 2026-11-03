@@ -2,8 +2,8 @@ import { claveSector, leerCsv, leerFechaConZona, validarCampo } from './campo.pu
 
 const AHORA = new Date('2026-10-25T12:00:00Z');
 const SECTORES = new Map([
-  [claveSector('Guaparo Noroeste'), 1],
-  [claveSector('Guaparo Sureste'), 4],
+  [claveSector('Parque Noroeste'), 1],
+  [claveSector('Sureste'), 4],
 ]);
 const CABECERA = 'sector,tipo_servicio,inicio,fin';
 const csv = (...filas: string[]) => [CABECERA, ...filas].join('\n');
@@ -49,7 +49,7 @@ describe('leerFechaConZona (T-044)', () => {
 describe('validarCampo (T-044)', () => {
   it('acepta un ciclo completo y resuelve el sector sin distinguir mayúsculas ni espacios', () => {
     const { validas, invalidas } = validar(
-      ' guaparo   NOROESTE ,Electricidad,2026-09-02T14:10:00-04:00,2026-09-02T17:40:00-04:00',
+      ' parque   NOROESTE ,Electricidad,2026-09-02T14:10:00-04:00,2026-09-02T17:40:00-04:00',
     );
     expect(invalidas).toEqual([]);
     expect(validas).toEqual([
@@ -65,7 +65,7 @@ describe('validarCampo (T-044)', () => {
 
   it('acepta la cabecera en mayúsculas', () => {
     const texto =
-      'SECTOR,Tipo_Servicio,INICIO,fin\nGuaparo Sureste,agua,2026-09-05T05:00Z,2026-09-05T21:00Z';
+      'SECTOR,Tipo_Servicio,INICIO,fin\nSureste,agua,2026-09-05T05:00Z,2026-09-05T21:00Z';
     expect(validarCampo(texto, SECTORES, AHORA).validas).toHaveLength(1);
   });
 
@@ -78,23 +78,15 @@ describe('validarCampo (T-044)', () => {
   });
 
   it.each([
-    ['columnas de menos', 'Guaparo Sureste,agua,2026-09-05T05:00Z', /4 columnas/],
+    ['columnas de menos', 'Sureste,agua,2026-09-05T05:00Z', /4 columnas/],
     ['un sector que no existe', 'Trigal,agua,2026-09-05T05:00Z,2026-09-05T21:00Z', /no existe/],
-    [
-      'un servicio inválido',
-      'Guaparo Sureste,luz,2026-09-05T05:00Z,2026-09-05T21:00Z',
-      /no es válido/,
-    ],
-    ['un inicio sin zona', 'Guaparo Sureste,agua,2026-09-05T05:00,2026-09-05T21:00Z', /inicio/],
-    ['un fin ilegible', 'Guaparo Sureste,agua,2026-09-05T05:00Z,ayer', /fin "ayer"/],
-    ['un ciclo abierto (sin fin)', 'Guaparo Sureste,agua,2026-09-05T05:00Z,', /ciclos completos/],
-    [
-      'el fin antes del inicio',
-      'Guaparo Sureste,agua,2026-09-05T21:00Z,2026-09-05T05:00Z',
-      /posterior/,
-    ],
-    ['una duración cero', 'Guaparo Sureste,agua,2026-09-05T05:00Z,2026-09-05T05:00Z', /posterior/],
-    ['el fin en el futuro', 'Guaparo Sureste,agua,2026-10-25T05:00Z,2026-10-25T12:01Z', /futuro/],
+    ['un servicio inválido', 'Sureste,luz,2026-09-05T05:00Z,2026-09-05T21:00Z', /no es válido/],
+    ['un inicio sin zona', 'Sureste,agua,2026-09-05T05:00,2026-09-05T21:00Z', /inicio/],
+    ['un fin ilegible', 'Sureste,agua,2026-09-05T05:00Z,ayer', /fin "ayer"/],
+    ['un ciclo abierto (sin fin)', 'Sureste,agua,2026-09-05T05:00Z,', /ciclos completos/],
+    ['el fin antes del inicio', 'Sureste,agua,2026-09-05T21:00Z,2026-09-05T05:00Z', /posterior/],
+    ['una duración cero', 'Sureste,agua,2026-09-05T05:00Z,2026-09-05T05:00Z', /posterior/],
+    ['el fin en el futuro', 'Sureste,agua,2026-10-25T05:00Z,2026-10-25T12:01Z', /futuro/],
   ])('rechaza %s, con su número de línea', (_, fila, motivo) => {
     const { validas, invalidas } = validar(fila);
     expect(validas).toEqual([]);
@@ -102,23 +94,21 @@ describe('validarCampo (T-044)', () => {
   });
 
   it('el fin exactamente en `ahora` se acepta (límite inclusivo)', () => {
-    expect(
-      validar('Guaparo Sureste,agua,2026-10-25T05:00Z,2026-10-25T12:00Z').validas,
-    ).toHaveLength(1);
+    expect(validar('Sureste,agua,2026-10-25T05:00Z,2026-10-25T12:00Z').validas).toHaveLength(1);
   });
 
   it('las filas inválidas no impiden las válidas', () => {
     const { validas, invalidas } = validar(
-      'Guaparo Sureste,agua,2026-09-05T05:00Z,2026-09-05T21:00Z',
+      'Sureste,agua,2026-09-05T05:00Z,2026-09-05T21:00Z',
       'Trigal,agua,2026-09-05T05:00Z,2026-09-05T21:00Z',
-      'Guaparo Noroeste,agua,2026-09-05T05:00Z,2026-09-05T21:00Z',
+      'Parque Noroeste,agua,2026-09-05T05:00Z,2026-09-05T21:00Z',
     );
     expect(validas.map((v) => v.linea)).toEqual([2, 4]);
     expect(invalidas.map((v) => v.linea)).toEqual([3]);
   });
 
   it('una fila repetida en el archivo se informa y no se duplica', () => {
-    const fila = 'Guaparo Sureste,agua,2026-09-05T05:00Z,2026-09-05T21:00Z';
+    const fila = 'Sureste,agua,2026-09-05T05:00Z,2026-09-05T21:00Z';
     const { validas, invalidas } = validar(fila, fila);
     expect(validas).toHaveLength(1);
     expect(invalidas).toEqual([{ linea: 3, motivo: 'Repite la línea 2' }]);
@@ -126,18 +116,18 @@ describe('validarCampo (T-044)', () => {
 
   it('rechaza un ciclo que se solapa con otro del mismo sector y servicio', () => {
     const { invalidas } = validar(
-      'Guaparo Sureste,agua,2026-09-05T05:00Z,2026-09-05T21:00Z',
-      'Guaparo Sureste,agua,2026-09-05T20:00Z,2026-09-06T02:00Z',
+      'Sureste,agua,2026-09-05T05:00Z,2026-09-05T21:00Z',
+      'Sureste,agua,2026-09-05T20:00Z,2026-09-06T02:00Z',
     );
     expect(invalidas).toEqual([{ linea: 3, motivo: 'Se solapa con la línea 2' }]);
   });
 
   it('no hay solape si uno empieza justo cuando termina el otro, ni entre servicios o sectores', () => {
     const { validas, invalidas } = validar(
-      'Guaparo Sureste,agua,2026-09-05T05:00Z,2026-09-05T21:00Z',
-      'Guaparo Sureste,agua,2026-09-05T21:00Z,2026-09-06T02:00Z',
-      'Guaparo Sureste,electricidad,2026-09-05T06:00Z,2026-09-05T08:00Z',
-      'Guaparo Noroeste,agua,2026-09-05T06:00Z,2026-09-05T08:00Z',
+      'Sureste,agua,2026-09-05T05:00Z,2026-09-05T21:00Z',
+      'Sureste,agua,2026-09-05T21:00Z,2026-09-06T02:00Z',
+      'Sureste,electricidad,2026-09-05T06:00Z,2026-09-05T08:00Z',
+      'Parque Noroeste,agua,2026-09-05T06:00Z,2026-09-05T08:00Z',
     );
     expect(invalidas).toEqual([]);
     expect(validas).toHaveLength(4);

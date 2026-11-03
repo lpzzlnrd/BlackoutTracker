@@ -1,8 +1,10 @@
 // Códigos de error de la API. La respuesta de error es el estándar de Nest más un campo `codigo`,
 // para que el frontend muestre mensajes en español sin depender del texto del servidor
-// (docs/PLAN.md §5). El plan nombra cuatro (PIN_FUERA_DE_GUAPARO, REGISTRO_INCOMPLETO,
+// (docs/PLAN.md §5). El plan nombra cuatro (PIN_FUERA_DE_ZONA, REGISTRO_INCOMPLETO,
 // REPORTE_CONFLICTO y HORA_INVALIDA) y TAREAS.md uno más (REPORTE_ABIERTO_DUPLICADO). Los otros
 // siete ponen nombre a estados HTTP que el plan menciona sin nombre: son una propuesta (D-018).
+// PIN_FUERA_DE_ZONA se llamaba PIN_FUERA_DE_GUAPARO hasta que la zona pasó a ser la Gran
+// Valencia (D-040).
 
 export const CodigoError = {
   /** 400. El cuerpo o los parámetros no cumplen el formato. */
@@ -13,8 +15,8 @@ export const CodigoError = {
   RegistroIncompleto: 'REGISTRO_INCOMPLETO',
   /** 409. `POST /residentes/me` cuando el perfil ya existe. */
   ResidenteYaRegistrado: 'RESIDENTE_YA_REGISTRADO',
-  /** 422. El pin no cae dentro de ningún sector de Guaparo (REG-02). */
-  PinFueraDeGuaparo: 'PIN_FUERA_DE_GUAPARO',
+  /** 422. El pin no cae dentro de la zona de cobertura, la Gran Valencia (REG-02, D-040). */
+  PinFueraDeZona: 'PIN_FUERA_DE_ZONA',
   /** 404. El sector no existe. */
   SectorNoEncontrado: 'SECTOR_NO_ENCONTRADO',
   /** 404. Cierre de un reporte inexistente o ajeno: un cierre sin inicio se bloquea (D-003). */
@@ -38,7 +40,7 @@ export const ESTADO_HTTP_DE_CODIGO = {
   [CodigoError.NoAutenticado]: 401,
   [CodigoError.RegistroIncompleto]: 403,
   [CodigoError.ResidenteYaRegistrado]: 409,
-  [CodigoError.PinFueraDeGuaparo]: 422,
+  [CodigoError.PinFueraDeZona]: 422,
   [CodigoError.SectorNoEncontrado]: 404,
   [CodigoError.ReporteNoEncontrado]: 404,
   [CodigoError.ReporteAbiertoDuplicado]: 409,

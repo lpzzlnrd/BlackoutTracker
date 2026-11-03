@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, Max, Min } from 'class-validator';
 import type { PinDto as PinInterfaz } from '@blackout/shared';
+import { GeometriaMultiPoligono } from '../../sectores/dto/sectores.dto';
 
 const NUMERO = { allowNaN: false, allowInfinity: false } as const;
 
@@ -22,4 +23,21 @@ export class PinDto implements PinInterfaz {
 export class SectorAsignadoRespuesta {
   @ApiProperty() sectorId!: number;
   @ApiProperty() sectorNombre!: string;
+  @ApiProperty({ example: 'Valencia' }) municipio!: string;
+}
+
+export class PinValidadoRespuesta {
+  @ApiProperty({
+    type: Number,
+    nullable: true,
+    description: 'null si nadie se ha registrado aún en esa celda: el sector se crea al confirmar',
+  })
+  sectorId!: number | null;
+  @ApiProperty({ example: 'Guaparo' }) sectorNombre!: string;
+  @ApiProperty({ example: 'Valencia' }) municipio!: string;
+  @ApiProperty({
+    type: GeometriaMultiPoligono,
+    description: 'El hexágono del sector, nunca el pin',
+  })
+  geometria!: GeometriaMultiPoligono;
 }
