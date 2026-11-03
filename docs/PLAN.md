@@ -70,14 +70,16 @@
 ├─ docker-compose.yml        postgis/postgis:16-3.4 para desarrollo y tests de integración
 ├─ .github/workflows/ci.yml
 ├─ data/
-│  ├─ sectores-guaparo.geojson   (Guaparo real desde OSM, por validar con los vecinos; D-005, D-036)
-│  └─ sectores-cuadricula.geojson (cuadrícula 2 × 2 de los tests y del modo demo de la web)
+│  ├─ zona-gran-valencia.geojson          (los 5 municipios, límites de OSM; D-040)
+│  ├─ lugares-gran-valencia.geojson       (lugares de OSM que nombran los sectores)
+│  ├─ zona-gran-valencia.contorno.geojson (el contorno de GET /zona, para la demo de la web)
+│  └─ sectores-demo.geojson               (4 hexágonos sobre Guaparo, modo demo de la web)
 ├─ packages/shared/          tipos y enums sin dependencias de runtime
 │  └─ src/  enums.ts · constantes.ts · dto.ts · errores.ts (códigos de error) · index.ts
 ├─ apps/api/
 │  ├─ drizzle.config.ts
 │  ├─ drizzle/               migraciones generadas + SQL a mano (RLS, realtime)
-│  ├─ scripts/               seed-sectores.ts · seed-campo.ts · probar-realtime.ts
+│  ├─ scripts/               seed-zona.ts · seed-campo.ts · seed-demo.ts · migrar.ts
 │  ├─ test/                  e2e/integración (Supertest + PostGIS en Docker)
 │  └─ src/
 │     ├─ main.ts  app.module.ts
@@ -112,12 +114,26 @@ tipo_servicio   = ('agua', 'electricidad')
 estado_servicio = ('con_servicio', 'sin_servicio')
 origen_evento   = ('consenso', 'campo')        -- 'campo' = dataset semilla de las entrevistas
 
-sectores (
+municipios (                        -- la zona de cobertura (D-040); se siembra con pnpm db:seed
   id          smallserial PK,
   nombre      text UNIQUE NOT NULL,
   geom        geometry(MultiPolygon, 4326) NOT NULL   -- índice GIST
 )
--- "Guaparo" = la unión de los sectores. No hay una tabla aparte para el polígono exterior.
+
+lugares (                           -- lugares de OSM que nombran los sectores
+  id          serial PK,
+  nombre      text NOT NULL,
+  peso        real NOT NULL DEFAULT 1,               -- multiplica la distancia
+  geom        geometry(Point, 4326) NOT NULL
+)
+
+sectores (                          -- una celda H3 de resolución 8; nace con su primer residente
+  id           smallserial PK,
+  nombre       text UNIQUE NOT NULL,
+  celda_h3     text UNIQUE NOT NULL,
+  municipio_id smallint FK NOT NULL,                  -- el que contiene el centro de la celda
+  geom         geometry(MultiPolygon, 4326) NOT NULL  -- el hexágono; índice GIST
+)
 
 residentes (
   id          uuid PK,              -- = sub del JWT de Supabase
@@ -188,10 +204,11 @@ Notas:
 | Método y ruta | Auth | Qué hace | Casos |
 |---|---|---|---|
 | `GET /salud` | pública | Estado + ping a la BD (sirve también de keep-alive) | — |
-| `GET /sectores` | pública | GeoJSON FeatureCollection de los sectores (`id`, `nombre`, geometría). Lleva `Cache-Control` | VIS-01 |
-| `POST /registro/validar-pin` | pública + throttle | `{lat, lng}` → `{sectorId, sectorNombre}` o 422 `PIN_FUERA_DE_GUAPARO` | REG-01/02/03 |
-| `POST /residentes/me` | JWT | Crea el perfil del residente con su pin. 409 si ya existe | REG-01/02 |
-| `GET /residentes/me` | JWT | `{sectorId, sectorNombre}`. **Sin coordenadas** | NF-06 |
+| `GET /sectores` | pública | GeoJSON FeatureCollection de los sectores con vecinos (`id`, `nombre`, `municipio`, hexágono). `Cache-Control: no-cache` con ETag | VIS-01 |
+| `GET /zona` | pública | El contorno de la Gran Valencia (unión de los municipios, simplificada a ~30 m). Un día de caché | REG-02, D-040 |
+| `POST /registro/validar-pin` | pública + throttle | `{lat, lng}` → `{sectorId \| null, sectorNombre, municipio, geometria}` (el hexágono; `null` si la celda es nueva) o 422 `PIN_FUERA_DE_ZONA` | REG-01/02/03 |
+| `POST /residentes/me` | JWT | Crea el perfil del residente con su pin y, si es el primero de su celda, el sector. 409 si ya existe | REG-01/02 |
+| `GET /residentes/me` | JWT | `{sectorId, sectorNombre, municipio}`. **Sin coordenadas** | NF-06 |
 | `PUT /reportes/:id` | JWT | Inicio idempotente `{tipoServicio, ocurridoEn}` | REP-01/02/05/06, OFF-03/05 |
 | `PATCH /reportes/:id/cierre` | JWT | Cierre idempotente `{ocurridoEn}` | REP-03/04/07, CON-06 |
 | `GET /reportes/mios?abiertos=true` | JWT | Para que el cliente recupere su estado en otro dispositivo | — |
@@ -320,7 +337,7 @@ Al cerrar cada fase: se crea un tag `vX.Y.Z` en `main`, se mueve `[Sin publicar]
 
 | Riesgo | Mitigación |
 |---|---|
-| El GeoJSON de Guaparo y los sectores aún no existen (D-005) | Polígono provisional en `data/`. Todo el código lee los sectores de la BD; cambiarlos es solo cambiar el seed |
+| Con pocos usuarios, muchos sectores H3 no llegan a N = 3 (D-040) | Resolución 8 (~0,74 km²) y no 9; N es configurable (D-006); el mapa muestra "sin confirmar" con k de N |
 | Supabase gratis se pausa tras ~7 días sin uso | `GET /salud` toca la BD; un ping externo gratuito (p. ej. UptimeRobot) al API de prod. Checklist antes de las pruebas de campo y la defensa (T-061) |
 | Render gratis se duerme (arranque en frío ≈ 30–60 s, cron detenido) | Cron *best effort* + recálculo al leer; la cola offline del front absorbe la latencia; despertar el API antes de la demo |
 | El proyecto de Supabase usa una clave JWT simétrica (HS256) | T-007 verifica que las *JWT signing keys* asimétricas estén activas; si no, se migran antes de T-013 |

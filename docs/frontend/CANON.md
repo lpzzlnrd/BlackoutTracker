@@ -219,7 +219,7 @@ La **trama** de "sin confirmar" se define una sola vez en un `<svg>` oculto al i
 }
 ```
 
-**Énfasis y máscara (D-035).** Lo normal no compite con los cortes: en oscuro, "con servicio" va al 25 % (en claro se queda en 60 %, porque más abajo se confunde con "sin datos" y `verificar-tokens` lo rechaza). Fuera de los sectores, el mapa se apaga hacia `--mapa-base` al 60 % con una capa `.mascara`: un rectángulo del mundo con un hueco por sector (Leaflet rellena con `evenodd`), sin interacción. Así los sectores resaltan solos y se ve dónde termina Guaparo.
+**Énfasis y máscara (D-035).** Lo normal no compite con los cortes: en oscuro, "con servicio" va al 25 % (en claro se queda en 60 %, porque más abajo se confunde con "sin datos" y `verificar-tokens` lo rechaza). Fuera de la zona de cobertura, el mapa se apaga hacia `--mapa-base` al 60 % con una capa `.mascara`: un rectángulo del mundo con un hueco por pieza del contorno de la Gran Valencia (`GET /zona`; Leaflet rellena con `evenodd`), sin interacción. Así se ve dónde termina la cobertura (D-040: antes era un hueco por sector, que con sectores bajo demanda apagaría casi toda la ciudad).
 
 ### 4.3 Tu sector, etiquetas e insignias
 
@@ -234,8 +234,8 @@ La **trama** de "sin confirmar" se define una sola vez en un `<svg>` oculto al i
 - **Etiqueta "Tu sector"** (solo en el mapa de A): píldora de `--texto` con texto `--superficie`, 700, sobre el sector del residente. B y C marcan "tu sector" solo con el contorno grueso.
 - **Dónde va cada cosa**: en el punto de `@turf/center-of-mass` de cada sector; si ese punto cae fuera del polígono (sectores cóncavos), en `@turf/point-on-feature`.
 - **Sector seleccionado** _(no dibujado)_: lleva el mismo contorno grueso que "tu sector". Por defecto está seleccionado el del residente. El contorno va en su propio panel de Leaflet (`zIndex: 450`): en el mismo SVG, la capa de estados (que se recrea con cada cambio) quedaba dibujada encima y lo tapaba (D-035).
-- **Nombre en el mapa** _(D-035)_: sin la urbanización ("Guaparo Noroeste" → "Noroeste"); el detalle y el `aria-label` usan el nombre completo, y el título del detalle no se corta. Si el nombre (medido con la fuente real, más su halo) no cabe dentro del polígono a ese zoom, va solo la insignia: se comprueban las cuatro esquinas de su fila contra el polígono, no contra el rectángulo que lo envuelve (D-036).
-- **Encuadre** _(D-035)_: al cargar, los sectores llenan el espacio libre. No se puede alejar más de un nivel de ese encuadre ni salir de un área de 5 veces Guaparo. Cuando la vista ya no muestra todos los sectores, aparece el botón "Ver todo Guaparo" (icono `map`; arriba a la derecha en escritorio, sobre la hoja asomada en el teléfono).
+- **Nombre en el mapa** _(D-035, D-040)_: el nombre corto del sector (el lugar de OSM más cercano, sin "Urbanización"); el detalle y el `aria-label` usan el nombre completo, y el título del detalle no se corta. Si el nombre (medido con la fuente real, más su halo) no cabe dentro del polígono a ese zoom, va solo la insignia: se comprueban las cuatro esquinas de su fila contra el polígono, no contra el rectángulo que lo envuelve (D-036).
+- **Encuadre** _(D-035, D-040)_: al cargar, el casco urbano de la Gran Valencia (ampliado si algún sector queda fuera) llena el espacio libre. No se puede alejar más de un nivel de ese encuadre. Un hexágono de menos de 32 px en pantalla va sin nombre ni insignia. Cuando la vista ya no muestra todo, aparece el botón "Ver toda la Gran Valencia" (icono `map`; arriba a la derecha en escritorio, sobre la hoja asomada en el teléfono). Sin sectores, el detalle invita a marcar la vivienda.
 
 ### 4.4 Tamaños: dos escalas
 

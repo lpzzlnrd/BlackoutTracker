@@ -120,7 +120,7 @@ Toda respuesta de error es el estándar de Nest más un campo `codigo` (`ErrorAp
 | `RESIDENTE_YA_REGISTRADO`   | 409  | `POST /residentes/me` con el perfil ya creado            | Ya tienes una vivienda registrada con esta cuenta.                                    |
 | `REPORTE_ABIERTO_DUPLICADO` | 409  | Ya hay un corte abierto del mismo servicio (REP-05)      | Ya tienes un corte de {servicio} abierto. Ciérralo antes de avisar de otro.           |
 | `REPORTE_CONFLICTO`         | 409  | El mismo id llega con otro contenido (OFF-05)            | No se pudo enviar este aviso. Vuelve a crearlo.                                       |
-| `PIN_FUERA_DE_GUAPARO`      | 422  | El pin cae fuera de todos los sectores (REG-02)          | Ese punto queda fuera de Guaparo. Mueve el pin sobre tu vivienda.                     |
+| `PIN_FUERA_DE_ZONA`         | 422  | El pin cae fuera de la Gran Valencia (REG-02, D-040)     | Ese punto queda fuera de la Gran Valencia. Mueve el pin sobre tu vivienda.            |
 | `HORA_INVALIDA`             | 422  | Hora futura, muy antigua o fin antes del inicio (REP-07) | La hora no es válida. Revisa que no sea futura, muy antigua ni anterior al inicio.    |
 | `DEMASIADAS_SOLICITUDES`    | 429  | Se superó el límite de solicitudes                       | Demasiados intentos seguidos. Espera un momento e inténtalo otra vez.                 |
 | `ERROR_INTERNO`             | 500  | Error no previsto del servidor                           | Algo falló de nuestro lado. Inténtalo de nuevo en un momento.                         |

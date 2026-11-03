@@ -2,7 +2,7 @@
   "name": "blackout-tracker",
   "version": "0.0.0",
   "private": true,
-  "description": "Plataforma comunitaria para monitorear las interrupciones de agua y electricidad (piloto: Urbanización Guaparo, Valencia).",
+  "description": "Plataforma comunitaria para monitorear las interrupciones de agua y electricidad (Gran Valencia, Carabobo).",
   "license": "MIT",
   "packageManager": "pnpm@10.33.2",
   "engines": {

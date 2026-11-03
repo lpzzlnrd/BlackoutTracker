@@ -44,7 +44,7 @@ Cada carpeta de `apps/api/src/` es un módulo de Nest con una responsabilidad. L
 | Módulo | Responsabilidad | Rutas (`/api/...`) | Tarea |
 |---|---|---|---|
 | `config` | Valida el `.env` al arrancar; si algo falta o no sirve, la API no levanta | — | T-003 |
-| `db` | Drizzle con postgres-js, esquema, tipo `MultiPolygon`, migrador propio (D-020), siembra de sectores e importación del dataset de campo (`db:seed:campo`, D-025) | — | T-005, T-010, T-012, T-044 |
+| `db` | Drizzle con postgres-js, esquema, tipo `MultiPolygon`, migrador propio (D-020), siembra de la zona (municipios y lugares, D-040) e importación del dataset de campo (`db:seed:campo`, D-025) | — | T-005, T-010, T-012, T-044 |
 | `auth` | Guard global: verifica el JWT de Supabase con `jose` contra el JWKS (solo ES256/RS256, emisor y audiencia); `@Public()` y `@ResidenteActual()` | — | T-013 |
 | `comun` | Filtro de errores que agrega `codigo`, `ErrorNegocio`, reloj inyectable y límites de throttle y de body | — | T-003, T-031, T-051 |
 | `salud` | Estado de la API y ping a la base (sirve de keep-alive) | `GET /salud` | T-003, T-005 |
@@ -240,4 +240,4 @@ Nadie puede ver las coordenadas de otro residente; solo datos agregados por sect
 | API | Render (plan gratis), `https://blackouttracker.onrender.com` | Job `desplegar-api` de `ci.yml` (environment `prod-api`): pide el despliegue del commit que pasó los tests por la API de Render y espera a `live` (D-039); se duerme sin tráfico (arranque en frío de 30–60 s), por eso `keepalive.yml` hace ping a `/api/salud` |
 | Base | Supabase: un proyecto de piloto y uno de staging | El plan gratis **se pausa tras ~7 días sin actividad**: despausarlo antes de las pruebas de campo y de la defensa |
 
-Las migraciones se aplican con el migrador propio (`pnpm db:migrate`, D-020) y los sectores con `pnpm db:seed`. En Supabase, PostGIS vive en el esquema `extensions`; la conexión fija `search_path=public,extensions` para que el mismo SQL corra en local y en la nube.
+Las migraciones se aplican con el migrador propio (`pnpm db:migrate`, D-020) y la zona con `pnpm db:seed`; los sectores (celdas H3) los crea el registro del primer vecino de cada una (D-040). En Supabase, PostGIS vive en el esquema `extensions`; la conexión fija `search_path=public,extensions` para que el mismo SQL corra en local y en la nube.
