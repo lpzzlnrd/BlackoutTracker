@@ -11,7 +11,7 @@ import {
   validarCredenciales,
   type ErroresCredenciales,
 } from '../dominio/credenciales';
-import { navegar, useRuta, type Ruta } from '../navegacion/ruta';
+import { navegar, useParametro, useRuta, type Ruta } from '../navegacion/ruta';
 
 type Modo = 'entrar' | 'crear';
 
@@ -23,7 +23,9 @@ type Modo = 'entrar' | 'crear';
 export function PantallaEntrar({ siguiente = '/' }: { siguiente?: Ruta }) {
   const { sesion } = usePuertos();
   const ruta = useRuta();
-  const [modo, setModo] = useState<Modo>('entrar');
+  // `?modo=crear` abre directo en "Crear cuenta" (el botón de la guía, D-041).
+  const pedido = useParametro('modo');
+  const [modo, setModo] = useState<Modo>(pedido === 'crear' ? 'crear' : 'entrar');
   const [correo, setCorreo] = useState('');
   const [clave, setClave] = useState('');
   const [errores, setErrores] = useState<ErroresCredenciales>({});

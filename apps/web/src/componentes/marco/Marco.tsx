@@ -29,9 +29,9 @@ const NAVEGACION: readonly ElementoNav[] = [
   { ruta: '/cuenta', texto: 'Cuenta', icono: 'user' },
 ];
 
-/** Entrar y registrarse cuelgan de Cuenta. */
+/** Entrar, registrarse y la guía cuelgan de Cuenta. */
 const seccionActiva = (ruta: Ruta): Ruta =>
-  ruta === '/entrar' || ruta === '/registro' ? '/cuenta' : ruta;
+  ruta === '/entrar' || ruta === '/registro' || ruta === '/guia' ? '/cuenta' : ruta;
 
 export function Marco({ children, pie }: { children: ReactNode; pie?: ReactNode }) {
   const { conexion } = usePuertos();
