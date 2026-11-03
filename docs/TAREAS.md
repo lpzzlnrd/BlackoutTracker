@@ -13,8 +13,9 @@
 - **Frontend (27-oct, Leonardo lo pidió para las 18:00):** rama `feat/F-002-frontend` sobre F-001 con `staging` integrado; un commit por sección: **S0** base + Docker [x], **S1** cuenta y registro [x], **S2** mapa [x], **S3** reportar y cola [x], **S4** panel [x], **S5** PWA y pruebas E2E [x] (S1–S5 en un commit). D-028 (flat), D-029 (mirar es público), D-030 (un solo `.env`), D-031 a D-034 (propuestas de las pantallas). Falta: probar contra Supabase real (la `DATABASE_URL` del `.env` no autentica) y desplegar en Render y Vercel.
 - **Rediseño (27-oct):** F-003 en `feat/F-003-rediseno-flat`, apilada sobre #40, un commit por sección (R1 a R5): acento de tinta, barra superior, Bricolage Grotesque, bloque de estado con el consenso, barra de la estimación, panel con resumen y Reportar con tarjetas por servicio (D-038).
 - **Despliegue (27-oct, T-053 en curso):** API en Render desde `main`; CI/CD con `prod-api` y `prod-web` (D-039). Falta la web en Vercel.
-- **Gran Valencia (3-nov, T-070):** tesis presentada; el sistema deja Guaparo y cubre la Gran Valencia con sectores H3 (D-040). Rama `feat/T-070-gran-valencia` desde `main`, un commit por sección: **S1** datos y API [x], **S2** web [x], **S3** documentación y Supabase [x]. Supabase vaciado (sin usuarios reales), migrado a la 0004 y con la zona sembrada. Falta: PR a `main` (despliega API y web). Después: el onboarding de usuarios nuevos (T-071).
-- **Última actualización:** 2026-11-03. T-070 en `feat/T-070-gran-valencia`; `main` tiene F-002, F-003, T-053 y #50.
+- **Gran Valencia (3-nov, T-070):** tesis presentada; el sistema deja Guaparo y cubre la Gran Valencia con sectores H3 (D-040). Rama `feat/T-070-gran-valencia` desde `main`, un commit por sección: **S1** datos y API [x], **S2** web [x], **S3** documentación y Supabase [x]. Supabase vaciado (sin usuarios reales), migrado a la 0004 y con la zona sembrada. PR #56 fusionado en `main` el 3-nov; el CI/CD desplegó API y web.
+- **Onboarding (3-nov, T-071):** rama `feat/T-071-onboarding` desde `main`, un commit por sección: **S1** bienvenida y guía en la web [x], **S2** `docs/operacion.md`, D-041 y documentación [x]. Falta: PR a `main`. Pendiente de decidir: la baja de un vecino (D-041 c).
+- **Última actualización:** 2026-11-03. T-071 en `feat/T-071-onboarding`; `main` tiene F-002, F-003, T-053, #50 y T-070 (#56).
 
 ---
 
@@ -188,6 +189,17 @@
 - [x] **T-070 · La Gran Valencia con sectores H3** (L) — D-040
   Quitar el límite de Guaparo: zona de cobertura con los cinco municipios de la ciudad (OSM), sectores que son celdas H3 de resolución 8 y nacen con su primer residente, nombres por el lugar de OSM más cercano, y el mapa y el registro de la web para eso.
   *Nota (hecha):* **S1 (API):** migración 0004 (`municipios`, `lugares` con RLS deny-all; `sectores.celda_h3` y `sectores.municipio_id`, exige la tabla vacía), `h3-js`, `src/sectores/h3.puro.ts` y `ubicacion.ts` (ubicar, previsualizar y `asegurarSector` con candado dentro de la transacción del registro), `GET /zona`, `validar-pin` con el hexágono y `sectorId: null`, `PIN_FUERA_DE_ZONA`, `pnpm db:seed` = zona (`scripts/seed-zona.ts`, `src/db/sembrar-zona.ts`), demo con cinco sectores en tres municipios, tests sobre cuatro celdas de prueba (`test/fixtures/puntos.ts`, `zona-seed.e2e-spec.ts`, registro, privacidad con `/zona`). **S2 (web):** registro contra el contorno de la zona con el hexágono en el paso 2, máscara del contorno, encuadre del casco urbano, "Ver toda la Gran Valencia", estado vacío, sin marcador por debajo de 32 px, `useZona`, recarga de sectores por Realtime y tras registrarse, service worker con `/api/sectores` en red primero, paleta mixta del sistema de diseño de Claude Design, demo con hexágonos y `&vecino=nuevo`. **S3:** D-040, documentación y Supabase (migración 0004 + `pnpm db:seed`, 3-nov).
-- [ ] **T-071 · Onboarding de usuarios nuevos** (M)
+- [x] **T-071 · Onboarding de usuarios nuevos** (M) — D-041
   Al entrar por primera vez, un modal "¿Nuevo en BlackoutTracker?" y una guía paso a paso (crear cuenta, marcar la vivienda, reportar un corte, el consenso, la estimación, el modo sin conexión). Claude propone el diseño antes de programar. Pendiente: qué es "administrador" (el sistema no tiene ese rol, NF).
+  *Nota (hecha):* Leonardo eligió la opción A (modal + pantalla `/guia`) y aclaró que el "administrador" es él como mantenedor: no hay rol nuevo. **S1 (web):**
+  - `guia/Bienvenida.tsx`: `<dialog>` nativo, la primera vez sin sesión, recordado en `localStorage`.
+  - `guia/PantallaGuia.tsx`: "Cómo funciona", con 7 pasos, ejemplos con las piezas reales, los pasos hechos marcados y el botón final según lo que falte.
+  - `aplicacion/bienvenida.ts`: la lógica pura.
+  - La guía en Cuenta, `/entrar?modo=crear` y la demo `&vecino=visitante`.
+  - Tests: `bienvenida.test.ts`, `leerModo`, `e2e/pruebas/guia.spec.ts` (modal, Escape, foco, Cuenta y axe con el modal abierto) y `/guia` en las pruebas de 320 px y axe.
+
+  **S2:**
+  - `docs/operacion.md`, la guía del mantenedor: qué está en marcha, la revisión semanal, publicar y volver atrás, migrar, sembrar (el seed de demo no se frena solo con la URL de Supabase), Supabase pausado, API, web, cuentas y privacidad, rotar claves y una tabla de síntomas.
+  - D-041.
+  - Los textos nuevos en `CANON.md` §7.2.
 

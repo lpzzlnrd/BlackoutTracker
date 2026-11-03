@@ -178,3 +178,26 @@ Un reporte abierto hace más de **48 h** se marca `vencido`: deja de contar para
 5. **Web:** la máscara sigue el contorno de la zona y no un hueco por hexágono (con sectores bajo demanda, eso apagaría casi toda la ciudad); el encuadre de partida es el casco urbano; un hexágono de menos de 32 px en pantalla va sin nombre ni insignia; sin sectores, el mapa invita a marcar la vivienda. Se adopta la paleta mixta del sistema de diseño de Claude Design (<https://claude.ai/artifact/BWjmayMB5nGfY6yrGNjZiF>, privado): los neutros cálidos de "papel y tinta" con los estados verificados y el foco azul del repo.
 6. **Demo y tests:** la demo de la API usa cinco sectores (Guaparo, La Viña, Parque Naguanagua, Tocuyito y Flor Amarillo, en tres municipios); la de la web, cuatro hexágonos sobre Guaparo y `&vecino=nuevo` para el registro. Los tests de la API crean cuatro celdas vecinas con nombres fijos (`test/fixtures/puntos.ts`).
 **Consecuencias:** (a) Privacidad: que exista un hexágono revela que hay al menos un vecino registrado en unos 0,65 km², no quién ni dónde; se acepta. (b) Con pocos usuarios muchos sectores tendrán uno o dos vecinos y no llegarán a N = 3: es el costo de cubrir una ciudad entera, y la resolución 8 lo atenúa frente a la 9 (0,1 km²). (c) El dataset de campo (T-044) referencia sectores por nombre: sus filas tienen que usar nombres de sectores que ya existan. (d) Sale del "fuera de alcance" de la propuesta ("escalar a otras urbanizaciones"); para la tesis, Guaparo sigue siendo el piloto de campo y la Gran Valencia es lo que cubre el sistema. (e) Reemplaza D-005 y D-036; D-002 sigue valiendo para el borde de la zona.
+
+### D-041 · Bienvenida y guía para vecinos nuevos; el "administrador" es el mantenedor — **Decidida por Leonardo** (T-071, 3-nov-2026)
+**Contexto:** Leonardo pidió una interfaz para las personas nuevas, "ya sean administradores como yo o personas públicas que solo crean su cuenta para contribuir": un modal la primera vez ("¿Nuevo en BlackoutTracker?") y una guía paso a paso. El sistema no tiene rol de administrador (requisito no funcional: el consenso reemplaza al moderador). Se le preguntó qué esperaba y respondió que se refería a él como mantenedor. Para la guía se compararon tres formas: un modal que lleva a una pantalla `/guia` (A), un carrusel dentro del modal (B) y un recorrido que resalta las piezas reales de la app (C, de 2 a 3 sesiones y frágil con Leaflet y los dos diseños). Eligió A.
+**Decisión:**
+1. **No hay rol nuevo.** El mantenedor trabaja fuera de la app, en Supabase, Render, Vercel y GitHub. Su guía es `docs/operacion.md`, y la de la app es solo para vecinos.
+2. **Modal de bienvenida:** un `<dialog>` nativo con `showModal()`, que atrapa el foco, cierra con Escape y va por encima del mapa. Sale la primera vez que alguien entra **sin sesión**, en cualquier pantalla salvo la guía. Quien ya tiene cuenta no es nuevo, y si la sesión llega tarde, el modal se cierra solo. Cualquier salida ("Ver la guía", "Ahora no", Escape o abrir `/guia`) lo marca como visto en el dispositivo (`localStorage`, clave `bienvenida-vista`). Sin almacenamiento, se recuerda mientras la pestaña siga abierta.
+3. **Guía `/guia` ("Cómo funciona"):** siete pasos con un `h2` cada uno:
+   - mirar el mapa sin cuenta;
+   - crear la cuenta;
+   - marcar la vivienda;
+   - avisar cuando se va y cuando vuelve;
+   - cómo se confirma un corte (N vecinos dentro de la ventana de cada servicio);
+   - cuánto suele durar (la mediana con su n; con menos de n_min cortes no hay cifra);
+   - sin conexión.
+
+   Los ejemplos usan las piezas reales (chips de estado, consenso, `BloqueEstimacion`, `ChipSync`) con datos inventados, siempre bajo el rótulo "Ejemplo". Los pasos que el vecino ya hizo salen marcados en neutro, porque el color con croma solo significa estado (CANON §1.1). Al final hay un botón según lo que le falte: "Crear cuenta", "Marcar mi vivienda" o "Reportar un corte". N y n_min salen de la configuración, y las ventanas, de `@blackout/shared`.
+4. **Accesos:** la guía queda siempre en Cuenta → "Cómo funciona" y cuelga de esa sección en la navegación. `/entrar?modo=crear` abre directo en "Crear cuenta".
+5. **Demo:** `&vecino=visitante` arranca sin sesión, sin vivienda, sin corte propio y con la cola vacía, para mostrar la primera visita.
+
+**Consecuencias:**
+- (a) La bienvenida no vuelve a salir en un dispositivo donde ya se vio, aunque se cierre sesión. Para volver a verla hay que borrar los datos del sitio.
+- (b) Las pruebas E2E existentes no la ven, porque la demo arranca con sesión. Las suyas están en `e2e/pruebas/guia.spec.ts`.
+- (c) Al escribir `docs/operacion.md` apareció un hueco: no hay procedimiento para dar de baja a un vecino. `residentes` no tiene clave foránea a `auth.users`, y `reportes` apunta a `residentes` sin cascada. Hay que decidirlo antes de la primera baja.
