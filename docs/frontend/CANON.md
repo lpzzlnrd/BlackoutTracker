@@ -424,6 +424,9 @@ Reglas:
 | Tabla de sectores              | Sectores · Luz · Sector · Estado · Desde · {n} sectores · actualizado a las {hora}                      | C         |
 | Instalar la app                | Instalar BlackoutTracker · Se abre como una app y sigue funcionando sin conexión. · Instalar            | A         |
 | Versión nueva                  | Hay una versión nueva de la app · Actualizar                                                            | B         |
+| Bienvenida _(D-041)_           | ¿Nuevo en BlackoutTracker? · Te mostramos el paso a paso: cómo leer el mapa, crear tu cuenta y avisar cuando se va la luz o el agua en tu sector. · Ver la guía · Ahora no · Puedes verla cuando quieras en Cuenta. | A |
+| Guía _(D-041)_                 | Cómo funciona · Mira el mapa, sin cuenta · Crea tu cuenta · Marca tu vivienda, una sola vez · Avisa cuando se va y cuando vuelve · Cómo se confirma un corte · Cuánto suele durar · Sin conexión también cuenta · Ejemplo · Ya tienes cuenta · Tu sector: {nombre} · Empieza ahora | A |
+| Cuenta, guía _(D-041)_         | Cómo funciona · La guía paso a paso: el mapa, tu cuenta, cómo avisar de un corte y cómo se confirma. · Ver la guía | A |
 | Mapa                           | `aria-label` "Mapa de sectores: …" · © OpenStreetMap contributors                                       | todas     |
 
 ---

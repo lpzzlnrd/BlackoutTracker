@@ -4,7 +4,7 @@ import { expect, test, type Page } from '@playwright/test';
 // Recorrido de la PWA con los datos de ejemplo (`?demo=`, CANON §11): no necesita Supabase ni
 // la API, así que siempre da el mismo resultado. Corre en teléfono (Pixel 7) y en escritorio.
 
-const RUTAS = ['/', '/panel', '/reportar', '/avisos', '/cuenta'] as const;
+const RUTAS = ['/', '/panel', '/reportar', '/avisos', '/cuenta', '/guia'] as const;
 
 const navPrincipal = (page: Page) =>
   page.getByRole('navigation', { name: 'Principal' }).locator('visible=true');

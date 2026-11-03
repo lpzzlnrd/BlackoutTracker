@@ -19,4 +19,12 @@ describe('leerModo', () => {
       vecinoNuevo: true,
     });
   });
+
+  it('D-041: &vecino=visitante abre la demo sin sesión (la bienvenida de la primera visita)', () => {
+    expect(leerModo('?demo=en-linea&vecino=visitante')).toEqual({
+      tipo: 'demo',
+      escenario: 'en-linea',
+      visitante: true,
+    });
+  });
 });

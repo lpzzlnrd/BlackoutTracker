@@ -1,9 +1,10 @@
 import { useSyncExternalStore, type AnchorHTMLAttributes, type MouseEvent } from 'react';
 
-// Enrutador mínimo con la History API: la app tiene siete pantallas y no necesita más. nginx (Docker)
+// Enrutador mínimo con la History API: la app tiene ocho pantallas y no necesita más. nginx (Docker)
 // y Vercel devuelven `index.html` en cualquier ruta, y el service worker hace lo mismo sin red.
 
-export type Ruta = '/' | '/panel' | '/reportar' | '/avisos' | '/cuenta' | '/entrar' | '/registro';
+export type Ruta =
+  '/' | '/panel' | '/reportar' | '/avisos' | '/cuenta' | '/entrar' | '/registro' | '/guia';
 
 const RUTAS: readonly Ruta[] = [
   '/',
@@ -13,6 +14,7 @@ const RUTAS: readonly Ruta[] = [
   '/cuenta',
   '/entrar',
   '/registro',
+  '/guia',
 ];
 
 const oyentes = new Set<() => void>();

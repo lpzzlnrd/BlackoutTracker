@@ -16,13 +16,31 @@ const ENLACE_PRIMARIO =
 const ENLACE_SECUNDARIO =
   'inline-flex h-11 items-center justify-center gap-2 rounded-control border border-borde-control bg-superficie px-4 text-sm font-semibold text-texto';
 
-/** Cuenta: entrar si no hay sesión; si la hay, el correo, el sector y cerrar sesión. */
+/**
+ * Cuenta: entrar si no hay sesión; si la hay, el correo, el sector y cerrar sesión. Con o sin
+ * sesión, la guía "Cómo funciona" (D-041) y las preferencias.
+ */
 export function PantallaCuenta() {
   const usuario = useSesion();
   return (
     <Contenido>
       <EncabezadoPantalla titulo="Cuenta" />
       {usuario ? <ConSesion correo={usuario.correo} /> : <SinSesion />}
+      <section
+        aria-labelledby="titulo-guia"
+        className="flex flex-col gap-3 rounded-tarjeta border border-borde bg-superficie p-4 lg:p-6"
+      >
+        <h2 id="titulo-guia" className="text-lg leading-tight font-bold">
+          Cómo funciona
+        </h2>
+        <p className="text-sm text-secundario">
+          La guía paso a paso: el mapa, tu cuenta, cómo avisar de un corte y cómo se confirma.
+        </p>
+        <Enlace a="/guia" className={`${ENLACE_SECUNDARIO} self-start`}>
+          <Icono nombre="help-circle" tamano={18} />
+          Ver la guía
+        </Enlace>
+      </section>
       <section className="flex flex-col gap-4 rounded-tarjeta border border-borde bg-superficie p-4 lg:p-6">
         <h2 className="text-lg leading-tight font-bold">Preferencias</h2>
         <SelectorTema />

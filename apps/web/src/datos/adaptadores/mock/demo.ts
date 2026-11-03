@@ -33,6 +33,11 @@ export interface OpcionesDemo {
   latenciaMs?: number;
   /** El vecino tiene cuenta pero todavía no marcó su vivienda (`&vecino=nuevo`). */
   vecinoNuevo?: boolean;
+  /**
+   * Entra alguien sin cuenta (`&vecino=visitante`, D-041): sin sesión, sin vivienda, sin el corte
+   * propio abierto y con la cola vacía. Si crea la cuenta, sigue como un vecino nuevo.
+   */
+  visitante?: boolean;
 }
 
 /**
@@ -44,7 +49,7 @@ export function crearPuertosDemo(
   datos: DatosEjemplo,
   geoJson: SectoresGeoJsonDto,
   zona: ZonaDto,
-  { escenario, latenciaMs = 0, vecinoNuevo = false }: OpcionesDemo,
+  { escenario, latenciaMs = 0, vecinoNuevo = false, visitante = false }: OpcionesDemo,
 ): PuertosDemo {
   const inicio = datos.escenarios[escenario];
   const reloj = crearRelojMock(datos.ahora);
@@ -54,12 +59,12 @@ export function crearPuertosDemo(
   });
   const entorno: EntornoMock = { reloj, conexion, latenciaMs };
 
-  const sesion = crearSesionMock();
+  const sesion = crearSesionMock(visitante ? null : undefined);
   const sector = datos.sectores.find((s) => s.id === datos.residente.sectorId);
   const residente = crearRepositorioResidenteMock(
     geoJson,
     zona,
-    sector && !vecinoNuevo
+    sector && !vecinoNuevo && !visitante
       ? { sectorId: sector.id, sectorNombre: sector.nombre, municipio: 'Valencia' }
       : null,
     entorno,
@@ -67,19 +72,20 @@ export function crearPuertosDemo(
 
   // El corte de luz que el vecino ya reportó y que el aviso pendiente cierra (CON-06).
   const corteAbierto = datos.eventos.find((e) => e.finEn === null);
-  const semilla: ReporteDto[] = corteAbierto
-    ? [
-        {
-          id: ID_REPORTE_ABIERTO_DEMO,
-          tipoServicio: corteAbierto.tipoServicio,
-          sectorId: corteAbierto.sectorId,
-          inicioEn: corteAbierto.inicioEn,
-          finEn: null,
-          duracionMin: null,
-          recibidoEn: corteAbierto.inicioEn,
-        },
-      ]
-    : [];
+  const semilla: ReporteDto[] =
+    corteAbierto && !visitante
+      ? [
+          {
+            id: ID_REPORTE_ABIERTO_DEMO,
+            tipoServicio: corteAbierto.tipoServicio,
+            sectorId: corteAbierto.sectorId,
+            inicioEn: corteAbierto.inicioEn,
+            finEn: null,
+            duracionMin: null,
+            recibidoEn: corteAbierto.inicioEn,
+          },
+        ]
+      : [];
 
   return {
     reloj,
@@ -98,6 +104,6 @@ export function crearPuertosDemo(
     estimaciones: crearRepositorioEstimacionesMock(datos.estimaciones, entorno),
     detalleSector: crearRepositorioDetalleSectorMock(datos, entorno),
     estadosSector: crearEstadosSectorMock(datos.estados, inicio.ultimaSincronizacion, entorno),
-    colaAvisos: crearColaAvisosMock(normalizarCola(inicio.cola)),
+    colaAvisos: crearColaAvisosMock(visitante ? [] : normalizarCola(inicio.cola)),
   };
 }

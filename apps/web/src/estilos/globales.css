@@ -133,6 +133,13 @@
   }
 }
 
+/*
+  El velo detrás del modal de bienvenida (D-041): tinta translúcida, la misma en los dos temas.
+  El preflight de Tailwind también limpia el ::backdrop, así que se pone aquí.
+*/
+dialog.bienvenida::backdrop {
+  background: rgb(18 19 23 / 0.6);
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
