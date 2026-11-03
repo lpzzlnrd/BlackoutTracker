@@ -7,7 +7,14 @@ import { estadoSector, eventosSector, reportes, residentes, sectores } from '../
 import { abrirBd, type BdTest, codigoPg, cuadrado, limpiar } from './bd';
 
 const SIN_PERMISO = '42501';
-const TABLAS_PRIVADAS = ['sectores', 'residentes', 'reportes', 'eventos_sector'] as const;
+const TABLAS_PRIVADAS = [
+  'sectores',
+  'residentes',
+  'reportes',
+  'eventos_sector',
+  'municipios',
+  'lugares',
+] as const;
 const ROLES = ['anon', 'authenticated'] as const;
 
 /** Sirve para sacar un valor de una transacción que se revierte siempre (los GRANT y los CREATE no sobreviven). */
@@ -54,6 +61,9 @@ describe('RLS deny-all y Realtime (T-011, NF-06)', () => {
       .insert(sectores)
       .values({
         nombre: 'Sector de prueba',
+        // Una celda cualquiera: este test no pasa por el registro (D-040).
+        celdaH3: '8867432a21fffff',
+        municipioId: sqlDrizzle`(select min(id) from municipios)`,
         geom: sqlDrizzle`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(cuadrado(-68.0, 10.2))}), 4326)`,
       })
       .returning({ id: sectores.id });
@@ -79,13 +89,14 @@ describe('RLS deny-all y Realtime (T-011, NF-06)', () => {
     await bd.db.insert(estadoSector).values({ sectorId: sector.id, tipoServicio: 'agua' });
   });
 
-  it('NF-06: RLS está activada en las cinco tablas', async () => {
+  it('NF-06: RLS está activada en las siete tablas', async () => {
     const filas = await bd.sql<{ relname: string; relrowsecurity: boolean }[]>`
       select c.relname, c.relrowsecurity
       from pg_class c join pg_namespace n on n.oid = c.relnamespace
       where n.nspname = 'public'
-        and c.relname in ('sectores', 'residentes', 'reportes', 'eventos_sector', 'estado_sector')`;
-    expect(filas).toHaveLength(5);
+        and c.relname in ('sectores', 'residentes', 'reportes', 'eventos_sector', 'estado_sector',
+                          'municipios', 'lugares')`;
+    expect(filas).toHaveLength(7);
     expect(filas.filter((f) => !f.relrowsecurity)).toEqual([]);
   });
 
@@ -132,7 +143,7 @@ describe('RLS deny-all y Realtime (T-011, NF-06)', () => {
           TABLAS_PRIVADAS.map(async (tabla) => (await tx.unsafe(`select * from ${tabla}`)).length),
         );
       });
-      expect(filas).toEqual([0, 0, 0, 0]);
+      expect(filas).toEqual(TABLAS_PRIVADAS.map(() => 0));
     });
   });
 

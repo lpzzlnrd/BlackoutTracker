@@ -1,4 +1,9 @@
-import { CodigoError, type SectorAsignadoDto, type TipoServicio } from '@blackout/shared';
+import {
+  CodigoError,
+  type SectorAsignadoDto,
+  type SectoresGeoJsonDto,
+  type TipoServicio,
+} from '@blackout/shared';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { ErrorApiCliente } from '../dominio/errores';
@@ -10,6 +15,7 @@ import { useObservable, usePuertos } from './contexto';
 
 export const claves = {
   sectores: ['sectores'] as const,
+  zona: ['zona'] as const,
   estados: ['estados-sector'] as const,
   cola: ['cola-avisos'] as const,
   configuracion: ['configuracion'] as const,
@@ -22,12 +28,25 @@ export const claves = {
     ['historial', sectorId, servicio ?? 'todos'] as const,
 };
 
-/** `GET /sectores`: casi nunca cambia, así que no se vuelve a pedir por su cuenta. */
+/**
+ * `GET /sectores`: los hexágonos con vecinos. Solo crece cuando se registra el primer vecino de una
+ * celda, y eso lo avisan el propio registro y Realtime (`useEstadosSector`): no se pide por su cuenta.
+ */
 export function useSectores() {
   const { sectores } = usePuertos();
   return useQuery({
     queryKey: claves.sectores,
     queryFn: () => sectores.obtenerGeoJson(),
+    staleTime: Infinity,
+  });
+}
+
+/** `GET /zona`: el contorno de la Gran Valencia. Solo cambia con un nuevo seed (D-040). */
+export function useZona() {
+  const { sectores } = usePuertos();
+  return useQuery({
+    queryKey: claves.zona,
+    queryFn: () => sectores.obtenerZona(),
     staleTime: Infinity,
   });
 }
@@ -53,6 +72,11 @@ export function useEstadosSector() {
         void cliente.invalidateQueries({ queryKey: claves.resumen(fila.sectorId) });
         void cliente.invalidateQueries({ queryKey: ['estimacion', fila.sectorId] });
         void cliente.invalidateQueries({ queryKey: ['historial', fila.sectorId] });
+        // Un sector que el mapa no conoce: lo acaba de crear el registro de su primer vecino.
+        const conocidos = cliente.getQueryData<SectoresGeoJsonDto>(claves.sectores);
+        if (conocidos && !conocidos.features.some((f) => f.properties.id === fila.sectorId)) {
+          void cliente.invalidateQueries({ queryKey: claves.sectores });
+        }
       }),
     [estadosSector, cliente],
   );

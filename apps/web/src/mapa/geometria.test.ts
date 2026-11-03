@@ -7,7 +7,7 @@ import { anchoNombre, escaparHtml, marcadorSector } from './marcador';
 const sector = (anillo: [number, number][]): SectorFeatureDto => ({
   type: 'Feature',
   id: 1,
-  properties: { id: 1, nombre: 'Sector 1' },
+  properties: { id: 1, nombre: 'Sector 1', municipio: 'Valencia' },
   geometry: { type: 'MultiPolygon', coordinates: [[anillo]] },
 });
 
@@ -118,10 +118,10 @@ describe('anchoNombre', () => {
     expect(anchoNombre('Norte', 18)).toBeGreaterThan(corto);
   });
 
-  it('VIS-05: "Guaparo Noroeste" no cabe en un sector de 160 px de ancho a 16 px; "Noroeste" sí', () => {
-    // El caso de la captura del 27-oct: con el zoom alejado, los nombres vecinos se pisaban. La
-    // píldora de D-038 suma la insignia y el relleno al texto.
-    expect(anchoNombre('Guaparo Noroeste', 16)).toBeGreaterThan(160);
-    expect(anchoNombre('Noroeste', 16)).toBeLessThanOrEqual(160);
+  it('VIS-05: "Conjunto Residencial Bella Vista" no cabe en 160 px a 16 px; "La Viña" sí', () => {
+    // Con el zoom alejado, los nombres largos de OSM pisarían a los vecinos (D-040). La píldora
+    // de D-038 suma la insignia y el relleno al texto.
+    expect(anchoNombre('Conjunto Residencial Bella Vista', 16)).toBeGreaterThan(160);
+    expect(anchoNombre('La Viña', 16)).toBeLessThanOrEqual(160);
   });
 });

@@ -21,7 +21,7 @@ Del proyecto ([`CLAUDE.md`](../../CLAUDE.md) §2 y §7):
   "id": "/",
   "name": "BlackoutTracker",
   "short_name": "Blackout",
-  "description": "Cortes de agua y luz en Guaparo, reportados por los vecinos.",
+  "description": "Cortes de agua y luz en la Gran Valencia, reportados por los vecinos.",
   "lang": "es-VE",
   "start_url": "/",
   "scope": "/",

@@ -1,15 +1,12 @@
 import { randomUUID } from 'node:crypto';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { CLAVES_JWT } from '../src/auth/claves-jwt';
 import { configurarApp } from '../src/configurar-app';
-import { leerSectores, sembrarSectores } from '../src/db/sembrar-sectores';
 import { RELOJ } from '../src/reportes/reportes.service';
-import { abrirBd, type BdTest, limpiar } from './bd';
+import { abrirBd, type BdTest, crearSectoresDePrueba, limpiar } from './bd';
 import { EmisorJwt } from './jwt';
 
 export interface ResidentePrueba {
@@ -64,15 +61,13 @@ export class Contexto {
   }
 
   /**
-   * Vacía la base, siembra los sectores y fija `ahora` al reloj real. Por defecto, la cuadrícula de
-   * pruebas (la de los puntos de `fixtures/puntos.ts`); la demo usa el Guaparo real.
+   * Vacía la base, crea los 4 sectores de prueba de `fixtures/puntos.ts` (ids 1 a 4) y fija `ahora`
+   * al reloj real. Con `sinSectores` no crea ninguno (la demo y el registro crean los suyos). La
+   * zona y los lugares no se tocan: los siembra `global-setup.ts` una vez.
    */
-  async reiniciar(archivo = 'sectores-cuadricula.geojson'): Promise<void> {
+  async reiniciar({ sinSectores = false } = {}): Promise<void> {
     await limpiar(this.bd.sql);
-    const geojson: unknown = JSON.parse(
-      readFileSync(join(__dirname, '../../../data', archivo), 'utf-8'),
-    );
-    await sembrarSectores(this.bd.sql, leerSectores(geojson));
+    if (!sinSectores) await crearSectoresDePrueba(this.bd.db);
     this.ahora = new Date();
   }
 

@@ -4,8 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { importarCampo } from '../src/db/importar-campo';
-import { leerSectores, sembrarSectores } from '../src/db/sembrar-sectores';
-import { abrirBd, type BdTest, limpiar } from './bd';
+import { abrirBd, type BdTest, crearSectoresDePrueba, limpiar } from './bd';
 import { URL_BD_TEST } from './entorno';
 import { ID_SECTOR } from './fixtures/puntos';
 
@@ -29,10 +28,7 @@ describe('importación del dataset de campo (T-044)', () => {
   afterAll(() => bd.sql.end());
   beforeEach(async () => {
     await limpiar(bd.sql);
-    const geojson: unknown = JSON.parse(
-      readFileSync(join(RAIZ, 'data/sectores-cuadricula.geojson'), 'utf-8'),
-    );
-    await sembrarSectores(bd.sql, leerSectores(geojson));
+    await crearSectoresDePrueba(bd.db);
   });
 
   it('carga el CSV de ejemplo como eventos cerrados de origen campo', async () => {
@@ -65,11 +61,11 @@ describe('importación del dataset de campo (T-044)', () => {
   });
 
   it('un CSV ampliado solo agrega las filas nuevas', async () => {
-    const fila = 'Guaparo Sureste,agua,2026-09-05T05:00Z,2026-09-05T21:00Z';
+    const fila = 'Sureste,agua,2026-09-05T05:00Z,2026-09-05T21:00Z';
     await importarCampo(bd.sql, csv(fila), AHORA);
     const res = await importarCampo(
       bd.sql,
-      csv(fila, 'Guaparo Sureste,agua,2026-09-07T05:00Z,2026-09-07T21:00Z'),
+      csv(fila, 'Sureste,agua,2026-09-07T05:00Z,2026-09-07T21:00Z'),
       AHORA,
     );
     expect(res).toEqual({ insertadas: 1, yaCargadas: 1, invalidas: [] });
@@ -79,9 +75,9 @@ describe('importación del dataset de campo (T-044)', () => {
     const res = await importarCampo(
       bd.sql,
       csv(
-        'Guaparo Sureste,agua,2026-09-05T05:00Z,2026-09-05T21:00Z',
+        'Sureste,agua,2026-09-05T05:00Z,2026-09-05T21:00Z',
         'Trigal,agua,2026-09-05T05:00Z,2026-09-05T21:00Z',
-        'Guaparo Sureste,agua,2026-09-07T21:00Z,2026-09-07T05:00Z',
+        'Sureste,agua,2026-09-07T21:00Z,2026-09-07T05:00Z',
       ),
       AHORA,
     );
@@ -97,9 +93,9 @@ describe('importación del dataset de campo (T-044)', () => {
     const res = await importarCampo(
       bd.sql,
       csv(
-        'Guaparo Sureste,agua,2026-10-24T10:00Z,2026-10-24T12:00Z',
-        'Guaparo Sureste,agua,2026-10-23T10:00Z,2026-10-23T12:00Z',
-        'Guaparo Sureste,electricidad,2026-10-24T10:00Z,2026-10-24T12:00Z',
+        'Sureste,agua,2026-10-24T10:00Z,2026-10-24T12:00Z',
+        'Sureste,agua,2026-10-23T10:00Z,2026-10-23T12:00Z',
+        'Sureste,electricidad,2026-10-24T10:00Z,2026-10-24T12:00Z',
       ),
       AHORA,
     );
@@ -121,8 +117,8 @@ describe('importación del dataset de campo (T-044)', () => {
     const res = await importarCampo(
       bd.sql,
       csv(
-        'Guaparo Sureste,agua,2026-10-21T10:00Z,2026-10-21T12:00Z',
-        'Guaparo Sureste,agua,2026-10-23T10:00Z,2026-10-23T12:00Z',
+        'Sureste,agua,2026-10-21T10:00Z,2026-10-21T12:00Z',
+        'Sureste,agua,2026-10-23T10:00Z,2026-10-23T12:00Z',
       ),
       AHORA,
     );
@@ -169,7 +165,7 @@ describe('importación del dataset de campo (T-044)', () => {
       const ruta = join(dir, 'campo.csv');
       writeFileSync(
         ruta,
-        csv('Guaparo Sureste,agua,2026-09-05T05:00Z,2026-09-05T21:00Z', 'Trigal,agua,x,y'),
+        csv('Sureste,agua,2026-09-05T05:00Z,2026-09-05T21:00Z', 'Trigal,agua,x,y'),
       );
       await expect(correr(ruta)).rejects.toMatchObject({
         code: 1,

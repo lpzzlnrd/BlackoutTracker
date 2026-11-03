@@ -2,7 +2,7 @@ import { execFile } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
-import { abrirCortesDemo, CORTES_DEMO } from '../src/db/demo';
+import { abrirCortesDemo, CORTES_DEMO, crearSectoresDemo } from '../src/db/demo';
 import { importarCampo } from '../src/db/importar-campo';
 import { ReportesService } from '../src/reportes/reportes.service';
 import { Contexto } from './contexto';
@@ -18,10 +18,11 @@ describe('seed de demo (T-061, D-027)', () => {
     ctx = await Contexto.crear();
   });
   afterAll(() => ctx.cerrar());
-  // La demo va sobre el Guaparo real: sus nombres son los de data/sectores-guaparo.geojson.
-  beforeEach(() => ctx.reiniciar('sectores-guaparo.geojson'));
+  // La demo crea sus propios sectores (SECTORES_DEMO, D-040): sin los de prueba.
+  beforeEach(() => ctx.reiniciar({ sinSectores: true }));
 
   const sembrar = async () => ({
+    sectores: await crearSectoresDemo(ctx.bd.db),
     historial: await importarCampo(ctx.bd.sql, DEMO, ctx.ahora),
     creados: await abrirCortesDemo(ctx.bd.sql, ctx.app.get(ReportesService), ctx.ahora),
   });
@@ -43,14 +44,16 @@ describe('seed de demo (T-061, D-027)', () => {
     await sembrar();
     const { token } = await ctx.residente(1);
     const esperado: Array<[string, string, number, boolean]> = [
-      ['Guaparo Noroeste', 'agua', 7, true],
-      ['Guaparo Noroeste', 'electricidad', 11, true],
-      ['Guaparo Calle 160', 'agua', 5, true],
-      ['Guaparo Calle 160', 'electricidad', 3, false],
-      ['Guaparo Suroeste', 'agua', 2, false],
-      ['Guaparo Suroeste', 'electricidad', 8, true],
-      ['Guaparo Sur', 'agua', 9, true],
-      ['Guaparo Sur', 'electricidad', 6, true],
+      ['Guaparo', 'agua', 7, true],
+      ['Guaparo', 'electricidad', 11, true],
+      ['Parque Naguanagua', 'agua', 5, true],
+      ['Parque Naguanagua', 'electricidad', 3, false],
+      ['Tocuyito', 'agua', 2, false],
+      ['Tocuyito', 'electricidad', 8, true],
+      ['La Viña', 'agua', 9, true],
+      ['La Viña', 'electricidad', 6, true],
+      ['Flor Amarillo', 'agua', 0, false],
+      ['Flor Amarillo', 'electricidad', 0, false],
     ];
     for (const [sector, tipo, n, suficiente] of esperado) {
       const res = await ctx
@@ -67,38 +70,38 @@ describe('seed de demo (T-061, D-027)', () => {
     }
   });
 
-  it('EST-03: el corte de luz de 30 h de Noroeste no arrastra la mediana', async () => {
+  it('EST-03: el corte de luz de 30 h de Guaparo no arrastra la mediana', async () => {
     await sembrar();
     const { token } = await ctx.residente(1);
     const res = await ctx
       .get(
-        `/api/estimaciones?sectorId=${await idSector('Guaparo Noroeste')}&tipoServicio=electricidad`,
+        `/api/estimaciones?sectorId=${await idSector('Guaparo')}&tipoServicio=electricidad`,
         token,
       )
       .expect(200);
-    // Las demás duraciones de luz de Noroeste están entre 1 y 5 h.
+    // Las demás duraciones de luz de Guaparo están entre 1 y 5 h.
     expect(res.body.medianaMin).toBeLessThanOrEqual(5 * 60);
   });
 
-  it('CON-02, CON-01: un corte de luz confirmado en Suroeste y 2 reportes de agua sin confirmar en Calle 160', async () => {
+  it('CON-02, CON-01: un corte de luz confirmado en Tocuyito y 2 reportes de agua sin confirmar en Parque Naguanagua', async () => {
     const { creados } = await sembrar();
     expect(creados).toBe(5);
     const [luz] = await ctx.bd.sql`
       select estado, reportes_sin_confirmar, evento_id from estado_sector
-      where sector_id = ${await idSector('Guaparo Suroeste')} and tipo_servicio = 'electricidad'`;
+      where sector_id = ${await idSector('Tocuyito')} and tipo_servicio = 'electricidad'`;
     expect(luz).toMatchObject({ estado: 'sin_servicio', reportes_sin_confirmar: 0 });
     expect(luz.evento_id).not.toBeNull();
     const [agua] = await ctx.bd.sql`
       select estado, reportes_sin_confirmar from estado_sector
-      where sector_id = ${await idSector('Guaparo Calle 160')} and tipo_servicio = 'agua'`;
+      where sector_id = ${await idSector('Parque Naguanagua')} and tipo_servicio = 'agua'`;
     expect(agua).toEqual({ estado: 'con_servicio', reportes_sin_confirmar: 2 });
   });
 
-  it('VIS-04: el panel de Suroeste muestra el corte de luz en curso y la estimación con su n', async () => {
+  it('VIS-04: el panel de Tocuyito muestra el corte de luz en curso y la estimación con su n', async () => {
     await sembrar();
     const { token } = await ctx.residente(1);
     const res = await ctx
-      .get(`/api/sectores/${await idSector('Guaparo Suroeste')}/resumen`, token)
+      .get(`/api/sectores/${await idSector('Tocuyito')}/resumen`, token)
       .expect(200);
     const luz = res.body.servicios.find(
       (s: { tipoServicio: string }) => s.tipoServicio === 'electricidad',
@@ -117,9 +120,12 @@ describe('seed de demo (T-061, D-027)', () => {
 
     const segunda = await sembrar();
     expect(segunda).toEqual({
+      sectores: 5,
       historial: { insertadas: 0, yaCargadas: 51, invalidas: [] },
       creados: 0,
     });
+    const [{ n }] = await ctx.bd.sql`select count(*)::int as n from sectores`;
+    expect(n).toBe(5);
     expect(await conteos()).toEqual(antes);
   });
 

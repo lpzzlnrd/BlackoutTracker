@@ -2,6 +2,8 @@ import { randomUUID } from 'node:crypto';
 import type { Sql } from 'postgres';
 import { type IniciarReporteSolicitud, type ReporteDto, TipoServicio } from '@blackout/shared';
 import type { PerfilResidente } from '../residentes/residentes.service';
+import { asegurarSector } from '../sectores/ubicacion';
+import type { BaseDeDatos } from './db.module';
 
 /**
  * Seed de demo (T-061, D-027). El historial sale de `data/demo.csv` por el importador de campo
@@ -17,6 +19,27 @@ export interface ReporteDemo {
   minutos: number;
 }
 
+/**
+ * Sectores de la demo (D-040): la celda H3 de un lugar de OSM de la Gran Valencia, con el nombre que
+ * el registro le daría (se fija igual, para que `demo.csv` los encuentre aunque cambien los lugares).
+ * Tres municipios; Flor Amarillo no tiene historial ("datos insuficientes" en los dos servicios).
+ */
+export const SECTORES_DEMO = [
+  { nombre: 'Guaparo', lat: 10.22786, lng: -68.01626 },
+  { nombre: 'La Viña', lat: 10.21577, lng: -68.01923 },
+  { nombre: 'Parque Naguanagua', lat: 10.25497, lng: -68.01007 },
+  { nombre: 'Tocuyito', lat: 10.10624, lng: -68.09422 },
+  { nombre: 'Flor Amarillo', lat: 10.14077, lng: -67.93611 },
+] as const;
+
+/** Crea (si no existen) los sectores de la demo por el mismo camino que el registro. */
+export async function crearSectoresDemo(db: BaseDeDatos): Promise<number> {
+  for (const { nombre, lat, lng } of SECTORES_DEMO) {
+    await db.transaction((tx) => asegurarSector(tx, lat, lng, nombre));
+  }
+  return SECTORES_DEMO.length;
+}
+
 export interface CorteDemo {
   sectorNombre: string;
   tipoServicio: TipoServicio;
@@ -24,14 +47,14 @@ export interface CorteDemo {
 }
 
 /**
- * Luz en Suroeste: 3 vecinos dentro de la ventana de 30 min → corte confirmado (CON-02).
- * Agua en Calle 160: 2 vecinos → "2 reportes sin confirmar" con N = 3 (CON-01). Con la ventana de agua
+ * Luz en Tocuyito: 3 vecinos dentro de la ventana de 30 min → corte confirmado (CON-02).
+ * Agua en Parque Naguanagua: 2 vecinos → "2 reportes sin confirmar" con N = 3 (CON-01). Con la ventana de agua
  * (180 min) ese aviso se ve hasta unas 3 h después de sembrar; el corte confirmado dura hasta que los
  * reportes vencen (48 h, D-015).
  */
 export const CORTES_DEMO: CorteDemo[] = [
   {
-    sectorNombre: 'Guaparo Suroeste',
+    sectorNombre: 'Tocuyito',
     tipoServicio: TipoServicio.Electricidad,
     reportes: [
       { residenteId: '00000000-0000-4000-8000-00000000de01', minutos: -40 },
@@ -40,7 +63,7 @@ export const CORTES_DEMO: CorteDemo[] = [
     ],
   },
   {
-    sectorNombre: 'Guaparo Calle 160',
+    sectorNombre: 'Parque Naguanagua',
     tipoServicio: TipoServicio.Agua,
     reportes: [
       { residenteId: '00000000-0000-4000-8000-00000000de04', minutos: -20 },
@@ -89,9 +112,11 @@ export function motivoParaNoSembrar(entorno: {
  * del polígono del sector, no la de nadie; igual que cualquier ubicación, nunca sale por la API.
  */
 async function residentesDemo(sql: Sql, corte: CorteDemo): Promise<PerfilResidente[]> {
-  const [sector] = await sql<{ id: number }[]>`
-    select id from sectores where nombre = ${corte.sectorNombre}`;
-  if (!sector) throw new Error(`No existe el sector ${corte.sectorNombre}: corre antes db:seed`);
+  const [sector] = await sql<{ id: number; municipio: string }[]>`
+    select s.id, m.nombre as municipio from sectores s join municipios m on m.id = s.municipio_id
+    where s.nombre = ${corte.sectorNombre}`;
+  if (!sector)
+    throw new Error(`No existe el sector ${corte.sectorNombre}: crea antes los de la demo`);
   for (const r of corte.reportes) {
     await sql`
       insert into residentes (id, sector_id, ubicacion)
@@ -103,6 +128,7 @@ async function residentesDemo(sql: Sql, corte: CorteDemo): Promise<PerfilResiden
     id: r.residenteId,
     sectorId: sector.id,
     sectorNombre: corte.sectorNombre,
+    municipio: sector.municipio,
   }));
 }
 

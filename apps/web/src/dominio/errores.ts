@@ -41,8 +41,8 @@ export function mensajeDeError(codigo: CodigoError | undefined, servicio?: TipoS
       return `Ya tienes un corte de ${servicio ? NOMBRE_SERVICIO[servicio] : 'ese servicio'} abierto. Ciérralo antes de avisar de otro.`;
     case CodigoError.ReporteConflicto:
       return 'No se pudo enviar este aviso. Vuelve a crearlo.';
-    case CodigoError.PinFueraDeGuaparo:
-      return 'Ese punto queda fuera de Guaparo. Mueve el pin sobre tu vivienda.';
+    case CodigoError.PinFueraDeZona:
+      return 'Ese punto queda fuera de la Gran Valencia. Mueve el pin sobre tu vivienda.';
     case CodigoError.HoraInvalida:
       return 'La hora no es válida. Revisa que no sea futura, muy antigua ni anterior al inicio.';
     case CodigoError.DemasiadasSolicitudes:

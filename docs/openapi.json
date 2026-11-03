@@ -36,16 +36,16 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SectorAsignadoRespuesta"
+                  "$ref": "#/components/schemas/PinValidadoRespuesta"
                 }
               }
             }
           },
           "422": {
-            "description": "PIN_FUERA_DE_GUAPARO"
+            "description": "PIN_FUERA_DE_ZONA"
           }
         },
-        "summary": "Valida que el pin esté dentro de Guaparo y dice en qué sector cae",
+        "summary": "Valida que el pin esté en la Gran Valencia y dice en qué sector (hexágono) quedaría, sin crearlo",
         "tags": [
           "registro"
         ]
@@ -80,7 +80,7 @@
             "description": "RESIDENTE_YA_REGISTRADO"
           },
           "422": {
-            "description": "PIN_FUERA_DE_GUAPARO"
+            "description": "PIN_FUERA_DE_ZONA"
           }
         },
         "security": [
@@ -88,7 +88,7 @@
             "bearer": []
           }
         ],
-        "summary": "Crea el perfil del residente con su pin (una sola vez)",
+        "summary": "Crea el perfil del residente con su pin (una sola vez) y, si es el primero, su sector",
         "tags": [
           "registro"
         ]
@@ -450,7 +450,32 @@
             "description": "DEMASIADAS_SOLICITUDES"
           }
         },
-        "summary": "Los sectores de Guaparo como GeoJSON (id, nombre y polígono)",
+        "summary": "Los sectores (hexágonos H3 con vecinos) como GeoJSON: id, nombre, municipio y polígono",
+        "tags": [
+          "sectores"
+        ]
+      }
+    },
+    "/api/zona": {
+      "get": {
+        "operationId": "SectoresController_zona",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZonaRespuesta"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "DEMASIADAS_SOLICITUDES"
+          }
+        },
+        "summary": "El contorno de la zona de cobertura (la Gran Valencia), simplificado para el mapa",
         "tags": [
           "sectores"
         ]
@@ -501,7 +526,7 @@
   },
   "info": {
     "title": "BlackoutTracker API",
-    "description": "Monitoreo colaborativo de cortes de agua y electricidad (piloto: Guaparo).\n\n## Contrato de sincronización (cola offline)\n\nQué hace el cliente con la respuesta de `PUT /reportes/:id` y `PATCH /reportes/:id/cierre`. Las dos operaciones son idempotentes, así que reintentar es seguro (OFF-05). Se guarda la hora del evento (`ocurridoEn`), no la del envío (OFF-03), y la cola envía en orden cronológico (OFF-04).\n\n| Respuesta | Qué hace el cliente |\n|---|---|\n| 2xx | Éxito: lo saca de la cola |\n| Sin respuesta (red caída o corte a mitad del envío), 5xx o 429 | Reintenta, con backoff |\n| 404 en un cierre (el inicio aún no llega) | Reintenta |\n| 400, 409 o 422 | Error permanente: lo saca de la cola, lo marca `error` y avisa al usuario |\n| 401 | Refresca la sesión y reintenta |\n\nTodo error lleva un campo `codigo` (enum `CodigoError` de `@blackout/shared`). La tabla está implementada en `accionDeRespuesta` (`@blackout/shared`).",
+    "description": "Monitoreo colaborativo de cortes de agua y electricidad en la Gran Valencia (Carabobo).\n\n## Contrato de sincronización (cola offline)\n\nQué hace el cliente con la respuesta de `PUT /reportes/:id` y `PATCH /reportes/:id/cierre`. Las dos operaciones son idempotentes, así que reintentar es seguro (OFF-05). Se guarda la hora del evento (`ocurridoEn`), no la del envío (OFF-03), y la cola envía en orden cronológico (OFF-04).\n\n| Respuesta | Qué hace el cliente |\n|---|---|\n| 2xx | Éxito: lo saca de la cola |\n| Sin respuesta (red caída o corte a mitad del envío), 5xx o 429 | Reintenta, con backoff |\n| 404 en un cierre (el inicio aún no llega) | Reintenta |\n| 400, 409 o 422 | Error permanente: lo saca de la cola, lo marca `error` y avisa al usuario |\n| 401 | Refresca la sesión y reintenta |\n\nTodo error lleva un campo `codigo` (enum `CodigoError` de `@blackout/shared`). La tabla está implementada en `accionDeRespuesta` (`@blackout/shared`).",
     "version": "0.1.0",
     "contact": {}
   },
@@ -535,6 +560,58 @@
           "lng"
         ]
       },
+      "GeometriaMultiPoligono": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "MultiPolygon"
+          },
+          "coordinates": {
+            "description": "Coordenadas [lng, lat] por polígono, anillo y vértice",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "coordinates"
+        ]
+      },
+      "PinValidadoRespuesta": {
+        "type": "object",
+        "properties": {
+          "sectorId": {
+            "type": "number",
+            "nullable": true,
+            "description": "null si nadie se ha registrado aún en esa celda: el sector se crea al confirmar"
+          },
+          "sectorNombre": {
+            "type": "string",
+            "example": "Guaparo"
+          },
+          "municipio": {
+            "type": "string",
+            "example": "Valencia"
+          },
+          "geometria": {
+            "description": "El hexágono del sector, nunca el pin",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GeometriaMultiPoligono"
+              }
+            ]
+          }
+        },
+        "required": [
+          "sectorId",
+          "sectorNombre",
+          "municipio",
+          "geometria"
+        ]
+      },
       "SectorAsignadoRespuesta": {
         "type": "object",
         "properties": {
@@ -543,11 +620,16 @@
           },
           "sectorNombre": {
             "type": "string"
+          },
+          "municipio": {
+            "type": "string",
+            "example": "Valencia"
           }
         },
         "required": [
           "sectorId",
-          "sectorNombre"
+          "sectorNombre",
+          "municipio"
         ]
       },
       "ReporteRespuesta": {
@@ -733,31 +815,17 @@
           },
           "nombre": {
             "type": "string"
+          },
+          "municipio": {
+            "type": "string",
+            "example": "Valencia",
+            "description": "Municipio del centro del hexágono"
           }
         },
         "required": [
           "id",
-          "nombre"
-        ]
-      },
-      "SectorGeometria": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "MultiPolygon"
-          },
-          "coordinates": {
-            "description": "Coordenadas [lng, lat] por polígono, anillo y vértice",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "type",
-          "coordinates"
+          "nombre",
+          "municipio"
         ]
       },
       "SectorFeature": {
@@ -774,7 +842,7 @@
             "$ref": "#/components/schemas/SectorPropiedades"
           },
           "geometry": {
-            "$ref": "#/components/schemas/SectorGeometria"
+            "$ref": "#/components/schemas/GeometriaMultiPoligono"
           }
         },
         "required": [
@@ -801,6 +869,47 @@
         "required": [
           "type",
           "features"
+        ]
+      },
+      "ZonaPropiedades": {
+        "type": "object",
+        "properties": {
+          "municipios": {
+            "example": [
+              "Valencia",
+              "Naguanagua",
+              "San Diego",
+              "Los Guayos",
+              "Libertador"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "municipios"
+        ]
+      },
+      "ZonaRespuesta": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "Feature"
+          },
+          "properties": {
+            "$ref": "#/components/schemas/ZonaPropiedades"
+          },
+          "geometry": {
+            "$ref": "#/components/schemas/GeometriaMultiPoligono"
+          }
+        },
+        "required": [
+          "type",
+          "properties",
+          "geometry"
         ]
       },
       "ResumenServicioRespuesta": {

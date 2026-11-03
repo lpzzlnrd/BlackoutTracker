@@ -1,21 +1,20 @@
-import type { SectoresGeoJsonDto, TipoServicio } from '@blackout/shared';
-import type { SectorFeatureDto } from '@blackout/shared';
+import type { SectorFeatureDto, SectoresGeoJsonDto, TipoServicio, ZonaDto } from '@blackout/shared';
 import {
   divIcon,
+  geoJSON,
   point,
-  type LatLngTuple,
   type Layer,
   type Map as MapaLeaflet,
   type PathOptions,
 } from 'leaflet';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { GeoJSON, Marker, Pane, Polygon, useMap, useMapEvents } from 'react-leaflet';
+import { GeoJSON, Marker, Pane, useMap, useMapEvents } from 'react-leaflet';
 import type { EstadoSector } from '../dominio/tipos';
 import { contiene, puntoEtiqueta } from './geometria';
 import { useEsEscritorio } from './HojaSector';
-import { limitesDe } from './MapaBase';
+import { limitesDe, Mascara } from './MapaBase';
 import { ALTO_NOMBRE, anchoNombre, marcadorSector, TAMANO_NOMBRE } from './marcador';
-import { estadoDeSector, nombreEnMapa } from './textos';
+import { estadoDeSector } from './textos';
 
 /** Espacio que tapan las superposiciones, como puntos de Leaflet: `[x, y]` en píxeles. */
 export interface Relleno {
@@ -24,12 +23,13 @@ export interface Relleno {
 }
 
 /**
- * La coropleta (CANON §4): fuera de Guaparo, la máscara; un polígono por sector con la clase de su
- * estado; el contorno grueso del sector elegido y, encima, etiqueta + insignia de cada uno. Vive
- * dentro del `MapContainer`.
+ * La coropleta (CANON §4): fuera de la Gran Valencia, la máscara; un hexágono por sector con la
+ * clase de su estado; el contorno grueso del sector elegido y, encima, etiqueta + insignia de cada
+ * uno. Vive dentro del `MapContainer`.
  */
 export function CapaSectores({
   sectores,
+  zona,
   estados,
   servicio,
   seleccionado,
@@ -38,6 +38,8 @@ export function CapaSectores({
   onSeleccionar,
 }: {
   sectores: SectoresGeoJsonDto;
+  /** El contorno de la Gran Valencia; mientras no llega, no hay máscara. */
+  zona: ZonaDto | undefined;
   estados: readonly EstadoSector[] | undefined;
   servicio: TipoServicio;
   seleccionado: number | undefined;
@@ -71,7 +73,7 @@ export function CapaSectores({
   return (
     <>
       <Encuadre sectores={sectores} relleno={relleno} />
-      <Mascara sectores={sectores} />
+      {zona && <Mascara zona={zona} />}
       <GeoJSON
         key={`${servicio}:${firma}`}
         data={sectores}
@@ -95,7 +97,10 @@ export function CapaSectores({
         )}
       </Pane>
       {sectores.features.map((sector) => {
-        const nombre = nombreEnMapa(sector.properties.nombre);
+        // Un hexágono de menos de ~32 px en pantalla (la ciudad entera en un teléfono) va solo con
+        // relleno y trazo: la insignia taparía a los vecinos (D-040).
+        if (anchoEnPantalla(mapa, sector) < ANCHO_MINIMO_MARCADOR) return null;
+        const nombre = sector.properties.nombre;
         const esPropio = sector.properties.id === propio;
         const posicion = puntoEtiqueta(sector);
         return (
@@ -112,6 +117,18 @@ export function CapaSectores({
     </>
   );
 }
+
+/** Por debajo de este ancho en pantalla (px), un sector no lleva nombre ni insignia. */
+const ANCHO_MINIMO_MARCADOR = 32;
+
+/** Ancho del sector en pantalla, en píxeles, al zoom actual. */
+const anchoEnPantalla = (mapa: MapaLeaflet, sector: SectorFeatureDto): number => {
+  const caja = geoJSON(sector).getBounds();
+  return (
+    mapa.latLngToContainerPoint(caja.getNorthEast()).x -
+    mapa.latLngToContainerPoint(caja.getSouthWest()).x
+  );
+};
 
 /**
  * Si el nombre cabe dentro del sector tal como se ve ahora: las cuatro esquinas de su fila tienen
@@ -157,36 +174,9 @@ function MarcadorSector({
   return <Marker position={posicion} icon={icono} interactive={false} keyboard={false} />;
 }
 
-/** El mundo entero, hasta donde llega la proyección de las teselas. */
-const MUNDO: LatLngTuple[] = [
-  [85, -180],
-  [85, 180],
-  [-85, 180],
-  [-85, -180],
-];
-
 /**
- * Fuera de Guaparo el mapa se apaga hacia su fondo (D-035): un rectángulo del mundo con un hueco
- * por sector. Leaflet rellena con `evenodd`, así que cada anillo exterior de un sector es un hueco.
- */
-function Mascara({ sectores }: { sectores: SectoresGeoJsonDto }) {
-  const anillos = useMemo(
-    () => [
-      MUNDO,
-      ...sectores.features.flatMap((sector) =>
-        sector.geometry.coordinates.map(([exterior = []]) =>
-          exterior.map(([lng = 0, lat = 0]): LatLngTuple => [lat, lng]),
-        ),
-      ),
-    ],
-    [sectores],
-  );
-  return <Polygon positions={anillos} className="mascara" interactive={false} />;
-}
-
-/**
- * Encuadra los sectores dejando libre lo que tapan las superposiciones. Tampoco deja alejarse más
- * de un nivel de ese encuadre ni irse lejos: más allá, Guaparo queda como un punto en Valencia.
+ * Encuadra la Gran Valencia (el casco urbano y los sectores) dejando libre lo que tapan las
+ * superposiciones. Tampoco deja alejarse más de un nivel de ese encuadre ni irse lejos.
  */
 export function encuadrar(mapa: MapaLeaflet, sectores: SectoresGeoJsonDto, relleno: Relleno) {
   const limites = limitesDe(sectores);

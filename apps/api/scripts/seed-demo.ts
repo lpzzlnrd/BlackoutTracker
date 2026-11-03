@@ -1,7 +1,8 @@
 // Uso: pnpm db:seed:demo [--sin-corte] [--forzar]   (guion y checklist en docs/demo.md)
 //
 // Deja la base lista para la demo (T-061, D-027), en tres pasos idempotentes:
-//   1. Sectores de data/sectores-guaparo.geojson (lo mismo que `pnpm db:seed`).
+//   1. La zona y los lugares (lo mismo que `pnpm db:seed`) y los sectores de la demo: las celdas H3
+//      de Guaparo, La Viña, Parque Naguanagua, Tocuyito y Flor Amarillo (D-040).
 //   2. Historial sintético de data/demo.csv con el importador de campo (T-044): "aprox. X h, según
 //      n cortes" en casi todos los pares y "datos insuficientes" en dos.
 //   3. Reportes en vivo por el consenso real: un corte de luz confirmado en Suroeste y 2 reportes de
@@ -11,11 +12,13 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { NestFactory } from '@nestjs/core';
+import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { opcionesConexion } from '../src/db/db.module';
-import { abrirCortesDemo, motivoParaNoSembrar } from '../src/db/demo';
+import { abrirCortesDemo, crearSectoresDemo, motivoParaNoSembrar } from '../src/db/demo';
 import { importarCampo } from '../src/db/importar-campo';
-import { leerSectores, sembrarSectores } from '../src/db/sembrar-sectores';
+import * as schema from '../src/db/schema';
+import { leerLugares, leerZona, sembrarZona } from '../src/db/sembrar-zona';
 import { cargarEnv } from '../src/config/cargar-env';
 
 cargarEnv();
@@ -35,11 +38,17 @@ async function main(): Promise<number> {
 
   const sql = postgres(url, { ...opcionesConexion(url), max: 1 });
   try {
-    const geojson: unknown = JSON.parse(
-      readFileSync(join(DATOS, 'sectores-guaparo.geojson'), 'utf-8'),
+    const leer = (archivo: string): unknown =>
+      JSON.parse(readFileSync(join(DATOS, archivo), 'utf-8'));
+    const zona = await sembrarZona(
+      sql,
+      leerZona(leer('zona-gran-valencia.geojson')),
+      leerLugares(leer('lugares-gran-valencia.geojson')),
     );
-    const { sectores } = await sembrarSectores(sql, leerSectores(geojson));
-    console.log(`Sectores: ${sectores}.`);
+    const sectores = await crearSectoresDemo(drizzle(sql, { schema }));
+    console.log(
+      `Municipios: ${zona.municipios}. Lugares: ${zona.lugares}. Sectores de la demo: ${sectores}.`,
+    );
 
     const csv = readFileSync(join(DATOS, 'demo.csv'), 'utf-8');
     const { insertadas, yaCargadas, invalidas } = await importarCampo(sql, csv, new Date());

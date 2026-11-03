@@ -17,14 +17,21 @@ import { crearEstadosSectorSupabase } from './adaptadores/supabase/estados-secto
 import { crearSesionSupabase } from './adaptadores/supabase/sesion.supabase';
 import type { Puertos } from './puertos';
 
-export type ModoApp = { tipo: 'real' } | { tipo: 'demo'; escenario: EscenarioDemo };
+export type ModoApp =
+  { tipo: 'real' } | { tipo: 'demo'; escenario: EscenarioDemo; vecinoNuevo?: boolean };
 
-/** `?demo=en-linea` y `?demo=sin-conexion` activan la demostración (CANON §11); lo demás, la app real. */
+/**
+ * `?demo=en-linea` y `?demo=sin-conexion` activan la demostración (CANON §11); lo demás, la app
+ * real. Con `&vecino=nuevo`, el vecino de la demo tiene cuenta pero todavía no marcó su vivienda
+ * (el registro, D-040).
+ */
 export function leerModo(search: string): ModoApp {
-  const demo = new URLSearchParams(search).get('demo');
-  return demo === 'en-linea' || demo === 'sin-conexion'
-    ? { tipo: 'demo', escenario: demo }
-    : { tipo: 'real' };
+  const params = new URLSearchParams(search);
+  const demo = params.get('demo');
+  if (demo !== 'en-linea' && demo !== 'sin-conexion') return { tipo: 'real' };
+  return params.get('vecino') === 'nuevo'
+    ? { tipo: 'demo', escenario: demo, vecinoNuevo: true }
+    : { tipo: 'demo', escenario: demo };
 }
 
 /** Los adaptadores de verdad: la API de Nest, Dexie y Supabase (solo Auth y Realtime). */
@@ -68,5 +75,5 @@ export function componerPuertosReales(): Puertos {
 export async function componerPuertos(modo: ModoApp): Promise<Puertos> {
   if (modo.tipo === 'real') return componerPuertosReales();
   const { cargarPuertosDemo } = await import('./adaptadores/mock/cargar');
-  return cargarPuertosDemo({ escenario: modo.escenario });
+  return cargarPuertosDemo({ escenario: modo.escenario, vecinoNuevo: modo.vecinoNuevo });
 }

@@ -25,8 +25,8 @@ Datos de prueba:
 ## REG — Registro y validación geográfica
 | ID | Caso | Entrada | Esperado | P |
 |---|---|---|---|---|
-| REG-01 | Pin dentro del polígono | Correo válido, pin en una calle de Guaparo | Se crea la cuenta asociada al sector del pin | A |
-| REG-02 | Pin fuera del polígono | Pin en una urbanización vecina | Se rechaza con un mensaje claro y no se crea la cuenta | A |
+| REG-01 | Pin dentro del polígono | Correo válido, pin en una calle de la Gran Valencia | Se crea la cuenta asociada al sector (hexágono H3) del pin | A |
+| REG-02 | Pin fuera del polígono | Pin en un municipio vecino (Guacara) o en otra ciudad | Se rechaza con un mensaje claro y no se crea la cuenta | A |
 | REG-03 | Pin sobre el borde | Pin exactamente en el límite | La regla se aplica de forma consistente (siempre igual) | M |
 | REG-04 | Correo ya existente | Correo registrado | Aviso de cuenta existente, sin duplicar | A |
 | REG-05 | Campos vacíos | Sin correo, contraseña o pin | No se envía y se marca cada campo faltante | M |

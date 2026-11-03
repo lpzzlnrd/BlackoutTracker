@@ -67,7 +67,7 @@ export function ListaSectores() {
         titulo="Panel"
         descripcion={
           lista.length > 0
-            ? `Guaparo · ${lista.length} sectores`
+            ? `Gran Valencia · ${lista.length} ${lista.length === 1 ? 'sector' : 'sectores'}`
             : 'El estado de cada sector y cuánto suele durar un corte.'
         }
       />

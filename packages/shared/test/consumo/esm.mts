@@ -18,6 +18,7 @@ export function medianaMin(estimacion: EstimacionDto): number {
 export const sector: SectorAsignadoDto = {
   sectorId: 1,
   sectorNombre: 'Guaparo',
+  municipio: 'Valencia',
   // @ts-expect-error — la respuesta nunca lleva las coordenadas del residente (NF-06)
   lat: 10.2,
 };

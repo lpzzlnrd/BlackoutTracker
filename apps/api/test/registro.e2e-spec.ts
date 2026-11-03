@@ -1,21 +1,21 @@
 import { randomUUID } from 'node:crypto';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { CLAVES_JWT } from '../src/auth/claves-jwt';
 import { configurarApp } from '../src/configurar-app';
-import { leerSectores, sembrarSectores } from '../src/db/sembrar-sectores';
-import { abrirBd, type BdTest, limpiar } from './bd';
+import { asegurarSector } from '../src/sectores/ubicacion';
+import { abrirBd, type BdTest, crearSectoresDePrueba, limpiar } from './bd';
 import {
-  BORDE_ENTRE_SECTORES,
-  BORDE_EXTERIOR,
+  BORDE_ZONA,
+  CELDA,
   DENTRO,
   FUERA,
   ID_SECTOR,
   INTERCAMBIADO,
+  LA_VINA,
+  MISMA_CELDA_NOROESTE,
 } from './fixtures/puntos';
 import { EmisorJwt } from './jwt';
 
@@ -23,7 +23,7 @@ import { EmisorJwt } from './jwt';
 // que el throttle de validar-pin (10 por minuto y por IP) no cuente entre tests; el test del
 // throttle usa una IP fija.
 
-describe('registro (T-015)', () => {
+describe('registro (T-015, T-070)', () => {
   let app: INestApplication;
   let bd: BdTest;
   let emisor: EmisorJwt;
@@ -67,21 +67,51 @@ describe('registro (T-015)', () => {
   });
   beforeEach(async () => {
     await limpiar(bd.sql);
-    const geojson: unknown = JSON.parse(
-      readFileSync(join(__dirname, '../../../data/sectores-cuadricula.geojson'), 'utf-8'),
-    );
-    await sembrarSectores(bd.sql, leerSectores(geojson));
+    await crearSectoresDePrueba(bd.db);
   });
 
-  it('REG-01: un pin dentro de Guaparo devuelve su sector', async () => {
+  const contar = async (tabla: 'sectores' | 'residentes' | 'estado_sector') => {
+    const [{ n }] = await bd.sql<{ n: number }[]>`select count(*)::int as n from ${bd.sql(tabla)}`;
+    return n;
+  };
+  /** Un hexágono GeoJSON: un polígono, un anillo cerrado de 6 vértices. */
+  const esHexagono = (g: { type: string; coordinates: number[][][][] }) =>
+    g.type === 'MultiPolygon' && g.coordinates.length === 1 && g.coordinates[0]?.[0]?.length === 7;
+
+  it('REG-01: un pin en una celda con vecinos devuelve su sector y su hexágono', async () => {
     const res = await validar(DENTRO.noreste).expect(200);
-    expect(res.body).toEqual({ sectorId: ID_SECTOR.noreste, sectorNombre: 'Guaparo Noreste' });
+    expect(res.body).toMatchObject({
+      sectorId: ID_SECTOR.noreste,
+      sectorNombre: 'Noreste',
+      municipio: 'Valencia',
+    });
+    expect(esHexagono(res.body.geometria)).toBe(true);
   });
 
-  it('REG-01: registrarse crea el perfil asociado al sector que contiene el pin', async () => {
+  it('REG-01: otro pin de la misma celda cae en el mismo sector', async () => {
+    const res = await validar(MISMA_CELDA_NOROESTE).expect(200);
+    expect(res.body.sectorId).toBe(ID_SECTOR.noroeste);
+  });
+
+  it('D-040: en una celda sin vecinos dice qué sector sería, con el nombre de OSM, sin crearlo', async () => {
+    const res = await validar(LA_VINA).expect(200);
+    expect(res.body).toMatchObject({
+      sectorId: null,
+      sectorNombre: 'La Viña',
+      municipio: 'Valencia',
+    });
+    expect(esHexagono(res.body.geometria)).toBe(true);
+    expect(await contar('sectores')).toBe(4);
+  });
+
+  it('REG-01: registrarse crea el perfil asociado al sector de la celda del pin', async () => {
     const sub = randomUUID();
     const res = await registrar(sub, DENTRO.sureste, 201);
-    expect(res.body).toEqual({ sectorId: ID_SECTOR.sureste, sectorNombre: 'Guaparo Sureste' });
+    expect(res.body).toEqual({
+      sectorId: ID_SECTOR.sureste,
+      sectorNombre: 'Sureste',
+      municipio: 'Valencia',
+    });
     const [fila] =
       await bd.sql`select sector_id, st_x(ubicacion) as x, st_y(ubicacion) as y from residentes where id = ${sub}`;
     expect(fila).toMatchObject({
@@ -89,6 +119,56 @@ describe('registro (T-015)', () => {
       x: DENTRO.sureste.lng,
       y: DENTRO.sureste.lat,
     });
+    expect(await contar('sectores')).toBe(4);
+  });
+
+  it('D-040: el primer vecino de una celda crea el sector (hexágono, celda, municipio y estado)', async () => {
+    const res = await registrar(randomUUID(), LA_VINA, 201);
+    expect(res.body).toEqual({ sectorId: 5, sectorNombre: 'La Viña', municipio: 'Valencia' });
+    const [sector] = await bd.sql`
+      select s.celda_h3, m.nombre as municipio, st_npoints(s.geom) as vertices,
+             st_isvalid(s.geom) as valido,
+             st_covers(s.geom, st_setsrid(st_makepoint(${LA_VINA.lng}, ${LA_VINA.lat}), 4326)) as cubre_pin
+      from sectores s join municipios m on m.id = s.municipio_id where s.id = 5`;
+    expect(sector).toEqual({
+      celda_h3: '8867432a27fffff',
+      municipio: 'Valencia',
+      vertices: 7,
+      valido: true,
+      cubre_pin: true,
+    });
+    const estados = await bd.sql`
+      select estado from estado_sector where sector_id = 5 order by tipo_servicio`;
+    expect(estados.map((e) => e.estado)).toEqual(['con_servicio', 'con_servicio']);
+    // El segundo vecino de la celda entra en el mismo sector, sin crear otro.
+    expect((await registrar(randomUUID(), LA_VINA, 201)).body.sectorId).toBe(5);
+    expect(await contar('sectores')).toBe(5);
+  });
+
+  it('D-040: si el nombre del lugar ya lo tiene otro sector, el nuevo se numera', async () => {
+    // Otra celda se queda con "La Viña" antes que la de La Viña.
+    await bd.db.transaction((tx) => asegurarSector(tx, 10.24, -68.03, 'La Viña'));
+    const previa = await validar(LA_VINA).expect(200);
+    expect(previa.body).toMatchObject({ sectorId: null, sectorNombre: 'La Viña 2' });
+    const res = await registrar(randomUUID(), LA_VINA, 201);
+    expect(res.body.sectorNombre).toBe('La Viña 2');
+  });
+
+  it('D-040: con un 409 el sector nuevo no se queda creado sin vecinos', async () => {
+    const sub = randomUUID();
+    await registrar(sub, DENTRO.noroeste, 201);
+    await registrar(sub, LA_VINA, 409);
+    expect(await contar('sectores')).toBe(4);
+    expect(await contar('estado_sector')).toBe(8);
+  });
+
+  it('D-040: cinco registros a la vez en una celda nueva crean un solo sector', async () => {
+    const respuestas = await Promise.all(
+      Array.from({ length: 5 }, () => registrar(randomUUID(), LA_VINA, 201)),
+    );
+    expect(new Set(respuestas.map((r) => r.body.sectorId)).size).toBe(1);
+    expect(await contar('sectores')).toBe(5);
+    expect(await contar('residentes')).toBe(5);
   });
 
   it('REG-01: lat y lng no se intercambian (punto asimétrico)', async () => {
@@ -97,31 +177,29 @@ describe('registro (T-015)', () => {
     await validar(DENTRO.noreste).expect(200);
   });
 
-  it('REG-02: un pin fuera de Guaparo → 422 PIN_FUERA_DE_GUAPARO y no se crea el perfil', async () => {
+  it('REG-02: un pin fuera de la Gran Valencia → 422 PIN_FUERA_DE_ZONA, sin perfil ni sector', async () => {
     for (const fuera of Object.values(FUERA)) {
       const res = await validar(fuera).expect(422);
-      expect(res.body).toMatchObject({ codigo: 'PIN_FUERA_DE_GUAPARO' });
+      expect(res.body).toMatchObject({ codigo: 'PIN_FUERA_DE_ZONA' });
     }
-    const sub = randomUUID();
-    const res = await registrar(sub, FUERA.cerca, 422);
-    expect(res.body.codigo).toBe('PIN_FUERA_DE_GUAPARO');
-    const [{ n: total }] = await bd.sql`select count(*)::int as n from residentes`;
-    expect(total).toBe(0);
+    const res = await registrar(randomUUID(), FUERA.cerca, 422);
+    expect(res.body.codigo).toBe('PIN_FUERA_DE_ZONA');
+    expect(await contar('residentes')).toBe(0);
+    expect(await contar('sectores')).toBe(4);
   });
 
-  it('REG-03: el borde exterior se acepta, siempre igual', async () => {
-    for (const punto of Object.values(BORDE_EXTERIOR)) {
-      for (let i = 0; i < 3; i++) await validar(punto).expect(200);
-    }
+  it('REG-03: un pin sobre el límite exterior de la zona se acepta, siempre igual', async () => {
+    const respuestas: unknown[] = [];
+    for (let i = 0; i < 3; i++) respuestas.push((await validar(BORDE_ZONA).expect(200)).body);
+    expect(respuestas[0]).toMatchObject({ municipio: 'Valencia' });
+    expect(respuestas[1]).toEqual(respuestas[0]);
+    expect(respuestas[2]).toEqual(respuestas[0]);
   });
 
-  it('REG-03: sobre el borde entre sectores gana el de menor id, siempre igual', async () => {
-    for (const { punto, sectorId } of Object.values(BORDE_ENTRE_SECTORES)) {
-      for (let i = 0; i < 3; i++) {
-        const res = await validar(punto).expect(200);
-        expect(res.body.sectorId).toBe(sectorId);
-      }
-    }
+  it('REG-03: cada pin va a una sola celda (H3 no tiene empates en los bordes)', async () => {
+    const [{ celdas }] =
+      await bd.sql`select array_agg(celda_h3 order by id) as celdas from sectores`;
+    expect(celdas).toEqual(Object.values(CELDA));
   });
 
   it('registrarse dos veces → 409 RESIDENTE_YA_REGISTRADO y el perfil no cambia', async () => {
@@ -137,11 +215,15 @@ describe('registro (T-015)', () => {
     await registrar(sub, DENTRO.noroeste, 201);
     const res = await yo(sub).then((r) => r);
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ sectorId: ID_SECTOR.noroeste, sectorNombre: 'Guaparo Noroeste' });
+    expect(res.body).toEqual({
+      sectorId: ID_SECTOR.noroeste,
+      sectorNombre: 'Noroeste',
+      municipio: 'Valencia',
+    });
     const texto =
       JSON.stringify(res.body) +
       JSON.stringify((await registrar(randomUUID(), DENTRO.noreste)).body);
-    expect(texto).not.toMatch(/ubicacion|lat|lng|10\.2075|68\.00/);
+    expect(texto).not.toMatch(/ubicacion|lat|lng|10\.225|68\.01|68\.00/);
   });
 
   it('un usuario autenticado sin perfil → 403 REGISTRO_INCOMPLETO en GET /residentes/me', async () => {

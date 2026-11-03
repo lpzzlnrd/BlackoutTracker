@@ -18,7 +18,7 @@ Idioma del proyecto: **español** (UI, commits, documentación y comentarios).
 
 ## 1. Qué es
 
-Plataforma web comunitaria (PWA) para **monitorear de forma colaborativa las interrupciones de agua potable y electricidad**. Piloto: **Urbanización Guaparo, Valencia, estado Carabobo (Venezuela)**.
+Plataforma web comunitaria (PWA) para **monitorear de forma colaborativa las interrupciones de agua potable y electricidad**. Cobertura: **la Gran Valencia, estado Carabobo (Venezuela)**, es decir, los municipios Valencia, Naguanagua, San Diego, Los Guayos y Libertador (D-040, desde el 3-nov-2026). La tesis se hizo con un piloto de campo en la Urbanización Guaparo, que ya se presentó.
 
 **El problema:** hoy los vecinos se avisan por grupos de WhatsApp ("se fue", "volvió", "aquí seguimos sin luz"). La información existe, pero no tiene estructura ni validación y nadie la agrega. No se puede planificar porque los cortes no tienen horario fijo.
 
@@ -37,7 +37,7 @@ Marco teórico: **Teoría General de Sistemas (TGS)**.
 
 | Prefijo | Módulo | Qué hace |
 |---|---|---|
-| **REG** | Registro + validación geográfica | El residente se registra **una sola vez** poniendo un pin en el mapa sobre su vivienda. Se valida con punto-dentro-de-polígono contra el GeoJSON de Guaparo. **No** se pide geolocalización en vivo en cada reporte. |
+| **REG** | Registro + validación geográfica | El residente se registra **una sola vez** poniendo un pin en el mapa sobre su vivienda. Se valida con punto-dentro-de-polígono contra la zona de cobertura (los municipios de la Gran Valencia), y el residente queda en el sector (hexágono H3) de su pin (D-040). **No** se pide geolocalización en vivo en cada reporte. |
 | **REP** | Ciclo de reportes | Reporta el inicio y el cierre (restablecimiento) de un corte. Agua y luz van en la misma tabla, diferenciados por `tipo_servicio`. |
 | **CON** | Consenso estructural | El estado de un sector solo cambia con **N reportes de usuarios distintos, del mismo sector y servicio, dentro de una ventana de tiempo**. Sin rol admin ni moderador. |
 | **OFF** | Modo sin conexión | Cola persistente en **IndexedDB** (nunca en memoria). Sincroniza con el evento `online`, y con Background Sync API como mejora progresiva. |
@@ -54,7 +54,7 @@ Marco teórico: **Teoría General de Sistemas (TGS)**.
 ### Fuera de alcance (no implementar)
 - Rol de "jefe de calle" o cualquier moderador (lo reemplaza el consenso).
 - Logística de camiones cisterna, rutas, división de costos y pagos.
-- Escalamiento a otras urbanizaciones o a nivel nacional.
+- Escalamiento fuera de la Gran Valencia (otras ciudades o el país). La Gran Valencia está dentro del alcance desde el 3-nov-2026 (D-040).
 - Protección contra cuentas falsas (Sybil). Es una limitación conocida.
 - Integración con sistemas de las empresas prestadoras.
 - Sensores IoT (ESP32, PZEM-004T, sensor ultrasónico): solo están documentados como trabajo futuro para calibrar el modelo.
@@ -66,7 +66,7 @@ Marco teórico: **Teoría General de Sistemas (TGS)**.
 ### Modelo de datos
 - Una **única entidad de reportes de interrupción**. Campos esenciales: sector, `tipo_servicio` (agua | electricidad), hora de inicio, hora de fin (nula hasta el cierre), residente que reporta y estado de sincronización.
 - Es una sola tabla y no una por servicio, porque ambos servicios comparten la misma estructura de entrada → proceso → salida.
-- Al registrarse, el residente queda asociado al **sector** que contiene su pin.
+- Al registrarse, el residente queda asociado al **sector** que contiene su pin. Un sector es una **celda H3 de resolución 8** (~0,74 km²) de la Gran Valencia, que nace con su primer residente y toma el nombre del lugar de OSM más cercano (D-040).
 
 ### Reportes (REP)
 - Un usuario no puede tener **dos reportes abiertos del mismo servicio** a la vez (REP-05). Sí puede tener uno de agua y otro de luz al mismo tiempo (REP-06).
@@ -128,7 +128,7 @@ packages/shared/   tipos y enums comunes (tipo_servicio, estados de sector, DTOs
 - **Tests:** Jest (el default de Nest 11) + Supertest.
   - La lógica de consenso y de estimación vive en **servicios puros y fáciles de probar**, para llegar al ≥ 70 % de cobertura.
   - Los tests llevan los IDs del plan (`CON-04`, `EST-02`…).
-- **Validación geográfica en el servidor** (`ST_Contains` contra el polígono de Guaparo), aunque el cliente ya la haga con Turf.js.
+- **Validación geográfica en el servidor** (`ST_Covers` contra los municipios de la zona, que incluye el borde, D-002), aunque el cliente ya la haga con Turf.js contra el contorno de `GET /zona`. El sector sale de la celda H3 del pin (`h3-js`, D-040).
 - **Idempotencia (OFF-05):** cada reporte lleva un UUID generado en el cliente como clave primaria, y Nest hace `upsert` sobre ese id.
 - **Hora del evento (OFF-03):** se guarda la hora que envía el cliente (`ocurrido_en`), no `now()`. El servidor rechaza fechas futuras o un fin anterior al inicio.
 
@@ -180,7 +180,7 @@ packages/shared/   tipos y enums comunes (tipo_servicio, estados de sector, DTOs
 - **Duración de la ventana de consenso** (CON-07). No está definida.
 - **Pin sobre el borde del polígono** (REG-03): decidir si se acepta o se rechaza, y aplicarlo siempre igual.
 - **Cierre sin inicio previo** (REP-04): bloquear la acción o guardarla como aviso sin duración.
-- **Cómo se divide Guaparo en sectores** (sub-polígonos) y el GeoJSON en sí: aún no existen.
+- ~~Cómo se divide Guaparo en sectores~~: resuelto en D-040 (celdas H3 de resolución 8 en la Gran Valencia).
 - Si N = 3 y n_min = 5 deben ser configurables (se recomienda que sí).
 
 ---

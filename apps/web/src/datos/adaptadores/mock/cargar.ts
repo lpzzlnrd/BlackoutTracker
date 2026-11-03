@@ -1,16 +1,16 @@
-import type { GeometriaMultiPoligonoDto, SectoresGeoJsonDto } from '@blackout/shared';
+import type { GeometriaMultiPoligonoDto, SectoresGeoJsonDto, ZonaDto } from '@blackout/shared';
 import { crearPuertosDemo, type OpcionesDemo, type PuertosDemo } from './demo';
 import type { DatosEjemplo } from './escenario';
 
-/** Forma del GeoJSON semilla de `data/` (T-012): sin `id`, con los nombres provisionales. */
+/** Forma del GeoJSON semilla de `data/` (D-040): los hexágonos, sin `id` ni nombre. */
 interface GeoJsonSemilla {
   features: { geometry: GeometriaMultiPoligonoDto }[];
 }
 
 /**
- * La geometría no está en `datos-ejemplo.json`: se toma de la cuadrícula de pruebas de `data/`
- * (`sectores-cuadricula.geojson`, D-036) y se le ponen los ids y nombres de los sectores de ejemplo,
- * en el mismo orden.
+ * La geometría no está en `datos-ejemplo.json`: se toma de los 4 hexágonos de `data/`
+ * (`sectores-demo.geojson`, D-040) y se le ponen los ids y nombres de los sectores de ejemplo, en
+ * el mismo orden.
  */
 export function geoJsonDemo(
   sectores: DatosEjemplo['sectores'],
@@ -25,7 +25,7 @@ export function geoJsonDemo(
             {
               type: 'Feature' as const,
               id: sector.id,
-              properties: { id: sector.id, nombre: sector.nombre },
+              properties: { id: sector.id, nombre: sector.nombre, municipio: 'Valencia' },
               geometry: origen.geometry,
             },
           ]
@@ -40,11 +40,13 @@ export function geoJsonDemo(
  * alguien abra la app con `?demo=`.
  */
 export async function cargarPuertosDemo(opciones: OpcionesDemo): Promise<PuertosDemo> {
-  const [ejemplo, semilla] = await Promise.all([
+  const [ejemplo, semilla, contorno] = await Promise.all([
     import('@docs/frontend/datos-ejemplo.json'),
-    import('@data/sectores-cuadricula.geojson?raw'),
+    import('@data/sectores-demo.geojson?raw'),
+    import('@data/zona-gran-valencia.contorno.geojson?raw'),
   ]);
   const datos = ejemplo.default as unknown as DatosEjemplo;
   const geoJson = geoJsonDemo(datos.sectores, JSON.parse(semilla.default) as GeoJsonSemilla);
-  return crearPuertosDemo(datos, geoJson, opciones);
+  const { type, properties, geometry } = JSON.parse(contorno.default) as ZonaDto;
+  return crearPuertosDemo(datos, geoJson, { type, properties, geometry }, opciones);
 }

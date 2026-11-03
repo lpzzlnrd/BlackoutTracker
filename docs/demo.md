@@ -5,23 +5,23 @@
 ## 1. El seed de demo
 
 ```bash
-pnpm db:seed:demo               # sectores + historial + reportes en vivo
-pnpm db:seed:demo --sin-corte   # solo sectores e historial (no levanta la app: basta con DATABASE_URL)
+pnpm db:seed:demo               # zona + sectores de la demo + historial + reportes en vivo
+pnpm db:seed:demo --sin-corte   # sin los reportes en vivo (no levanta la app: basta con DATABASE_URL)
 ```
 
-Deja la base así (D-027), sobre los 6 sectores del Guaparo real (D-036):
+Deja la base así (D-027), sobre cinco sectores H3 de la Gran Valencia en tres municipios (`SECTORES_DEMO` en `apps/api/src/db/demo.ts`, D-040):
 
-| Sector                                      | Agua                                                       | Luz                                                   |
-| ------------------------------------------- | ---------------------------------------------------------- | ----------------------------------------------------- |
-| Guaparo Noroeste                            | n = 7 → cifra                                              | n = 11 → cifra, con un corte atípico de 30 h (EST-03) |
-| Guaparo Calle 160                           | n = 5 → cifra (justo n_min) · **2 reportes sin confirmar** | n = 3 → "datos insuficientes" (EST-04)                |
-| Guaparo Suroeste                            | n = 2 → "datos insuficientes"                              | n = 8 → cifra · **corte confirmado en curso**         |
-| Guaparo Sur                                 | n = 9 → cifra, con un corte atípico de 40 h                | n = 6 → cifra                                         |
-| Guaparo Pérez Carreño · Guaparo Av. Bolívar | sin historial → "datos insuficientes"                      | sin historial → "datos insuficientes"                 |
+| Sector (municipio)             | Agua                                                       | Luz                                                   |
+| ------------------------------ | ---------------------------------------------------------- | ----------------------------------------------------- |
+| Guaparo (Valencia)             | n = 7 → cifra                                              | n = 11 → cifra, con un corte atípico de 30 h (EST-03) |
+| Parque Naguanagua (Naguanagua) | n = 5 → cifra (justo n_min) · **2 reportes sin confirmar** | n = 3 → "datos insuficientes" (EST-04)                |
+| Tocuyito (Libertador)          | n = 2 → "datos insuficientes"                              | n = 8 → cifra · **corte confirmado en curso**         |
+| La Viña (Valencia)             | n = 9 → cifra, con un corte atípico de 40 h                | n = 6 → cifra                                         |
+| Flor Amarillo (Valencia)       | sin historial → "datos insuficientes"                      | sin historial → "datos insuficientes"                 |
 
 - El **historial** sale de [`data/demo.csv`](../data/demo.csv): 51 ciclos sintéticos con fechas fijas de agosto a octubre de 2026. Se cargan con el importador del dataset de campo (T-044, `origen = 'campo'`). La estimación no filtra por antigüedad, así que estos ciclos no caducan.
-- Los **reportes en vivo** pasan por el consenso real (`ReportesService.iniciar`). Son 3 vecinos de Suroeste reportando que se fue la luz dentro de la ventana de 30 min, lo que confirma el corte (CON-02), y 2 de Calle 160 reportando agua (CON-01: N − 1, sin confirmar). Los residentes de demo tienen ids fijos (`00000000-0000-4000-8000-00000000de0X`) y su ubicación es un punto interior del sector, no la de nadie.
-- Es **idempotente**: correrlo de nuevo no duplica nada. El aviso "sin confirmar" de Calle 160 se ve unas 3 h, lo que dura la ventana del agua. El corte de Suroeste dura hasta que los reportes vencen a las 48 h (D-015); después queda como ciclo incompleto (D-024). Por eso conviene **correrlo la mañana de la defensa**: volver a correrlo arma un corte nuevo.
+- Los **reportes en vivo** pasan por el consenso real (`ReportesService.iniciar`). Son 3 vecinos de Tocuyito reportando que se fue la luz dentro de la ventana de 30 min, lo que confirma el corte (CON-02), y 2 de Parque Naguanagua reportando agua (CON-01: N − 1, sin confirmar). Los residentes de demo tienen ids fijos (`00000000-0000-4000-8000-00000000de0X`) y su ubicación es un punto interior del sector, no la de nadie.
+- Es **idempotente**: correrlo de nuevo no duplica nada. El aviso "sin confirmar" de Parque Naguanagua se ve unas 3 h, lo que dura la ventana del agua. El corte de Tocuyito dura hasta que los reportes vencen a las 48 h (D-015); después queda como ciclo incompleto (D-024). Por eso conviene **correrlo la mañana de la defensa**: volver a correrlo arma un corte nuevo.
 - Se niega a correr con `NODE_ENV=production` o con una URL de base que contenga "prod", salvo con `--forzar`. Una base local siempre se acepta. **No se siembra en producción si ya tiene datos de campo reales**, porque la demo los mezclaría en la mediana.
 
 ## 2. Guion
@@ -30,7 +30,7 @@ Con la API en Swagger (`https://<api>/api/docs`), autorizada con el JWT de una c
 
 ### Entrada: los reportes
 
-1. **Registro con validación geográfica (REG).** Poner el pin en la PWA: `POST /api/registro/validar-pin` responde con el sector, y `POST /api/residentes/me` crea el perfil. Si el pin cae fuera de Guaparo, la respuesta es 422.
+1. **Registro con validación geográfica (REG).** Poner el pin en la PWA: `POST /api/registro/validar-pin` responde con el sector, y `POST /api/residentes/me` crea el perfil. El paso 2 muestra el hexágono del sector; si nadie se había registrado en esa celda, el sector nace al confirmar. Si el pin cae fuera de la Gran Valencia, la respuesta es 422 `PIN_FUERA_DE_ZONA`.
    - Privacidad (NF-06): `GET /api/residentes/me` devuelve el sector, nunca las coordenadas.
 2. **Reporte de inicio (REP).** Desde la PWA, "se fue la luz". En la API es `PUT /api/reportes/{id}` con el UUID que genera el cliente y la hora real `ocurridoEn` (OFF-03).
    - Repetir el mismo PUT devuelve el mismo reporte (OFF-05).
@@ -61,7 +61,7 @@ Con la API en Swagger (`https://<api>/api/docs`), autorizada con el JWT de una c
 
 - [ ] **Supabase no pausado.** El plan gratuito pausa el proyecto tras unos 7 días sin actividad. Entrar al panel de staging (y de producción, si se usa) y, si está pausado, _Restore project_. El restablecimiento puede tardar unos minutos.
 - [ ] **Cuentas de demo en Supabase Auth.** Las crea Leonardo en _Authentication → Users → Add user_, con correo y contraseña y _Auto confirm user_. Hacen falta dos cuentas, una por teléfono.
-- [ ] Registrar cada cuenta en la PWA con un pin dentro de Guaparo (o con los dos POST del §2.1).
+- [ ] Registrar cada cuenta en la PWA con un pin dentro de la Gran Valencia (o con los dos POST del §2.1). Para que confirmen cortes de la demo, el pin va en el hexágono de uno de sus sectores.
 - [ ] Ensayar el guion completo una vez, de punta a punta.
 
 ### El día de la defensa

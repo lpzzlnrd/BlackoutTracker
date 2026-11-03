@@ -66,8 +66,8 @@
   stroke-width: 1.5px;
 }
 
-/* Fuera de Guaparo, las teselas se apagan hacia la base del mapa: así los sectores resaltan solos
-   y se ve dónde termina la urbanización (D-035). */
+/* Fuera de la Gran Valencia, las teselas se apagan hacia la base del mapa: así se ve dónde
+   termina la zona de cobertura (D-035, D-040). */
 .mascara {
   fill: var(--mapa-base);
   fill-opacity: 0.6;

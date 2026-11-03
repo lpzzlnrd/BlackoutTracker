@@ -9,7 +9,7 @@ import type { Env } from './config/env';
 
 /** Texto de Swagger. La tabla de la cola es la de docs/PLAN.md §5 y la implementa `accionDeRespuesta`. */
 const DESCRIPCION_API = [
-  'Monitoreo colaborativo de cortes de agua y electricidad (piloto: Guaparo).',
+  'Monitoreo colaborativo de cortes de agua y electricidad en la Gran Valencia (Carabobo).',
   '',
   '## Contrato de sincronización (cola offline)',
   '',

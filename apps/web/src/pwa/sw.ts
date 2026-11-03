@@ -25,10 +25,21 @@ registerRoute(
   new NavigationRoute(createHandlerBoundToURL('/index.html'), { denylist: [/^\/api\//] }),
 );
 
-// El GeoJSON de sectores casi no cambia (la API envía `Cache-Control: public, max-age=3600`).
+// El contorno de la zona solo cambia con un nuevo seed (la API envía un día de caché).
+registerRoute(
+  ({ url, request }) => request.method === 'GET' && url.pathname === '/api/zona',
+  new StaleWhileRevalidate({ cacheName: 'api-zona' }),
+);
+
+// Los sectores aparecen al registrarse el primer vecino de cada hexágono (D-040): red primero, para
+// que quien se acaba de registrar vea el suyo, y lo último guardado sin red o si tarda más de 3 s.
 registerRoute(
   ({ url, request }) => request.method === 'GET' && url.pathname === '/api/sectores',
-  new StaleWhileRevalidate({ cacheName: 'api-sectores' }),
+  new NetworkFirst({
+    cacheName: 'api-sectores',
+    networkTimeoutSeconds: 3,
+    plugins: [new CacheableResponsePlugin({ statuses: [200] })],
+  }),
 );
 
 // Lecturas con sesión: red primero y, si tarda más de 3 s o falla, lo último guardado. Es lo que

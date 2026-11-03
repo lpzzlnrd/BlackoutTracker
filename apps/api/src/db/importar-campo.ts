@@ -25,7 +25,11 @@ export async function importarCampo(
   ahora: Date,
 ): Promise<ResultadoImportacion> {
   const filasSector = await sql<{ id: number; nombre: string }[]>`select id, nombre from sectores`;
-  if (filasSector.length === 0) throw new Error('No hay sectores: corre antes `pnpm db:seed`');
+  if (filasSector.length === 0) {
+    throw new Error(
+      'No hay sectores: nacen con el registro de los vecinos (D-040) o con `pnpm db:seed:demo`',
+    );
+  }
   const sectores = new Map(filasSector.map((s) => [claveSector(s.nombre), s.id]));
   const { validas, invalidas } = validarCampo(texto, sectores, ahora);
 

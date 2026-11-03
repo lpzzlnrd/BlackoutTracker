@@ -78,8 +78,9 @@ Tres advertencias:
 ### Migrar y sembrar Supabase (una vez, desde tu máquina)
 Con el `.env` de la raíz apuntando a Supabase:
 ```bash
-pnpm db:migrate        # 0000..0003: PostGIS, esquema, RLS + Realtime, ciclos incompletos
-pnpm db:seed:demo      # sectores + historial de demo + corte en vivo (docs/demo.md)
+pnpm db:migrate        # 0000..0004: PostGIS, esquema, RLS + Realtime, ciclos incompletos, Gran Valencia
+pnpm db:seed           # producción: la zona (5 municipios) y los lugares; los sectores nacen con el registro
+pnpm db:seed:demo      # solo staging o una demo: zona + sectores + historial de demo + corte en vivo (docs/demo.md)
 ```
 - **Antes de correrlo:** el `pnpm` de tu PATH está roto. Arréglalo una vez con `corepack enable` o con `npm i -g pnpm@10.33.2`.
 - **Sin arreglar pnpm:** se puede correr desde el contenedor de la API (§7).
@@ -229,7 +230,7 @@ La base, la API y la web en contenedores, con la web en **http://localhost:8080*
 - **Migrar y sembrar desde el contenedor** (contra la `DATABASE_URL` del `.env`; no hace falta el pnpm de tu máquina):
   ```bash
   docker compose --profile app run --rm --no-deps api pnpm db:migrate
-  docker compose --profile app run --rm --no-deps api pnpm db:seed:demo
+  docker compose --profile app run --rm --no-deps api pnpm db:seed        # o db:seed:demo
   ```
 - **Logs:** `pnpm app:logs`.
 - **Apagar solo la app** (la base local sigue): `docker compose --profile app stop api web`. **Ojo:** `pnpm db:down` y `pnpm db:reset` apagan también la base, y `db:reset` además borra su volumen.

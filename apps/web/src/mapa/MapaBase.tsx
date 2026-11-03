@@ -1,22 +1,33 @@
 import 'leaflet/dist/leaflet.css';
 import '../estilos/mapa.css';
-import type { SectoresGeoJsonDto } from '@blackout/shared';
-import { geoJSON, latLngBounds, type LatLngBounds, type Map as MapaLeaflet } from 'leaflet';
-import type { ReactNode, Ref } from 'react';
-import { MapContainer, TileLayer } from 'react-leaflet';
+import type { SectoresGeoJsonDto, ZonaDto } from '@blackout/shared';
+import {
+  geoJSON,
+  latLngBounds,
+  type LatLngBounds,
+  type LatLngTuple,
+  type Map as MapaLeaflet,
+} from 'leaflet';
+import { useMemo, type ReactNode, type Ref } from 'react';
+import { MapContainer, Polygon, TileLayer } from 'react-leaflet';
 
 // Base común de todos los mapas (CANON §4.1): coropleta (S2) y elección del pin (registro, S1).
 // Sin controles de Leaflet: la atribución es un elemento propio, hermano del mapa.
 
-/** Encuadre de todos los sectores; Guaparo aproximado mientras no hay geometría. */
+/**
+ * El casco urbano de la Gran Valencia, de Tocuyito a Los Guayos y del sur de la ciudad a
+ * Naguanagua (D-040). Es el encuadre de partida: los cinco municipios llegan hasta el lago y la
+ * cordillera, y el mapa entero dejaría cada hexágono en unos pocos píxeles.
+ */
+export const CASCO_URBANO: [[number, number], [number, number]] = [
+  [10.09, -68.1],
+  [10.3, -67.9],
+];
+
+/** El encuadre de la Gran Valencia: el casco urbano, ampliado si algún sector queda fuera. */
 export function limitesDe(sectores: SectoresGeoJsonDto | undefined): LatLngBounds {
-  if (!sectores?.features.length) {
-    return latLngBounds([
-      [10.195, -68.02],
-      [10.215, -67.995],
-    ]);
-  }
-  return geoJSON(sectores).getBounds();
+  const limites = latLngBounds(CASCO_URBANO);
+  return sectores?.features.length ? limites.extend(geoJSON(sectores).getBounds()) : limites;
 }
 
 export function MapaBase({
@@ -31,7 +42,7 @@ export function MapaBase({
   relleno?: { arribaIzquierda: [number, number]; abajoDerecha: [number, number] };
   /** `aria-label` del mapa (CANON §4.6): "Mapa de sectores: Sector 1 sin servicio, …". */
   etiqueta: string;
-  /** La instancia de Leaflet, para controles que viven fuera del mapa ("Ver todo Guaparo"). */
+  /** La instancia de Leaflet, para controles que viven fuera del mapa ("Ver toda la Gran Valencia"). */
   refMapa?: Ref<MapaLeaflet>;
   children?: ReactNode;
 }) {
@@ -80,6 +91,32 @@ export function AtribucionOSM({ className = '' }: { className?: string }) {
       contributors
     </p>
   );
+}
+
+/** El mundo entero, hasta donde llega la proyección de las teselas. */
+const MUNDO: LatLngTuple[] = [
+  [85, -180],
+  [85, 180],
+  [-85, 180],
+  [-85, -180],
+];
+
+/**
+ * Fuera de la Gran Valencia el mapa se apaga hacia su fondo (D-035, D-040): un rectángulo del mundo
+ * con un hueco por cada pieza del contorno de la zona. Leaflet rellena con `evenodd`, así que cada
+ * anillo exterior es un hueco (y un hueco del contorno, si lo hubiera, vuelve a quedar tapado).
+ */
+export function Mascara({ zona }: { zona: ZonaDto }) {
+  const anillos = useMemo(
+    () => [
+      MUNDO,
+      ...zona.geometry.coordinates.flatMap((poligono) =>
+        poligono.map((anillo) => anillo.map(([lng = 0, lat = 0]): LatLngTuple => [lat, lng])),
+      ),
+    ],
+    [zona],
+  );
+  return <Polygon positions={anillos} className="mascara" interactive={false} />;
 }
 
 /** La trama de "sin confirmar", una sola vez por página (CANON §4.2). */
