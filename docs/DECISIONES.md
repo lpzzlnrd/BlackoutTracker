@@ -201,3 +201,68 @@ Un reporte abierto hace más de **48 h** se marca `vencido`: deja de contar para
 - (a) La bienvenida no vuelve a salir en un dispositivo donde ya se vio, aunque se cierre sesión. Para volver a verla hay que borrar los datos del sitio.
 - (b) Las pruebas E2E existentes no la ven, porque la demo arranca con sesión. Las suyas están en `e2e/pruebas/guia.spec.ts`.
 - (c) Al escribir `docs/operacion.md` apareció un hueco: no hay procedimiento para dar de baja a un vecino. `residentes` no tiene clave foránea a `auth.users`, y `reportes` apunta a `residentes` sin cascada. Hay que decidirlo antes de la primera baja.
+
+### D-043 · Recorrido guiado sobre la app real; la guía queda como referencia corta — **Decidida por Leonardo** (T-073, 3-nov-2026)
+**Contexto:** al ver la guía de D-041, Leonardo pidió otra cosa: algo "al puro estilo de Duolingo, o un videojuego". El modal lleva con "Empezar" a crear la cuenta, después a entrar, y cada paso abre las pantallas reales y señala dónde escribir o tocar. Es la opción C que D-041 había descartado por costo y fragilidad. Para quitarle lo frágil se hizo con un motor propio, sin librerías: la tarjeta va fija arriba o abajo, nunca flotando junto al elemento, y del mapa se ilumina el contenedor entero, nunca hexágonos sueltos.
+**Decisión:**
+1. **Modal:** "Empezar" (abre el recorrido), "Ya tengo cuenta" (lleva a Entrar) y "Ahora no".
+2. **Siete pasos y un final:**
+   - tu cuenta: correo, contraseña y "Crear cuenta"; después, "así entras la próxima vez", sin cerrar la sesión que Supabase deja abierta al crearla;
+   - tu vivienda;
+   - el mapa;
+   - avisar un corte;
+   - cómo se confirma;
+   - cuánto suele durar;
+   - sin conexión;
+   - al final, "Terminaste el recorrido".
+3. **Cómo se ve:**
+   - un velo de tinta con un hueco sobre lo que se puede usar; lo demás no recibe toques;
+   - un anillo que pulsa sobre lo que hay que tocar;
+   - una tarjeta con una barra de 7 segmentos, "Paso n de 7", "Saltar" y "Atrás";
+   - un check al completar los pasos de acción.
+
+   Lo señalado se marca con `data-guia` en las pantallas reales, en el teléfono y en el escritorio. La tarjeta va abajo salvo que ahí tape lo señalado.
+4. **Cómo avanza:**
+   - los pasos de acción, al hacerlos: la sesión o el perfil los cumplen aunque el vecino vaya más rápido que la guía;
+   - los que explican, con "Continuar";
+   - escribir activa "Continuar" cuando el campo es válido, e Intro también avanza;
+   - si lo señalado no aparece en 3 s, se ofrece "Continuar".
+5. **Avisar es una práctica:** el recorrido se queda con el toque del botón y no se guarda ningún aviso. Uno real contaría para el consenso de un sector real.
+6. **Memoria:** el recorrido se recuerda en `localStorage` (clave `recorrido`) y, al volver a abrir la app, sigue donde iba ("Seguimos donde ibas"). Se repite desde Cuenta ("Hacer el recorrido") y desde la guía, y se salta lo que el vecino ya hizo.
+7. **La guía `/guia`** queda como referencia corta: una o dos frases por paso, que dicen para qué sirve o qué hacer.
+8. **El tono del CANON se mantiene:** sin exclamaciones ni emojis. Lo de juego lo ponen la barra, el anillo, el check y la pantalla final.
+
+**Consecuencias:**
+- (a) Quien mueva una pieza señalada tiene que conservar su `data-guia`. Si falta, la tarjeta sale sin hueco y a los 3 s deja seguir.
+- (b) En el teléfono, si la tarjeta va abajo, el teclado la tapa mientras se escribe; Intro avanza igual.
+- (c) La demo pierde `&vecino=visitante` al recargar, porque el enrutador solo conserva `?demo=`. Las pruebas reabren con la URL completa.
+- (d) No se toca aquí, porque ya existía: el error de Leaflet al salir del mapa a mitad de un paneo (`_onPanTransitionEnd`, "Cannot read properties of undefined (reading 'classList')").
+
+### D-044 · Throttle por residente y registro idempotente — **Propuesta** (3-nov-2026, en la rama de T-073)
+**Contexto:** Leonardo pidió revisar el rate limiting de cada endpoint y la idempotencia del registro. Se encontraron tres problemas:
+- El throttle contaba por IP también en las rutas con sesión, y muchos vecinos comparten IP (el CGNAT de las operadoras móviles, el Wi-Fi de una prueba de campo). El 6.º vecino que se registraba desde una misma red recibía un 429, y en un apagón los avisos de toda una red compartían el tope.
+- El guard del throttle corría antes que el JWT, así que no había forma de contar por residente.
+- Repetir el registro (un doble toque, o un reintento tras un corte de red) daba 409 aunque el pin fuera del mismo sector.
+
+**Decisión:**
+1. `JwtGuard` corre antes que `GuardLimites`. Los dos se registran en ese orden en `AppModule`.
+2. Con sesión se cuenta por residente (el `sub`) y sin sesión, por IP. Límites por minuto:
+
+   | Rutas | Límite |
+   |---|---|
+   | Escritura | 60 |
+   | Lectura con sesión | 120 |
+   | Registro | 5 |
+   | `validar-pin` | 30 |
+   | Lecturas públicas | 300 |
+   | General (`/salud`) | 100 |
+
+   El 429 sale en español y con `Retry-After`.
+3. `POST /residentes/me` es idempotente en el mismo sector: devuelve 201 con el mismo cuerpo y la ubicación guardada no cambia. Con un pin de otro sector sigue el 409 `RESIDENTE_YA_REGISTRADO`. La carrera entre dos envíos simultáneos la resuelve `ON CONFLICT` sobre la clave primaria.
+4. Los reportes ya eran idempotentes (OFF-05), y ahora hay más pruebas que lo comprueban.
+
+**Consecuencias:**
+- (a) Una petición con un token inválido da 401 antes de contar. Es barato, porque la verificación es local con el JWKS en caché.
+- (b) El almacén del throttle vive en memoria. Alcanza para una sola instancia en Render.
+- (c) La prueba de red intermitente (NF-04) apaga el throttle, porque manda mucho más de lo que manda un cliente real.
+- (d) Hay que comprobar en Render que `TRUST_PROXY=1` (o 2, si va detrás de Cloudflare) y que `req.ip` sea la IP del cliente. Las rutas con sesión ya no dependen de eso; las públicas sí.

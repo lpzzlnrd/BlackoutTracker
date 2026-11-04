@@ -424,9 +424,10 @@ Reglas:
 | Tabla de sectores              | Sectores · Luz · Sector · Estado · Desde · {n} sectores · actualizado a las {hora}                      | C         |
 | Instalar la app                | Instalar BlackoutTracker · Se abre como una app y sigue funcionando sin conexión. · Instalar            | A         |
 | Versión nueva                  | Hay una versión nueva de la app · Actualizar                                                            | B         |
-| Bienvenida _(D-041)_           | ¿Nuevo en BlackoutTracker? · Te mostramos el paso a paso: cómo leer el mapa, crear tu cuenta y avisar cuando se va la luz o el agua en tu sector. · Ver la guía · Ahora no · Puedes verla cuando quieras en Cuenta. | A |
-| Guía _(D-041)_                 | Cómo funciona · Mira el mapa, sin cuenta · Crea tu cuenta · Marca tu vivienda, una sola vez · Avisa cuando se va y cuando vuelve · Cómo se confirma un corte · Cuánto suele durar · Sin conexión también cuenta · Ejemplo · Ya tienes cuenta · Tu sector: {nombre} · Empieza ahora | A |
-| Cuenta, guía _(D-041)_         | Cómo funciona · La guía paso a paso: el mapa, tu cuenta, cómo avisar de un corte y cómo se confirma. · Ver la guía | A |
+| Bienvenida _(D-041, D-043)_    | ¿Nuevo en BlackoutTracker? · Aquí los vecinos avisan cuando se va la luz o el agua. Te guiamos en la app misma: creas tu cuenta, marcas tu casa y aprendes a avisar. Son 7 pasos cortos. · Empezar · Ya tengo cuenta · Ahora no · Puedes repetirlo cuando quieras en Cuenta. | A |
+| Guía _(D-041, D-043)_          | Cómo funciona · Hacer el recorrido guiado · Mira el mapa · Crea tu cuenta · Marca tu vivienda · Avisa cuando se va y cuando vuelve · Se confirma entre vecinos · Cuánto suele durar · Sin señal también cuenta · Ejemplo · Ya tienes cuenta · Tu sector: {nombre} · Empieza ahora | A |
+| Cuenta, guía _(D-041, D-043)_  | Cómo funciona · Aprende usando la app, paso a paso, o lee la guía corta. · Hacer el recorrido · Ver la guía | A |
+| Recorrido guiado _(D-043)_     | Paso {n} de 7 · {paso} · Saltar · Atrás · Continuar · Seguimos donde ibas · Escribe tu correo · Inventa una contraseña · Toca «Crear cuenta» · Cuenta creada · Así entras la próxima vez · Toca tu casa en el mapa · Toca «Continuar» · Confirma tu sector · Vivienda marcada · Elige Luz o Agua · Qué dice cada color · Así está tu sector · Elige qué se fue · ¿Cuándo pasó? · Toca para avisar · Es una práctica: este toque no envía nada. · Así se avisa · Un aviso solo no cambia el mapa · Cuánto suele durar un corte · Sin señal también puedes avisar · Terminaste el recorrido · Ir al mapa | A |
 | Mapa                           | `aria-label` "Mapa de sectores: …" · © OpenStreetMap contributors                                       | todas     |
 
 ---
