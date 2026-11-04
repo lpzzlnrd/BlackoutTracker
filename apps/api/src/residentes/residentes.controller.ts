@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 import { Throttle } from '@nestjs/throttler';
 import type { PinValidadoDto, SectorAsignadoDto } from '@blackout/shared';
 import { Public } from '../auth/publico.decorator';
-import { THROTTLE_LECTURA, THROTTLE_REGISTRO } from '../comun/limites';
+import { THROTTLE_LECTURA, THROTTLE_REGISTRO, THROTTLE_VALIDAR_PIN } from '../comun/limites';
 import { ResidenteActual } from '../auth/residente-actual.decorator';
 import { PinDto, PinValidadoRespuesta, SectorAsignadoRespuesta } from './dto/pin.dto';
 import { PerfilActual, RegistroGuard } from './registro.guard';
@@ -15,7 +15,7 @@ export class ResidentesController {
   constructor(private readonly residentes: ResidentesService) {}
 
   @Public()
-  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Throttle(THROTTLE_VALIDAR_PIN)
   @Post('registro/validar-pin')
   @HttpCode(200)
   @ApiOperation({
@@ -33,10 +33,17 @@ export class ResidentesController {
   @Post('residentes/me')
   @ApiOperation({
     summary:
-      'Crea el perfil del residente con su pin (una sola vez) y, si es el primero, su sector',
+      'Crea el perfil del residente con su pin (una sola vez) y, si es el primero, su sector (idempotente)',
+    description:
+      'Repetir el registro con un pin del mismo sector (doble envío o reintento) devuelve el mismo ' +
+      'sector (201) sin cambiar nada; la ubicación guardada sigue siendo la primera.',
   })
   @ApiResponse({ status: 201, type: SectorAsignadoRespuesta })
-  @ApiResponse({ status: 409, description: 'RESIDENTE_YA_REGISTRADO' })
+  @ApiResponse({
+    status: 409,
+    description: 'RESIDENTE_YA_REGISTRADO (ya registrado en otro sector)',
+  })
+  @ApiResponse({ status: 429, description: 'DEMASIADAS_SOLICITUDES' })
   @ApiResponse({ status: 422, description: 'PIN_FUERA_DE_ZONA' })
   registrar(
     @ResidenteActual() residenteId: string,

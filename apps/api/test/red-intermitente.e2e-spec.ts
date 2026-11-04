@@ -14,7 +14,7 @@ describe('Red intermitente (T-054)', () => {
   let urlApi: string;
 
   beforeAll(async () => {
-    ctx = await Contexto.crear();
+    ctx = await Contexto.crear({ sinLimites: true });
     await ctx.app.listen(0, '127.0.0.1');
     const { port } = ctx.app.getHttpServer().address() as AddressInfo;
     urlApi = `http://127.0.0.1:${port}`;
@@ -53,7 +53,8 @@ describe('Red intermitente (T-054)', () => {
         esperaReintentoMs: [20, 200],
         timeoutMs: 1500,
         probReenvio: 0.15,
-        // La API de los tests confía en X-Forwarded-For: así el throttle por IP no frena la prueba.
+        // El throttle está apagado (cuenta por residente, D-044); la IP por petición queda por si se
+        // vuelve a encender.
         ipPorPeticion: true,
         antesDeDrenar: () => proxy.calmar(),
       });

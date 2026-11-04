@@ -2,8 +2,11 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
+import { JwtGuard } from './auth/jwt.guard';
+import { GuardLimites } from './comun/guard-limites';
+import { MENSAJE_LIMITE, THROTTLE_GENERAL } from './comun/limites';
 import { ignorarArchivoEnv, RUTAS_ENV } from './config/cargar-env';
 import { validarEnv } from './config/env';
 import { DbModule } from './db/db.module';
@@ -24,8 +27,8 @@ import { SectoresModule } from './sectores/sectores.module';
       envFilePath: RUTAS_ENV,
       ignoreEnvFile: ignorarArchivoEnv(),
     }),
-    // Límite general: 100 solicitudes por minuto y por IP. Las rutas sensibles lo ajustan (T-015, T-051).
-    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
+    // Límite general (`/salud`); cada controlador declara el suyo (T-015, T-051, D-044).
+    ThrottlerModule.forRoot({ throttlers: [THROTTLE_GENERAL], errorMessage: MENSAJE_LIMITE }),
     ScheduleModule.forRoot(),
     DbModule,
     AuthModule,
@@ -37,6 +40,11 @@ import { SectoresModule } from './sectores/sectores.module';
     ResumenModule,
   ],
   controllers: [SaludController],
-  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
+  // Los guards globales corren en este orden: primero el JWT, que deja `residenteId`, y después el
+  // throttle, que cuenta por ese residente (D-044). Un token inválido es un 401 antes de contar.
+  providers: [
+    { provide: APP_GUARD, useClass: JwtGuard },
+    { provide: APP_GUARD, useClass: GuardLimites },
+  ],
 })
 export class AppModule {}

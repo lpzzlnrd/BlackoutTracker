@@ -3,14 +3,14 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { EstimacionDto } from '@blackout/shared';
 import { Public } from '../auth/publico.decorator';
-import { THROTTLE_LECTURA } from '../comun/limites';
+import { THROTTLE_LECTURA_PUBLICA } from '../comun/limites';
 import { EstimacionQueryDto, EstimacionRespuesta } from './dto/estimacion-query.dto';
 import { EstimacionService } from './estimacion.service';
 
 // Público (D-029): solo agregados por sector, nunca datos de residentes (NF-06).
 @ApiTags('estimaciones')
 @Public()
-@Throttle(THROTTLE_LECTURA)
+@Throttle(THROTTLE_LECTURA_PUBLICA)
 @ApiResponse({ status: 429, description: 'DEMASIADAS_SOLICITUDES' })
 @Controller('estimaciones')
 export class EstimacionController {

@@ -31,6 +31,12 @@ export class ResidentesService {
   /**
    * Crea el perfil del residente (una sola vez) y, si es el primero de su celda, el sector. Todo en
    * una transacción: con un 409 el sector nuevo tampoco queda. Nunca devuelve el pin.
+   *
+   * Idempotente (OFF-05, D-044): repetir el registro con un pin del mismo sector (el doble toque,
+   * o el reintento cuando la red se cortó antes de la respuesta) devuelve el mismo sector y no
+   * cambia nada; la ubicación guardada sigue siendo la primera. Dos registros a la vez del mismo
+   * residente se ordenan en la clave primaria: el segundo espera al primero y ve su fila. Solo un
+   * pin de otro sector es un 409 `RESIDENTE_YA_REGISTRADO`: el sector no se cambia por aquí.
    */
   registrar(id: string, lat: number, lng: number): Promise<SectorAsignadoDto> {
     return this.db.transaction(async (tx) => {
@@ -38,15 +44,17 @@ export class ResidentesService {
       const creados = await tx
         .insert(residentes)
         .values({ id, sectorId: sector.sectorId, ubicacion: punto(lat, lng) })
-        .onConflictDoNothing()
+        .onConflictDoNothing({ target: residentes.id })
         .returning({ id: residentes.id });
-      if (creados.length === 0) {
-        throw new ErrorNegocio(
-          CodigoError.ResidenteYaRegistrado,
-          'El residente ya está registrado',
-        );
-      }
-      return sector;
+      if (creados.length > 0) return sector;
+
+      const [previo] = await tx
+        .select({ sectorId: residentes.sectorId })
+        .from(residentes)
+        .where(eq(residentes.id, id))
+        .limit(1);
+      if (previo?.sectorId === sector.sectorId) return sector;
+      throw new ErrorNegocio(CodigoError.ResidenteYaRegistrado, 'El residente ya está registrado');
     });
   }
 

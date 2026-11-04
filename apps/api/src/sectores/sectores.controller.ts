@@ -3,13 +3,13 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { SectoresGeoJsonDto, ZonaDto } from '@blackout/shared';
 import { Public } from '../auth/publico.decorator';
-import { THROTTLE_LECTURA } from '../comun/limites';
+import { THROTTLE_LECTURA_PUBLICA } from '../comun/limites';
 import { SectoresGeoJsonRespuesta, ZonaRespuesta } from './dto/sectores.dto';
 import { SectoresService } from './sectores.service';
 
 @ApiTags('sectores')
 @Public()
-@Throttle(THROTTLE_LECTURA)
+@Throttle(THROTTLE_LECTURA_PUBLICA)
 @ApiResponse({ status: 429, description: 'DEMASIADAS_SOLICITUDES' })
 @Controller()
 export class SectoresController {
