@@ -95,7 +95,8 @@ VitePWA({
 
 1. `registerSW` de `virtual:pwa-register` avisa con `onNeedRefresh` cuando hay una versión nueva esperando.
 2. La app muestra el aviso **"Hay una versión nueva de la app · Actualizar"** (B lo dibuja; A y C usan los tokens `--inverso-*`). Un toque llama a `updateSW(true)`.
-3. El SW escucha `message` con `{ type: 'SKIP_WAITING' }` y entonces llama a `self.skipWaiting()`. La página recarga al activarse el nuevo SW.
+3. El SW escucha `message` con `{ type: 'SKIP_WAITING' }` y entonces llama a `self.skipWaiting()`. La página recarga al activarse el nuevo SW: lo decide `src/pwa/registro.ts` con el `controllerchange` del navegador, no el `isUpdate` de workbox-window, que es falso si la página arrancó sin SW (la primera visita) y dejaba el aviso pegado. Si ya no queda nada esperando, "Actualizar" solo recarga.
+   - Una página sin SW que la controle (Ctrl+Shift+R) viene de la red con el código nuevo: no se le ofrece la versión.
 4. No se actualiza en medio de un envío: si la cola tiene avisos en vuelo, el aviso espera a que termine.
 
 ## 5. Pantalla y navegador
