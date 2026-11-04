@@ -1,7 +1,9 @@
 import type {
+  ClavePushDto,
   EstimacionDto,
   HistorialDto,
   PinValidadoDto,
+  PreferenciasNotificacionesDto,
   ReporteDto,
   ResumenSectorDto,
   SaludDto,
@@ -12,6 +14,7 @@ import type {
 import type {
   RepositorioDetalleSector,
   RepositorioEstimaciones,
+  RepositorioNotificaciones,
   RepositorioReportes,
   RepositorioResidente,
   RepositorioSectores,
@@ -68,6 +71,25 @@ export function crearRepositorioDetalleSectorHttp(http: ClienteHttp): Repositori
       http.pedir<HistorialDto>('GET', `/sectores/${sectorId}/historial`, {
         consulta: { tipoServicio, cursor },
       }),
+  };
+}
+
+/** Notificaciones push (T-072, D-042). La clave pública es lo único que se pide sin sesión. */
+export function crearRepositorioNotificacionesHttp(http: ClienteHttp): RepositorioNotificaciones {
+  return {
+    clave: () => http.pedir<ClavePushDto>('GET', '/notificaciones/clave', { conSesion: false }),
+    suscribir: (solicitud) =>
+      http.pedir<void>('PUT', '/notificaciones/suscripcion', { cuerpo: solicitud }),
+    darDeBaja: (solicitud) =>
+      http.pedir<void>('DELETE', '/notificaciones/suscripcion', { cuerpo: solicitud }),
+    preferencias: () =>
+      http.pedir<PreferenciasNotificacionesDto>('GET', '/notificaciones/preferencias'),
+    cambiarPreferencias: (cambios) =>
+      http.pedir<PreferenciasNotificacionesDto>('PATCH', '/notificaciones/preferencias', {
+        cuerpo: cambios,
+      }),
+    marcarAbierta: (id) =>
+      http.pedir<void>('POST', `/notificaciones/${encodeURIComponent(id)}/abierta`),
   };
 }
 

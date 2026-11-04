@@ -8,6 +8,13 @@ import {
 } from 'workbox-precaching';
 import { NavigationRoute, registerRoute } from 'workbox-routing';
 import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies';
+import {
+  destinoDelClic,
+  leerNotificacion,
+  NOTIFICACION_GENERICA,
+  opcionesDeNotificacion,
+  type MensajeNavegar,
+} from './notificaciones-sw';
 
 // Service worker propio (PWA.md §4). `vite-plugin-pwa` (injectManifest) sustituye
 // `self.__WB_MANIFEST` por la lista de archivos de la build.
@@ -72,6 +79,52 @@ registerRoute(
 );
 
 // Las escrituras (`PUT /reportes/:id`, `PATCH …/cierre`) no se cachean: las gestiona la cola.
+
+// ─── Notificaciones push (T-072, D-042) ──────────────────────────────────────────────────────
+
+// Llega cifrado desde la API (Web Push). Siempre se muestra algo: Chrome castiga los push que no
+// terminan en una notificación visible (`userVisibleOnly`).
+self.addEventListener('push', (evento) => {
+  const notificacion = leerNotificacion(leerJson(evento.data));
+  if (!notificacion) {
+    const { titulo, opciones } = NOTIFICACION_GENERICA;
+    evento.waitUntil(self.registration.showNotification(titulo, { ...opciones }));
+    return;
+  }
+  const { titulo, opciones } = opcionesDeNotificacion(notificacion, Date.now());
+  evento.waitUntil(self.registration.showNotification(titulo, opciones));
+});
+
+self.addEventListener('notificationclick', (evento) => {
+  evento.notification.close();
+  const destino = destinoDelClic(evento.notification.data, evento.action);
+  if (destino) evento.waitUntil(abrirEnLaApp(destino));
+});
+
+/** El cuerpo del push como JSON; `null` si no lo es. */
+function leerJson(datos: PushMessageData | null): unknown {
+  try {
+    return datos?.json() ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Si la app ya está abierta, la trae al frente y le pide que navegue sin recargar (no se pierde
+ * lo que el vecino estaba escribiendo); si no, abre una ventana nueva.
+ */
+async function abrirEnLaApp(ruta: string): Promise<void> {
+  const ventanas = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+  const propia = ventanas.find((v) => new URL(v.url).origin === self.location.origin);
+  if (propia) {
+    await propia.focus();
+    const mensaje: MensajeNavegar = { tipo: 'navegar', url: ruta };
+    propia.postMessage(mensaje);
+    return;
+  }
+  await self.clients.openWindow(new URL(ruta, self.location.origin).href);
+}
 
 // La versión nueva espera hasta que la app la acepta (`registerType: 'prompt'`).
 self.addEventListener('message', (evento) => {

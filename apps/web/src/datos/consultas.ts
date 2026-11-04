@@ -26,7 +26,48 @@ export const claves = {
     ['estimacion', sectorId, servicio] as const,
   historial: (sectorId: number, servicio: TipoServicio | undefined) =>
     ['historial', sectorId, servicio ?? 'todos'] as const,
+  clavePush: ['clave-push'] as const,
+  suscripcionPush: ['suscripcion-push'] as const,
+  preferenciasNotificaciones: (usuarioId: string | undefined) =>
+    ['preferencias-notificaciones', usuarioId] as const,
 };
+
+/**
+ * `GET /notificaciones/clave`: si el servidor tiene Web Push. Solo cambia con un despliegue; sin
+ * red se da por inactivo (no se ofrece nada que no se pueda cumplir).
+ */
+export function useClavePush() {
+  const { notificaciones } = usePuertos();
+  return useQuery({
+    queryKey: claves.clavePush,
+    queryFn: () => notificaciones.clave(),
+    staleTime: Infinity,
+    retry: false,
+  });
+}
+
+/** La suscripción push de este navegador (`null` si no hay). Se invalida al activar o desactivar. */
+export function useSuscripcionPush() {
+  const { push } = usePuertos();
+  return useQuery({
+    queryKey: claves.suscripcionPush,
+    queryFn: () => push.actual(),
+    staleTime: Infinity,
+    retry: false,
+  });
+}
+
+/** `GET /notificaciones/preferencias` del vecino (recordatorios y agua de noche). */
+export function usePreferenciasNotificaciones(habilitada: boolean) {
+  const { notificaciones } = usePuertos();
+  const usuario = useSesion();
+  return useQuery({
+    queryKey: claves.preferenciasNotificaciones(usuario?.id),
+    enabled: usuario !== null && habilitada,
+    retry: reintentarSiNoEsDefinitivo,
+    queryFn: () => notificaciones.preferencias(),
+  });
+}
 
 /**
  * `GET /sectores`: los hexágonos con vecinos. Solo crece cuando se registra el primer vecino de una

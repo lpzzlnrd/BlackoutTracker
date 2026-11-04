@@ -2,6 +2,7 @@ import type { ColaAvisos } from './cola-avisos';
 import type { Conexion, SondaSalud } from './conexion';
 import type { Configuracion } from './configuracion';
 import type { EstadosSector } from './estados-sector';
+import type { PushDispositivo, RepositorioNotificaciones } from './notificaciones';
 import type { Reloj } from './reloj';
 import type {
   RepositorioDetalleSector,
@@ -16,6 +17,7 @@ export type { ColaAvisos } from './cola-avisos';
 export type { Conexion, SondaSalud } from './conexion';
 export type { Configuracion } from './configuracion';
 export type { EstadosSector } from './estados-sector';
+export type { PushDispositivo, RepositorioNotificaciones } from './notificaciones';
 export type { Reloj } from './reloj';
 export type {
   RepositorioDetalleSector,
@@ -43,4 +45,8 @@ export interface Puertos {
   detalleSector: RepositorioDetalleSector;
   estadosSector: EstadosSector;
   colaAvisos: ColaAvisos;
+  /** Notificaciones en la API (T-072). */
+  notificaciones: RepositorioNotificaciones;
+  /** Permiso y suscripción Web Push de este navegador (T-072). */
+  push: PushDispositivo;
 }

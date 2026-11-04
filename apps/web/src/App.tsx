@@ -9,6 +9,7 @@ import { Bienvenida } from './guia/Bienvenida';
 import { PantallaGuia } from './guia/PantallaGuia';
 import { PantallaMapa } from './mapa/PantallaMapa';
 import { rutaSegura, useParametro, useRuta, type Ruta } from './navegacion/ruta';
+import { NotificacionesEnLaApp } from './notificaciones/NotificacionesEnLaApp';
 import { PantallaPanel } from './panel/PantallaPanel';
 import { PantallaEntrar } from './registro/PantallaEntrar';
 import { PantallaRegistro } from './registro/PantallaRegistro';
@@ -28,6 +29,7 @@ export function App() {
     <>
       <Marco pie={<AvisoInstalacion />}>{pantalla(ruta, siguiente)}</Marco>
       <AvisoVersion />
+      <NotificacionesEnLaApp />
       <Bienvenida />
     </>
   );

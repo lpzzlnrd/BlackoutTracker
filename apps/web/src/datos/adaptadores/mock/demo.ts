@@ -13,6 +13,11 @@ import {
 } from './escenario';
 import { crearEstadosSectorMock, type EstadosSectorMock } from './estados-sector.mock';
 import { crearRepositorioEstimacionesMock } from './estimaciones.mock';
+import {
+  crearPushMock,
+  crearRepositorioNotificacionesMock,
+  type NotificacionesMock,
+} from './notificaciones.mock';
 import { crearRelojMock, type RelojMock } from './reloj.mock';
 import { crearRepositorioReportesMock } from './reportes.mock';
 import { crearRepositorioResidenteMock } from './residente.mock';
@@ -25,6 +30,7 @@ export interface PuertosDemo extends Puertos {
   reloj: RelojMock;
   sesion: SesionMock;
   estadosSector: EstadosSectorMock;
+  notificaciones: NotificacionesMock;
 }
 
 export interface OpcionesDemo {
@@ -105,5 +111,7 @@ export function crearPuertosDemo(
     detalleSector: crearRepositorioDetalleSectorMock(datos, entorno),
     estadosSector: crearEstadosSectorMock(datos.estados, inicio.ultimaSincronizacion, entorno),
     colaAvisos: crearColaAvisosMock(visitante ? [] : normalizarCola(inicio.cola)),
+    notificaciones: crearRepositorioNotificacionesMock(entorno),
+    push: crearPushMock(),
   };
 }

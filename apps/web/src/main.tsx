@@ -10,6 +10,7 @@ import { PreferenciasProvider } from './datos/preferencias';
 import './estilos/globales.css';
 import { PwaProvider, type Pwa } from './pwa/contexto';
 import { crearInstalacion } from './pwa/instalacion';
+import { escucharNavegacionDelSw } from './pwa/mensajes-sw';
 import { registrarServiceWorker } from './pwa/registro';
 import { seguirSistema } from './pwa/tema';
 
@@ -39,6 +40,7 @@ async function arrancar(): Promise<void> {
     instalacion: crearInstalacion(),
   };
   seguirSistema();
+  escucharNavegacionDelSw();
 
   createRoot(raiz).render(
     <StrictMode>

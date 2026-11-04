@@ -4,6 +4,7 @@ import { crearColaAvisosDexie } from './adaptadores/dexie/cola-avisos.dexie';
 import {
   crearRepositorioDetalleSectorHttp,
   crearRepositorioEstimacionesHttp,
+  crearRepositorioNotificacionesHttp,
   crearRepositorioReportesHttp,
   crearRepositorioResidenteHttp,
   crearRepositorioSectoresHttp,
@@ -12,6 +13,7 @@ import {
 import { crearClienteHttp } from './adaptadores/http/cliente';
 import { crearConexionNavegador } from './adaptadores/navegador/conexion.navegador';
 import { configuracionEstatica } from './adaptadores/navegador/configuracion.estatica';
+import { crearPushNavegador } from './adaptadores/navegador/push.navegador';
 import { relojSistema } from './adaptadores/navegador/reloj.sistema';
 import { crearEstadosSectorSupabase } from './adaptadores/supabase/estados-sector.supabase';
 import { crearSesionSupabase } from './adaptadores/supabase/sesion.supabase';
@@ -67,6 +69,8 @@ export function componerPuertosReales(): Puertos {
     detalleSector: crearRepositorioDetalleSectorHttp(http),
     estadosSector: crearEstadosSectorSupabase(supabase),
     colaAvisos: crearColaAvisosDexie(),
+    notificaciones: crearRepositorioNotificacionesHttp(http),
+    push: crearPushNavegador(),
   };
 }
 

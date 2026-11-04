@@ -9,6 +9,7 @@ import { Esqueleto, Mensaje } from '../componentes/ui/Mensaje';
 import { useColaAvisos, usePerfil, useSesion } from '../datos/consultas';
 import { usePuertos } from '../datos/contexto';
 import { Enlace, navegar } from '../navegacion/ruta';
+import { SeccionNotificaciones } from '../notificaciones/SeccionNotificaciones';
 
 // Un `<a>` con el aspecto de los botones (Boton no es un enlace).
 const ENLACE_PRIMARIO =
@@ -17,8 +18,8 @@ const ENLACE_SECUNDARIO =
   'inline-flex h-11 items-center justify-center gap-2 rounded-control border border-borde-control bg-superficie px-4 text-sm font-semibold text-texto';
 
 /**
- * Cuenta: entrar si no hay sesión; si la hay, el correo, el sector y cerrar sesión. Con o sin
- * sesión, la guía "Cómo funciona" (D-041) y las preferencias.
+ * Cuenta: entrar si no hay sesión; si la hay, el correo, el sector, las notificaciones (T-072) y
+ * cerrar sesión. Con o sin sesión, la guía "Cómo funciona" (D-041) y las preferencias.
  */
 export function PantallaCuenta() {
   const usuario = useSesion();
@@ -82,6 +83,8 @@ function ConSesion({ correo }: { correo: string }) {
     setSaliendo(true);
     setError(null);
     try {
+      // Antes de cerrar la sesión se da de baja este dispositivo: el siguiente que entre en el
+      // mismo teléfono no debe recibir las notificaciones del sector de este vecino.
       await cerrarSesion(puertos);
       cliente.clear();
       // Las lecturas con sesión que guardó el service worker se indexan por URL, no por usuario.
@@ -129,6 +132,8 @@ function ConSesion({ correo }: { correo: string }) {
           )}
         </div>
       </section>
+
+      {perfil.data && <SeccionNotificaciones />}
 
       <section aria-label="Cerrar sesión" className="flex flex-col gap-3">
         {confirmar && sinEnviar > 0 ? (

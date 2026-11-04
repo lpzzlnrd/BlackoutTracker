@@ -56,6 +56,30 @@ export function navegar(
   window.scrollTo(0, 0);
 }
 
+/**
+ * Navega a una URL de la app con su consulta (`/reportar?servicio=agua&n=…`), como las que trae
+ * una notificación. Una ruta desconocida lleva al mapa.
+ */
+export function navegarAUrl(url: string): void {
+  const destino = new URL(url, location.origin);
+  const camino = destino.pathname.replace(/\/+$/, '') || '/';
+  const ruta = RUTAS.find((r) => r === camino) ?? '/';
+  const consulta = Object.fromEntries(
+    [...destino.searchParams.entries()].filter(([clave]) => clave !== 'demo'),
+  );
+  navegar(ruta, { consulta });
+}
+
+/** Quita un parámetro de la URL actual sin añadir una entrada al historial (p. ej. `?n=`). */
+export function quitarParametro(nombre: string): void {
+  const params = new URLSearchParams(location.search);
+  if (!params.has(nombre)) return;
+  params.delete(nombre);
+  const texto = params.toString();
+  history.replaceState(null, '', `${location.pathname}${texto ? `?${texto}` : ''}`);
+  avisar();
+}
+
 export function useRuta(): Ruta {
   return useSyncExternalStore(suscribir, rutaActual);
 }

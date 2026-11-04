@@ -19,6 +19,7 @@ import { textoAccion, textoBotonReportar } from '../dominio/aviso';
 import { mensajeDeError } from '../dominio/errores';
 import { minutosDesde } from '../mapa/textos';
 import { Enlace } from '../navegacion/ruta';
+import { OfertaNotificaciones } from '../notificaciones/OfertaNotificaciones';
 import { duracion, hora, nombreServicio } from '../utils/formato';
 
 type Cuando = 'ahora' | 'antes';
@@ -238,6 +239,9 @@ export function FormularioAviso({
           </Enlace>
         </div>
       )}
+
+      {/* Después del aviso, y solo entonces, se ofrecen las notificaciones (T-072, D-042). */}
+      {ultimo && ultimo.estado !== 'error' && <OfertaNotificaciones />}
     </form>
   );
 }

@@ -11,12 +11,11 @@ export interface OpcionesPeticion {
   conSesion?: boolean;
 }
 
+export type MetodoHttp = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
 export interface ClienteHttp {
-  pedir<T>(
-    metodo: 'GET' | 'POST' | 'PUT' | 'PATCH',
-    ruta: string,
-    opciones?: OpcionesPeticion,
-  ): Promise<T>;
+  /** Con un 204 (sin cuerpo) resuelve `undefined`. */
+  pedir<T>(metodo: MetodoHttp, ruta: string, opciones?: OpcionesPeticion): Promise<T>;
 }
 
 const TIEMPO_MAXIMO_MS = 10_000;
@@ -46,7 +45,7 @@ export function crearClienteHttp(dependencias: {
   };
 
   async function pedir<T>(
-    metodo: 'GET' | 'POST' | 'PUT' | 'PATCH',
+    metodo: MetodoHttp,
     ruta: string,
     { cuerpo, consulta, conSesion = true }: OpcionesPeticion = {},
   ): Promise<T> {
@@ -77,6 +76,8 @@ export function crearClienteHttp(dependencias: {
       const error = (await respuesta.json().catch(() => null)) as Partial<ErrorApi> | null;
       throw new ErrorApiCliente(respuesta.status, error?.codigo);
     }
+    // Las altas y bajas de notificaciones responden 204, sin cuerpo que leer.
+    if (respuesta.status === 204) return undefined as T;
     return (await respuesta.json()) as T;
   }
 
