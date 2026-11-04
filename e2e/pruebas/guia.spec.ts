@@ -1,29 +1,39 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
-// La bienvenida y la guía (T-071, D-041). `&vecino=visitante` abre la demo sin sesión: es la
-// primera visita de alguien que todavía no tiene cuenta. Cada prueba arranca con el almacenamiento
-// vacío, así que el modal siempre sale la primera vez.
+// La bienvenida y la guía (T-071, D-041; la guía resumida y "Empezar", D-043). `&vecino=visitante`
+// abre la demo sin sesión: es la primera visita de alguien que todavía no tiene cuenta. Cada prueba
+// arranca con el almacenamiento vacío, así que el modal siempre sale la primera vez. El recorrido
+// guiado tiene sus pruebas en `recorrido.spec.ts`.
 
 const VISITANTE = '?demo=en-linea&vecino=visitante';
 
 const bienvenida = (page: Page) => page.getByRole('dialog', { name: '¿Nuevo en BlackoutTracker?' });
 
-test('D-041: la primera visita sin cuenta abre la bienvenida y lleva a la guía', async ({
+test('D-041: la primera visita sin cuenta abre la bienvenida; "Ya tengo cuenta" lleva a Entrar', async ({
   page,
 }) => {
   await page.goto(`/${VISITANTE}`);
   const dialogo = bienvenida(page);
   await expect(dialogo).toBeVisible();
-  // El foco empieza en la acción principal.
-  await expect(dialogo.getByRole('button', { name: 'Ver la guía' })).toBeFocused();
+  // El foco empieza en la acción principal, que abre el recorrido guiado (D-043).
+  await expect(dialogo.getByRole('button', { name: 'Empezar' })).toBeFocused();
 
-  await dialogo.getByRole('button', { name: 'Ver la guía' }).click();
-  await expect(page).toHaveURL(/\/guia\?demo=en-linea/);
+  await dialogo.getByRole('button', { name: 'Ya tengo cuenta' }).click();
+  await expect(page).toHaveURL(/\/entrar\?demo=en-linea/);
   await expect(dialogo).toHaveCount(0);
+  await expect(page.getByRole('heading', { level: 1, name: 'Entrar' })).toBeVisible();
+});
+
+test('D-043: la guía resumida tiene los 7 pasos y, sin cuenta, termina en crearla', async ({
+  page,
+}) => {
+  await page.goto(`/guia${VISITANTE}`);
   await expect(page.getByRole('heading', { level: 1, name: 'Cómo funciona' })).toBeVisible();
+  await expect(bienvenida(page)).toHaveCount(0);
   await expect(page.locator('ol > li')).toHaveCount(7);
-  await expect(page.getByRole('heading', { name: /Cómo se confirma un corte/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Se confirma entre vecinos/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Hacer el recorrido guiado' })).toBeVisible();
   // Sin cuenta, la guía termina en crearla, y "Crear cuenta" abre Entrar en ese modo.
   await page.getByRole('link', { name: 'Crear cuenta' }).last().click();
   await expect(page).toHaveURL(/\/entrar\?.*modo=crear/);
