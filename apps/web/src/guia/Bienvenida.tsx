@@ -4,20 +4,22 @@ import { Boton } from '../componentes/ui/Boton';
 import { Marca } from '../componentes/ui/Icono';
 import { useSesion } from '../datos/consultas';
 import { useObservable } from '../datos/contexto';
-import { navegar, useRuta } from '../navegacion/ruta';
-import { recuerdoBienvenida } from './recuerdo';
+import { navegar, useRuta, type Ruta } from '../navegacion/ruta';
+import { recorrido, recuerdoBienvenida } from './recuerdo';
+import { empezarRecorrido } from './recorrido/empezar';
 
 /**
  * "¿Nuevo en BlackoutTracker?" (T-071, D-041): la primera vez que alguien entra sin sesión, en
- * cualquier pantalla. Cualquier salida (la guía, "Ahora no" o Escape) lo deja visto en este
- * dispositivo; la guía sigue a mano en Cuenta.
+ * cualquier pantalla. "Empezar" abre el recorrido guiado (T-073, D-043). Cualquier salida lo deja
+ * visto en este dispositivo; el recorrido se repite desde Cuenta.
  */
 export function Bienvenida() {
   const hayUsuario = useSesion() !== null;
   const vista = useObservable(recuerdoBienvenida.vista);
+  const enRecorrido = useObservable(recorrido.estado) !== null;
   const ruta = useRuta();
-  if (!mostrarBienvenida({ hayUsuario, vista, ruta })) return null;
-  return <DialogoBienvenida />;
+  if (enRecorrido || !mostrarBienvenida({ hayUsuario, vista, ruta })) return null;
+  return <DialogoBienvenida ruta={ruta} />;
 }
 
 /**
@@ -25,7 +27,7 @@ export function Bienvenida() {
  * página y va en la capa superior, por encima del mapa (Leaflet llega a z-index 1000). Al cerrarse
  * se desmonta; por eso el efecto no lo cierra (en StrictMode lo cerraría y marcaría como visto).
  */
-function DialogoBienvenida() {
+function DialogoBienvenida({ ruta }: { ruta: Ruta }) {
   const dialogo = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -36,9 +38,13 @@ function DialogoBienvenida() {
     elemento.querySelector<HTMLButtonElement>('[data-principal]')?.focus();
   }, []);
 
-  const verGuia = () => {
+  const empezar = () => {
     recuerdoBienvenida.marcar();
-    navegar('/guia');
+    empezarRecorrido({ hayUsuario: false, tienePerfil: false }, ruta);
+  };
+  const tengoCuenta = () => {
+    recuerdoBienvenida.marcar();
+    navegar('/entrar');
   };
 
   return (
@@ -63,19 +69,22 @@ function DialogoBienvenida() {
         ¿Nuevo en BlackoutTracker?
       </h2>
       <p id="texto-bienvenida" className="mt-2 text-[15px] leading-[1.45] text-texto-2">
-        Te mostramos el paso a paso: cómo leer el mapa, crear tu cuenta y avisar cuando se va la luz
-        o el agua en tu sector.
+        Aquí los vecinos avisan cuando se va la luz o el agua. Te guiamos en la app misma: creas tu
+        cuenta, marcas tu casa y aprendes a avisar. Son 7 pasos cortos.
       </p>
       <div className="mt-5 flex flex-col gap-1">
-        <Boton data-principal ancho onClick={verGuia}>
-          Ver la guía
+        <Boton data-principal ancho onClick={empezar}>
+          Empezar
+        </Boton>
+        <Boton variante="secundario" ancho onClick={tengoCuenta}>
+          Ya tengo cuenta
         </Boton>
         <Boton variante="texto" ancho onClick={() => recuerdoBienvenida.marcar()}>
           Ahora no
         </Boton>
       </div>
       <p className="mt-1 text-center text-xs text-secundario">
-        Puedes verla cuando quieras en Cuenta.
+        Puedes repetirlo cuando quieras en Cuenta.
       </p>
     </dialog>
   );

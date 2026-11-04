@@ -20,7 +20,12 @@ export function TarjetasServicio({
   abiertos: Readonly<Record<TipoServicio, CorteAbierto | null>>;
 }) {
   return (
-    <div role="group" aria-label="Servicio" className="grid grid-cols-2 gap-2.5">
+    <div
+      role="group"
+      aria-label="Servicio"
+      data-guia="tarjetas-servicio"
+      className="grid grid-cols-2 gap-2.5"
+    >
       {OPCIONES.map((servicio) => {
         const elegido = servicio === valor;
         const abierto = abiertos[servicio];

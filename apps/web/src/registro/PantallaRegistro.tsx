@@ -137,8 +137,14 @@ export function PantallaRegistro() {
         }
       />
 
-      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:items-start lg:gap-6">
-        <div className="relative h-[52dvh] min-h-[300px] overflow-hidden rounded-tarjeta border border-borde lg:order-2 lg:h-[560px]">
+      <div
+        data-guia="registro-vivienda"
+        className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:items-start lg:gap-6"
+      >
+        <div
+          data-guia="mapa-vivienda"
+          className="relative h-[52dvh] min-h-[300px] overflow-hidden rounded-tarjeta border border-borde lg:order-2 lg:h-[560px]"
+        >
           <MapaBase
             limites={limitesDe(sectores.data)}
             etiqueta="Mapa de la Gran Valencia para marcar tu vivienda"
@@ -200,7 +206,12 @@ export function PantallaRegistro() {
                 dentro comparten su estado.
               </p>
               <p className="text-sm text-secundario">{PRIVACIDAD}</p>
-              <Boton ancho cargando={ocupado} onClick={() => void confirmar()}>
+              <Boton
+                ancho
+                cargando={ocupado}
+                onClick={() => void confirmar()}
+                data-guia="confirmar-vivienda"
+              >
                 Confirmar mi vivienda
               </Boton>
               <Boton
@@ -233,6 +244,7 @@ export function PantallaRegistro() {
               )}
               <Boton
                 ancho
+                data-guia="continuar-pin"
                 disabled={!pin || enZona === false}
                 cargando={ocupado}
                 onClick={() => void continuar()}

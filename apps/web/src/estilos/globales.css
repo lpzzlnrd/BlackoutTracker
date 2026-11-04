@@ -140,6 +140,63 @@
 dialog.bienvenida::backdrop {
   background: rgb(18 19 23 / 0.6);
 }
+
+/*
+  El recorrido guiado (D-043). El velo es la misma tinta del modal; el SVG deja pasar los toques y
+  el trazado los recibe, así el hueco (que no se pinta) se puede usar. El anillo es de papel claro
+  en los dos temas porque va sobre el velo oscuro, y crece en píxeles, no en escala: igual en un
+  botón que en el mapa entero. Plano (D-028): bordes, sin sombras.
+*/
+.recorrido-velo {
+  pointer-events: none;
+}
+.recorrido-velo path {
+  fill: rgb(18 19 23 / 0.6);
+  pointer-events: auto;
+}
+.recorrido-anillo {
+  border: 2px solid #f4f2ec;
+  border-radius: 14px;
+}
+.recorrido-anillo::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 2px solid #f4f2ec;
+  border-radius: 16px;
+  animation: recorrido-pulso 1.6s ease-out infinite;
+}
+@keyframes recorrido-pulso {
+  from {
+    inset: -2px;
+    opacity: 0.9;
+  }
+  to {
+    inset: -14px;
+    opacity: 0;
+  }
+}
+.recorrido-entrar {
+  animation: recorrido-entrar 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes recorrido-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.recorrido-check {
+  animation: recorrido-check 420ms cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+@keyframes recorrido-check {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+.recorrido-barra {
+  transition: width 360ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
