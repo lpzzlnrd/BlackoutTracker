@@ -10,11 +10,19 @@ import {
   CodigoError,
   ESTADOS_SERVICIO,
   ESTADO_HTTP_DE_CODIGO,
+  ESTADOS_NOTIFICACION,
   ESTIMACION_N_MIN_POR_DEFECTO,
+  EstadoNotificacion,
   EstadoServicio,
   ORIGENES_EVENTO,
   OrigenEvento,
+  RECORDATORIOS_HORAS_POR_DEFECTO,
+  SILENCIO_DESDE_POR_DEFECTO,
+  SILENCIO_HASTA_POR_DEFECTO,
+  TIPOS_NOTIFICACION,
+  TIPOS_RECORDATORIO,
   TIPOS_SERVICIO,
+  TipoNotificacion,
   TipoServicio,
   ZONA_HORARIA,
 } from '../dist/index.js';
@@ -24,12 +32,32 @@ test('los enums tienen los valores y el orden de los enums de Postgres', () => {
   assert.deepEqual(TIPOS_SERVICIO, ['agua', 'electricidad']);
   assert.deepEqual(ESTADOS_SERVICIO, ['con_servicio', 'sin_servicio']);
   assert.deepEqual(ORIGENES_EVENTO, ['consenso', 'campo']);
+  assert.deepEqual(TIPOS_NOTIFICACION, [
+    'corte_confirmado',
+    'servicio_restablecido',
+    'pregunta_vecinos',
+    'reporte_abierto',
+    'resumen_dia',
+  ]);
+  assert.deepEqual(ESTADOS_NOTIFICACION, ['pendiente', 'enviada', 'descartada', 'fallida']);
 });
 
 test('cada objeto de enum coincide con su tupla (la tupla se escribe a mano)', () => {
   assert.deepEqual(Object.values(TipoServicio), [...TIPOS_SERVICIO]);
   assert.deepEqual(Object.values(EstadoServicio), [...ESTADOS_SERVICIO]);
   assert.deepEqual(Object.values(OrigenEvento), [...ORIGENES_EVENTO]);
+  assert.deepEqual(Object.values(TipoNotificacion), [...TIPOS_NOTIFICACION]);
+  assert.deepEqual(Object.values(EstadoNotificacion), [...ESTADOS_NOTIFICACION]);
+});
+
+test('los recordatorios son los tipos que no salen de un corte confirmado (D-042)', () => {
+  assert.deepEqual([...TIPOS_RECORDATORIO], ['pregunta_vecinos', 'reporte_abierto', 'resumen_dia']);
+});
+
+test('horas silenciosas de 22:00 a 07:00 y un recordatorio al día, a las 19:00 (D-042)', () => {
+  assert.equal(SILENCIO_DESDE_POR_DEFECTO, 22);
+  assert.equal(SILENCIO_HASTA_POR_DEFECTO, 7);
+  assert.deepEqual([...RECORDATORIOS_HORAS_POR_DEFECTO], [19]);
 });
 
 test('los códigos de error son únicos y van en MAYÚSCULAS_CON_GUION_BAJO', () => {

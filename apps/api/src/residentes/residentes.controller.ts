@@ -49,10 +49,15 @@ export class ResidentesController {
   @UseGuards(RegistroGuard)
   @Throttle(THROTTLE_LECTURA)
   @Get('residentes/me')
-  @ApiOperation({ summary: 'Sector del residente. Nunca devuelve coordenadas (NF-06)' })
+  @ApiOperation({
+    summary: 'Sector del residente. Nunca devuelve coordenadas (NF-06)',
+    description:
+      'La app lo pide al abrir: también anota la hora de entrada, que decide los recordatorios (T-072).',
+  })
   @ApiResponse({ status: 200, type: SectorAsignadoRespuesta })
   @ApiResponse({ status: 403, description: 'REGISTRO_INCOMPLETO' })
-  yo(@PerfilActual() perfil: PerfilResidente): SectorAsignadoDto {
+  async yo(@PerfilActual() perfil: PerfilResidente): Promise<SectorAsignadoDto> {
+    await this.residentes.registrarIngreso(perfil.id);
     return {
       sectorId: perfil.sectorId,
       sectorNombre: perfil.sectorNombre,

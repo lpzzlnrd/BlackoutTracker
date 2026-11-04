@@ -1,4 +1,10 @@
-import type { EstadoServicio, OrigenEvento, TipoServicio } from './enums';
+import type {
+  AccionNotificacion,
+  EstadoServicio,
+  OrigenEvento,
+  TipoNotificacion,
+  TipoServicio,
+} from './enums';
 
 // Interfaces de las solicitudes y respuestas de la API (docs/PLAN.md §5). Los DTO con
 // class-validator viven en apps/api y las implementan; así el frontend no arrastra class-validator.
@@ -190,4 +196,56 @@ export interface HistorialDto {
   eventos: EventoSectorDto[];
   /** Se pasa como `cursor` para pedir la página siguiente; nulo en la última. */
   siguienteCursor: string | null;
+}
+
+// ─── Notificaciones (T-072, D-042) ───────────────────────────────────────────────────────────
+
+/** `GET /notificaciones/clave`: la clave pública VAPID. Sin claves en el servidor, `activo` es false. */
+export interface ClavePushDto {
+  activo: boolean;
+  clavePublica: string | null;
+}
+
+/** `PUT /notificaciones/suscripcion`: lo que da `PushSubscription.toJSON()`, sin `expirationTime`. */
+export interface SuscripcionPushSolicitud {
+  endpoint: string;
+  claves: { p256dh: string; auth: string };
+}
+
+/** `DELETE /notificaciones/suscripcion`. */
+export interface BajaSuscripcionSolicitud {
+  endpoint: string;
+}
+
+/** `GET` y `PATCH /notificaciones/preferencias`. */
+export interface PreferenciasNotificacionesDto {
+  /** Recordatorios y preguntas (con tope diario). Los avisos de corte confirmado no se apagan aquí. */
+  recordatorios: boolean;
+  /** «Llegó el agua» suena aunque sea de noche (horas silenciosas). */
+  aguaDeNoche: boolean;
+}
+
+/**
+ * Lo que recibe el service worker en el evento `push` (Web Push lo cifra de punta a punta). Nunca
+ * lleva coordenadas (NF-06): solo el nombre del sector y los textos ya redactados.
+ */
+export interface NotificacionPushDto {
+  /** Id de la notificación: la app lo devuelve en `POST /notificaciones/:id/abierta`. */
+  id: string;
+  tipo: TipoNotificacion;
+  titulo: string;
+  cuerpo: string;
+  /**
+   * `tag` de la notificación. La de un mismo corte (sector y servicio) reemplaza a la anterior en vez
+   * de apilarse: una sola tarjeta cuenta el corte de principio a fin.
+   */
+  etiqueta: string;
+  /** Ruta de la app que se abre al tocarla, con `?n=<id>`. */
+  url: string;
+  /** Vuelve a sonar al reemplazar a otra con la misma etiqueta. */
+  renotificar: boolean;
+  tipoServicio: TipoServicio | null;
+  /** URL absoluta de la imagen del hexágono y sus vecinos (D-042, idea b); null si no hay. */
+  imagen: string | null;
+  acciones: { accion: AccionNotificacion; titulo: string }[];
 }

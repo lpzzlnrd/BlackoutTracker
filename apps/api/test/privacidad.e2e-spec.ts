@@ -48,7 +48,7 @@ export function coordenadasFiltradas(valor: unknown): string[] {
   return HUELLAS.filter((h) => texto.includes(h));
 }
 
-type Metodo = 'get' | 'post' | 'put' | 'patch';
+type Metodo = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
 describe('Barrido de privacidad (NF-06, T-016)', () => {
   let ctx: Contexto;
@@ -163,6 +163,50 @@ describe('Barrido de privacidad (NF-06, T-016)', () => {
         swagger: 'GET /api/sectores/{id}/resumen',
         estado: 200,
         llamada: () => llamar('get', '/api/sectores/1/resumen'),
+      },
+      // Notificaciones (T-072).
+      {
+        swagger: 'GET /api/notificaciones/clave',
+        estado: 200,
+        llamada: () => llamar('get', '/api/notificaciones/clave'),
+      },
+      {
+        swagger: 'PUT /api/notificaciones/suscripcion',
+        estado: 204,
+        llamada: () =>
+          llamar('put', '/api/notificaciones/suscripcion', a.token, {
+            endpoint: `https://fcm.googleapis.com/fcm/send/${a.id}`,
+            claves: { p256dh: `B${'A'.repeat(86)}`, auth: 'Q'.repeat(22) },
+          }),
+      },
+      {
+        swagger: 'DELETE /api/notificaciones/suscripcion',
+        estado: 204,
+        llamada: () =>
+          llamar('delete', '/api/notificaciones/suscripcion', a.token, {
+            endpoint: `https://fcm.googleapis.com/fcm/send/${a.id}`,
+          }),
+      },
+      {
+        swagger: 'GET /api/notificaciones/preferencias',
+        estado: 200,
+        llamada: () => llamar('get', '/api/notificaciones/preferencias', a.token),
+      },
+      {
+        swagger: 'PATCH /api/notificaciones/preferencias',
+        estado: 200,
+        llamada: () =>
+          llamar('patch', '/api/notificaciones/preferencias', a.token, { aguaDeNoche: true }),
+      },
+      {
+        swagger: 'POST /api/notificaciones/{id}/abierta',
+        estado: 204,
+        llamada: () => llamar('post', `/api/notificaciones/${randomUUID()}/abierta`, a.token),
+      },
+      {
+        swagger: 'GET /api/notificaciones/imagen/{sectorId}/{tipoServicio}',
+        estado: 200,
+        llamada: () => llamar('get', '/api/notificaciones/imagen/1/agua'),
       },
     ];
   };

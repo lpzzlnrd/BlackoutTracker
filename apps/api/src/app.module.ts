@@ -9,6 +9,7 @@ import { validarEnv } from './config/env';
 import { DbModule } from './db/db.module';
 import { EstimacionModule } from './estimacion/estimacion.module';
 import { HistorialModule } from './historial/historial.module';
+import { NotificacionesModule } from './notificaciones/notificaciones.module';
 import { ReportesModule } from './reportes/reportes.module';
 import { ResidentesModule } from './residentes/residentes.module';
 import { ResumenModule } from './resumen/resumen.module';
@@ -35,6 +36,7 @@ import { SectoresModule } from './sectores/sectores.module';
     EstimacionModule,
     SectoresModule,
     ResumenModule,
+    NotificacionesModule,
   ],
   controllers: [SaludController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

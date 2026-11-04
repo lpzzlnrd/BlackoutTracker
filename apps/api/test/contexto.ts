@@ -5,9 +5,11 @@ import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { CLAVES_JWT } from '../src/auth/claves-jwt';
 import { configurarApp } from '../src/configurar-app';
+import { TRANSPORTE_PUSH } from '../src/notificaciones/transporte-push';
 import { RELOJ } from '../src/reportes/reportes.service';
 import { abrirBd, type BdTest, crearSectoresDePrueba, limpiar } from './bd';
 import { EmisorJwt } from './jwt';
+import { TransportePushFalso } from './push-falso';
 
 export interface ResidentePrueba {
   id: string;
@@ -28,6 +30,8 @@ export class Contexto {
     readonly bd: BdTest,
     readonly emisor: EmisorJwt,
     private readonly reloj: { ahora: Date },
+    /** Las notificaciones nunca salen a la red en los tests (T-072). */
+    readonly push: TransportePushFalso,
   ) {}
 
   /** La hora que ve la API (el reloj inyectado). */
@@ -43,16 +47,30 @@ export class Contexto {
     const bd = abrirBd();
     const emisor = await EmisorJwt.crear();
     const reloj = { ahora: new Date() };
+    const push = new TransportePushFalso();
     const modulo = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(CLAVES_JWT)
       .useValue(emisor.claves)
       .overrideProvider(RELOJ)
       .useValue(() => reloj.ahora)
+      .overrideProvider(TRANSPORTE_PUSH)
+      .useValue(push)
       .compile();
     const app = modulo.createNestApplication();
     configurarApp(app);
     await app.init();
-    return new Contexto(app, bd, emisor, reloj);
+    return new Contexto(app, bd, emisor, reloj, push);
+  }
+
+  /** Cualquier solicitud a la API, con un IP distinto cada vez (el throttle no interfiere). */
+  pedir(
+    metodo: 'get' | 'post' | 'put' | 'patch' | 'delete',
+    ruta: string,
+    token?: string,
+    cuerpo?: object,
+  ): request.Test {
+    const r = request(this.app.getHttpServer())[metodo](ruta);
+    return this.con(cuerpo ? r.send(cuerpo) : r, token);
   }
 
   async cerrar(): Promise<void> {
@@ -69,6 +87,7 @@ export class Contexto {
     await limpiar(this.bd.sql);
     if (!sinSectores) await crearSectoresDePrueba(this.bd.db);
     this.ahora = new Date();
+    this.push.reiniciar();
   }
 
   /** `ahora` desplazado `min` minutos (negativo = en el pasado). */

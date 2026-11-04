@@ -26,3 +26,19 @@ export const TOLERANCIA_RELOJ_MIN = 2;
 
 /** Todas las horas se guardan en UTC; las pantallas las muestran en esta zona (UTC−4, sin horario de verano). */
 export const ZONA_HORARIA = 'America/Caracas';
+
+/**
+ * Horas de Caracas en las que salen los recordatorios (T-072, D-042). Cada hora es una franja y el
+ * tope diario es el número de franjas: con `[19]` llega a lo sumo uno al día; con `[12, 19]`, dos.
+ */
+export const RECORDATORIOS_HORAS_POR_DEFECTO: readonly number[] = [19];
+
+/**
+ * Horas silenciosas, en hora de Caracas: de las 22:00 a las 07:00 no suena nada, salvo «llegó el
+ * agua» para quien lo pidió. Lo que se confirma de noche sale a las 07:00 si sigue vigente.
+ */
+export const SILENCIO_DESDE_POR_DEFECTO = 22;
+export const SILENCIO_HASTA_POR_DEFECTO = 7;
+
+/** Sin estimación suficiente, «¿ya volvió?» se pregunta cuando el reporte lleva estas horas abierto. */
+export const RECORDATORIO_REPORTE_ABIERTO_HORAS_POR_DEFECTO = 12;

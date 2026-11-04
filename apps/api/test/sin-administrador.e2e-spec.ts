@@ -36,7 +36,11 @@ describe('Sin administrador (NF-07)', () => {
     );
     expect(operaciones.length).toBeGreaterThan(0);
     expect(operaciones.filter((o) => /admin|moder|rol|usuarios|forzar/i.test(o))).toEqual([]);
-    expect(operaciones.filter((o) => o.startsWith('DELETE '))).toEqual([]);
+    // El único DELETE es el de tu propio dispositivo de notificaciones (T-072): no borra datos de
+    // nadie más ni da poder sobre otros.
+    expect(operaciones.filter((o) => o.startsWith('DELETE '))).toEqual([
+      'DELETE /api/notificaciones/suscripcion',
+    ]);
   });
 
   it('NF-07: la base no tiene columnas de rol ni de permisos', async () => {

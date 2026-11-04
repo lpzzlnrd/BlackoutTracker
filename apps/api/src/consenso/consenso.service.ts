@@ -1,11 +1,17 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { and, eq, gt, isNotNull, isNull, lt, notExists, or, sql } from 'drizzle-orm';
-import { EstadoServicio, TIPOS_SERVICIO, type TipoServicio } from '@blackout/shared';
+import {
+  EstadoServicio,
+  TIPOS_SERVICIO,
+  TipoNotificacion,
+  type TipoServicio,
+} from '@blackout/shared';
 import { RELOJ, type Reloj } from '../comun/reloj';
 import type { Env } from '../config/env';
 import { DB, type BaseDeDatos, type Transaccion } from '../db/db.module';
 import { estadoSector, eventosSector, reportes } from '../db/schema';
+import { BandejaService } from '../notificaciones/bandeja.service';
 import { limiteDeVencimiento } from '../reportes/vencimiento.puro';
 import { evaluarInicio, evaluarRestablecimiento } from './consenso.puro';
 
@@ -30,6 +36,7 @@ export class ConsensoService {
     private readonly config: ConfigService<Env, true>,
     @Inject(RELOJ) private readonly reloj: Reloj,
     @Inject(DB) private readonly db: BaseDeDatos,
+    private readonly bandeja: BandejaService,
   ) {}
 
   /**
@@ -202,6 +209,19 @@ export class ConsensoService {
           .insert(eventosSector)
           .values({ sectorId, tipoServicio, inicioEn: inicio.inicioEvento, confirmadoEn: ahora })
           .returning({ id: eventosSector.id });
+        // «Se fue la luz en tu sector» (T-072): a la bandeja, en esta misma transacción. Los que
+        // confirmaron son los reportes de la ventana que termina en el inicio del evento.
+        const desdeVentana = inicio.inicioEvento.getTime() - ventanaMin * 60_000;
+        await this.bandeja.encolarEvento(tx, {
+          tipo: TipoNotificacion.CorteConfirmado,
+          eventoId: evento.id,
+          sectorId,
+          tipoServicio,
+          aportantes: abiertos
+            .filter((a) => a.inicioEn.getTime() >= desdeVentana)
+            .map((a) => a.residenteId),
+          ahora,
+        });
         deseado = {
           estado: EstadoServicio.SinServicio,
           reportesSinConfirmar: 0,
@@ -244,6 +264,18 @@ export class ConsensoService {
           .update(eventosSector)
           .set({ finEn: cierre.finEvento, restablecidoEn: ahora })
           .where(eq(eventosSector.id, abierto.id));
+        // «¡Volvió la luz!» / «¡Llegó el agua!» (T-072). El incompleto de arriba no avisa: no se sabe
+        // cuándo volvió.
+        await this.bandeja.encolarEvento(tx, {
+          tipo: TipoNotificacion.ServicioRestablecido,
+          eventoId: abierto.id,
+          sectorId,
+          tipoServicio,
+          aportantes: cerrados
+            .filter((c) => c.finEn && c.finEn.getTime() >= abierto.inicioEn.getTime())
+            .map((c) => c.residenteId),
+          ahora,
+        });
         deseado = {
           estado: EstadoServicio.ConServicio,
           reportesSinConfirmar: evaluarInicio(abiertos, { n, ventanaMin, ahora }).sinConfirmar,
@@ -261,17 +293,32 @@ export class ConsensoService {
       }
     }
 
-    await this.guardarEstado(tx, sectorId, tipoServicio, deseado, ahora);
+    const previo = await this.guardarEstado(tx, sectorId, tipoServicio, deseado, ahora);
+
+    // Aparecen reportes sin confirmar donde no había ninguno (T-072, D-042 idea c): se pregunta a
+    // los demás vecinos cómo está su casa. Solo en esa transición (0 → k), no con cada reporte, y no
+    // justo tras un restablecimiento, para no tapar el «¡volvió!» que lleva la misma etiqueta.
+    const empiezanSinConfirmar =
+      deseado.estado === EstadoServicio.ConServicio &&
+      deseado.reportesSinConfirmar > 0 &&
+      (previo?.reportesSinConfirmar ?? 0) === 0 &&
+      previo?.estado !== EstadoServicio.SinServicio;
+    if (empiezanSinConfirmar) {
+      await this.bandeja.encolarPregunta(tx, { sectorId, tipoServicio, ahora });
+    }
   }
 
-  /** Upsert de `estado_sector` que solo escribe si algo cambió, para no disparar Realtime en vano. */
+  /**
+   * Upsert de `estado_sector` que solo escribe si algo cambió, para no disparar Realtime en vano.
+   * Devuelve la fila que había antes (o `undefined` si no había).
+   */
   private async guardarEstado(
     tx: Transaccion,
     sectorId: number,
     tipoServicio: TipoServicio,
     d: EstadoDeseado,
     ahora: Date,
-  ): Promise<void> {
+  ): Promise<{ estado: EstadoServicio; reportesSinConfirmar: number } | undefined> {
     const [actual] = await tx
       .select()
       .from(estadoSector)
@@ -284,7 +331,7 @@ export class ConsensoService {
       actual.reportesSinConfirmar === d.reportesSinConfirmar &&
       actual.eventoId === d.eventoId &&
       actual.desde?.getTime() === d.desde?.getTime();
-    if (igual) return;
+    if (igual) return actual;
 
     const valores = { ...d, actualizadoEn: ahora };
     await tx
@@ -294,5 +341,6 @@ export class ConsensoService {
         target: [estadoSector.sectorId, estadoSector.tipoServicio],
         set: valores,
       });
+    return actual;
   }
 }

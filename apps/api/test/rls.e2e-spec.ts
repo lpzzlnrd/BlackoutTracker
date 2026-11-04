@@ -14,6 +14,9 @@ const TABLAS_PRIVADAS = [
   'eventos_sector',
   'municipios',
   'lugares',
+  // T-072: las claves de cifrado de los navegadores y la bitácora de notificaciones.
+  'suscripciones_push',
+  'notificaciones',
 ] as const;
 const ROLES = ['anon', 'authenticated'] as const;
 
@@ -89,14 +92,14 @@ describe('RLS deny-all y Realtime (T-011, NF-06)', () => {
     await bd.db.insert(estadoSector).values({ sectorId: sector.id, tipoServicio: 'agua' });
   });
 
-  it('NF-06: RLS está activada en las siete tablas', async () => {
+  it('NF-06: RLS está activada en las nueve tablas', async () => {
     const filas = await bd.sql<{ relname: string; relrowsecurity: boolean }[]>`
       select c.relname, c.relrowsecurity
       from pg_class c join pg_namespace n on n.oid = c.relnamespace
       where n.nspname = 'public'
         and c.relname in ('sectores', 'residentes', 'reportes', 'eventos_sector', 'estado_sector',
-                          'municipios', 'lugares')`;
-    expect(filas).toHaveLength(7);
+                          'municipios', 'lugares', 'suscripciones_push', 'notificaciones')`;
+    expect(filas).toHaveLength(9);
     expect(filas.filter((f) => !f.relrowsecurity)).toEqual([]);
   });
 

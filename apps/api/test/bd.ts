@@ -22,7 +22,7 @@ export function abrirBd(): BdTest {
  * (`municipios`, `lugares`) no se toca: la siembra `global-setup.ts` una vez.
  */
 export async function limpiar(sql: Sql): Promise<void> {
-  await sql`truncate table estado_sector, eventos_sector, reportes, residentes, sectores restart identity cascade`;
+  await sql`truncate table notificaciones, suscripciones_push, estado_sector, eventos_sector, reportes, residentes, sectores restart identity cascade`;
 }
 
 /**
