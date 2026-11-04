@@ -138,7 +138,7 @@ export function FormularioAviso({
         </p>
       </div>
 
-      <fieldset className="flex flex-col gap-2">
+      <fieldset data-guia="cuando" className="flex flex-col gap-2">
         <legend className="mb-2 text-[13px] font-extrabold text-texto-2">¿Cuándo pasó?</legend>
         <div
           role="group"
@@ -189,6 +189,7 @@ export function FormularioAviso({
       <Boton
         type="submit"
         variante="grande"
+        data-guia="boton-avisar"
         icono={abierto ? 'check' : 'x-circle'}
         ancho
         cargando={guardando}

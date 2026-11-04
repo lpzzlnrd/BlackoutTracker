@@ -15,7 +15,7 @@ export function DespuesDeAvisar({ consensoN }: { consensoN: number }) {
     },
   ];
   return (
-    <section aria-labelledby="titulo-despues">
+    <section aria-labelledby="titulo-despues" data-guia="despues-de-avisar">
       <h2
         id="titulo-despues"
         className="text-xs font-extrabold tracking-[.06em] text-secundario uppercase"

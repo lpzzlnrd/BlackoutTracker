@@ -26,6 +26,12 @@ export function PantallaEntrar({ siguiente = '/' }: { siguiente?: Ruta }) {
   // `?modo=crear` abre directo en "Crear cuenta" (el botón de la guía, D-041).
   const pedido = useParametro('modo');
   const [modo, setModo] = useState<Modo>(pedido === 'crear' ? 'crear' : 'entrar');
+  // Si `?modo=` cambia con la pantalla abierta (el recorrido la abre en "Crear cuenta"), se sigue.
+  const [pedidoPrevio, setPedidoPrevio] = useState(pedido);
+  if (pedido !== pedidoPrevio) {
+    setPedidoPrevio(pedido);
+    setModo(pedido === 'crear' ? 'crear' : 'entrar');
+  }
   const [correo, setCorreo] = useState('');
   const [clave, setClave] = useState('');
   const [errores, setErrores] = useState<ErroresCredenciales>({});
@@ -81,6 +87,7 @@ export function PantallaEntrar({ siguiente = '/' }: { siguiente?: Ruta }) {
         className="flex flex-col gap-4 rounded-tarjeta border border-borde bg-superficie p-4 lg:p-6"
       >
         <Campo
+          data-guia="correo"
           etiqueta="Correo"
           type="email"
           name="correo"
@@ -91,6 +98,7 @@ export function PantallaEntrar({ siguiente = '/' }: { siguiente?: Ruta }) {
           error={errores.correo}
         />
         <Campo
+          data-guia="clave"
           etiqueta="Contraseña"
           type="password"
           name="clave"
@@ -104,7 +112,7 @@ export function PantallaEntrar({ siguiente = '/' }: { siguiente?: Ruta }) {
         {aviso && <Mensaje>{aviso}</Mensaje>}
         {errorGeneral && <Mensaje tono="error">{errorGeneral}</Mensaje>}
 
-        <Boton type="submit" ancho cargando={enviando}>
+        <Boton type="submit" ancho cargando={enviando} data-guia="crear-cuenta">
           {crear ? 'Crear cuenta' : 'Entrar'}
         </Boton>
       </form>

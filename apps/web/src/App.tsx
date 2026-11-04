@@ -7,6 +7,7 @@ import { PantallaCuenta } from './cuenta/PantallaCuenta';
 import { usePerfil, useSesion } from './datos/consultas';
 import { Bienvenida } from './guia/Bienvenida';
 import { PantallaGuia } from './guia/PantallaGuia';
+import { Recorrido } from './guia/recorrido/Recorrido';
 import { PantallaMapa } from './mapa/PantallaMapa';
 import { rutaSegura, useParametro, useRuta, type Ruta } from './navegacion/ruta';
 import { PantallaPanel } from './panel/PantallaPanel';
@@ -19,7 +20,8 @@ import { PantallaReportar } from './reportes/PantallaReportar';
  * Mirar es público (D-029): el mapa y el panel no piden cuenta. Reportar sí, porque el consenso
  * cuenta vecinos distintos (CON-04) y el sector sale del pin del registro (REG). Avisos tampoco la
  * pide: es la cola de este dispositivo y sin sesión está vacía (D-037). La guía tampoco, y la
- * bienvenida sale encima de cualquier pantalla la primera vez que alguien entra sin sesión (D-041).
+ * bienvenida sale encima de cualquier pantalla la primera vez que alguien entra sin sesión (D-041)
+ * y abre el recorrido guiado, que va sobre las pantallas reales (D-043).
  */
 export function App() {
   const ruta = useRuta();
@@ -29,6 +31,7 @@ export function App() {
       <Marco pie={<AvisoInstalacion />}>{pantalla(ruta, siguiente)}</Marco>
       <AvisoVersion />
       <Bienvenida />
+      <Recorrido />
     </>
   );
 }

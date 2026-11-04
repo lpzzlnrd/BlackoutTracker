@@ -15,6 +15,8 @@ import { Icono, Marca, type NombreIcono } from '../ui/Icono';
 
 interface ElementoNav {
   ruta: Ruta;
+  /** Lo que señala el recorrido guiado (D-043). */
+  guia: string;
   texto: string;
   icono: NombreIcono;
   iconoEscritorio?: NombreIcono;
@@ -22,11 +24,17 @@ interface ElementoNav {
 
 /** Cinco destinos con Reportar en el medio (D-037). */
 const NAVEGACION: readonly ElementoNav[] = [
-  { ruta: '/', texto: 'Mapa', icono: 'map' },
-  { ruta: '/panel', texto: 'Panel', icono: 'grid' },
-  { ruta: '/reportar', texto: 'Reportar', icono: 'plus', iconoEscritorio: 'plus-circle' },
-  { ruta: '/avisos', texto: 'Avisos', icono: 'clock' },
-  { ruta: '/cuenta', texto: 'Cuenta', icono: 'user' },
+  { ruta: '/', guia: 'nav-mapa', texto: 'Mapa', icono: 'map' },
+  { ruta: '/panel', guia: 'nav-panel', texto: 'Panel', icono: 'grid' },
+  {
+    ruta: '/reportar',
+    guia: 'nav-reportar',
+    texto: 'Reportar',
+    icono: 'plus',
+    iconoEscritorio: 'plus-circle',
+  },
+  { ruta: '/avisos', guia: 'nav-avisos', texto: 'Avisos', icono: 'clock' },
+  { ruta: '/cuenta', guia: 'nav-cuenta', texto: 'Cuenta', icono: 'user' },
 ];
 
 /** Entrar, registrarse y la guía cuelgan de Cuenta. */
@@ -125,7 +133,7 @@ function NavInferior({ activa, resumen }: { activa: Ruta; resumen: ResumenCola }
       className="relative z-[1050] grid flex-none grid-cols-5 border-t border-borde bg-superficie px-1 pt-2 lg:hidden"
       style={{ paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }}
     >
-      {NAVEGACION.map(({ ruta, texto, icono }) => {
+      {NAVEGACION.map(({ ruta, guia, texto, icono }) => {
         const actual = ruta === activa;
         if (ruta === '/reportar') {
           return <BotonReportar key={ruta} texto={texto} icono={icono} actual={actual} />;
@@ -136,6 +144,7 @@ function NavInferior({ activa, resumen }: { activa: Ruta; resumen: ResumenCola }
           <Enlace
             key={ruta}
             a={ruta}
+            data-guia={guia}
             aria-current={actual ? 'page' : undefined}
             className="flex min-h-14 min-w-0 flex-col items-center gap-1 pt-0.5 text-xs"
           >
@@ -212,12 +221,13 @@ function BarraLateral({
         </span>
       </Enlace>
       <nav aria-label="Principal" className="flex flex-col gap-1">
-        {NAVEGACION.map(({ ruta, texto, icono, iconoEscritorio }) => {
+        {NAVEGACION.map(({ ruta, guia, texto, icono, iconoEscritorio }) => {
           const actual = ruta === activa;
           return (
             <Enlace
               key={ruta}
               a={ruta}
+              data-guia={guia}
               aria-current={actual ? 'page' : undefined}
               className={`flex min-h-11 items-center gap-3 rounded-control px-3 text-[15px] ${
                 actual ? 'bg-acento-suave font-bold text-acento' : 'font-semibold text-texto-2'

@@ -53,6 +53,7 @@
     },
     "/api/residentes/me": {
       "post": {
+        "description": "Repetir el registro con un pin del mismo sector (doble envío o reintento) devuelve el mismo sector (201) sin cambiar nada; la ubicación guardada sigue siendo la primera.",
         "operationId": "ResidentesController_registrar",
         "parameters": [],
         "requestBody": {
@@ -77,10 +78,13 @@
             }
           },
           "409": {
-            "description": "RESIDENTE_YA_REGISTRADO"
+            "description": "RESIDENTE_YA_REGISTRADO (ya registrado en otro sector)"
           },
           "422": {
             "description": "PIN_FUERA_DE_ZONA"
+          },
+          "429": {
+            "description": "DEMASIADAS_SOLICITUDES"
           }
         },
         "security": [
@@ -88,7 +92,7 @@
             "bearer": []
           }
         ],
-        "summary": "Crea el perfil del residente con su pin (una sola vez) y, si es el primero, su sector",
+        "summary": "Crea el perfil del residente con su pin (una sola vez) y, si es el primero, su sector (idempotente)",
         "tags": [
           "registro"
         ]

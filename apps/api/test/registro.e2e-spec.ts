@@ -20,8 +20,8 @@ import {
 import { EmisorJwt } from './jwt';
 
 // Cada petición lleva una IP distinta (X-Forwarded-For; TRUST_PROXY=1 en test/setup-env.ts) para
-// que el throttle de validar-pin (10 por minuto y por IP) no cuente entre tests; el test del
-// throttle usa una IP fija.
+// que el throttle de validar-pin (30 por minuto y por IP) no cuente entre tests; los tests del
+// throttle usan una IP fija. El de `POST /residentes/me` cuenta por residente (D-044).
 
 describe('registro (T-015, T-070)', () => {
   let app: INestApplication;
@@ -202,12 +202,39 @@ describe('registro (T-015, T-070)', () => {
     expect(celdas).toEqual(Object.values(CELDA));
   });
 
-  it('registrarse dos veces → 409 RESIDENTE_YA_REGISTRADO y el perfil no cambia', async () => {
+  it('registrarse otra vez en otro sector → 409 RESIDENTE_YA_REGISTRADO y el perfil no cambia', async () => {
     const sub = randomUUID();
     await registrar(sub, DENTRO.noroeste, 201);
     const res = await registrar(sub, DENTRO.sureste, 409);
     expect(res.body.codigo).toBe('RESIDENTE_YA_REGISTRADO');
     expect((await yo(sub)).body.sectorId).toBe(ID_SECTOR.noroeste);
+  });
+
+  it('OFF-05: repetir el registro con el mismo pin → 201, la misma respuesta y una sola fila', async () => {
+    const sub = randomUUID();
+    const primero = await registrar(sub, DENTRO.noroeste, 201);
+    const segundo = await registrar(sub, DENTRO.noroeste, 201);
+    expect(segundo.body).toEqual(primero.body);
+    expect(await contar('residentes')).toBe(1);
+  });
+
+  it('OFF-05: otro pin del mismo sector → 201 con su sector y la ubicación guardada no cambia', async () => {
+    const sub = randomUUID();
+    await registrar(sub, DENTRO.noroeste, 201);
+    const res = await registrar(sub, MISMA_CELDA_NOROESTE, 201);
+    expect(res.body.sectorId).toBe(ID_SECTOR.noroeste);
+    const [fila] =
+      await bd.sql`select st_x(ubicacion) as x, st_y(ubicacion) as y from residentes where id = ${sub}`;
+    expect(fila).toEqual({ x: DENTRO.noroeste.lng, y: DENTRO.noroeste.lat });
+  });
+
+  it('OFF-05: el mismo registro dos veces a la vez en una celda nueva → 201 las dos, 1 residente y 1 sector', async () => {
+    const sub = randomUUID();
+    const [a, b] = await Promise.all([registrar(sub, LA_VINA), registrar(sub, LA_VINA)]);
+    expect([a.status, b.status]).toEqual([201, 201]);
+    expect(b.body).toEqual(a.body);
+    expect(await contar('residentes')).toBe(1);
+    expect(await contar('sectores')).toBe(5);
   });
 
   it('GET /residentes/me devuelve el sector y NUNCA coordenadas (NF-06)', async () => {
@@ -251,10 +278,34 @@ describe('registro (T-015, T-070)', () => {
     }
   });
 
-  it('validar-pin tiene throttle estricto: la solicitud 11 desde la misma IP → 429', async () => {
+  it('validar-pin tiene throttle por IP: la solicitud 31 desde la misma IP → 429 en español', async () => {
     const fija = '203.0.113.7';
-    for (let i = 0; i < 10; i++) await validar(DENTRO.noreste, fija).expect(200);
+    for (let i = 0; i < 30; i++) await validar(DENTRO.noreste, fija).expect(200);
     const res = await validar(DENTRO.noreste, fija).expect(429);
-    expect(res.body.codigo).toBe('DEMASIADAS_SOLICITUDES');
+    expect(res.body).toMatchObject({
+      statusCode: 429,
+      codigo: 'DEMASIADAS_SOLICITUDES',
+      message: 'Demasiadas solicitudes. Espera un momento y vuelve a intentarlo.',
+    });
+    expect(Number(res.headers['retry-after'])).toBeGreaterThan(0);
+    // Otra IP no comparte el límite.
+    await validar(DENTRO.noreste, '203.0.113.8').expect(200);
+  });
+
+  it('D-044: el registro cuenta por residente: el 6.º intento en un minuto → 429, y otro vecino de la misma IP pasa', async () => {
+    const fija = '198.51.100.20';
+    const enviar = async (sub: string) =>
+      request(app.getHttpServer())
+        .post('/api/residentes/me')
+        .set('Authorization', `Bearer ${await emisor.firmar({ sub })}`)
+        .set('X-Forwarded-For', fija)
+        .send(DENTRO.noroeste);
+    const a = randomUUID();
+    for (let i = 0; i < 5; i++) expect((await enviar(a)).status).toBe(201);
+    const frenado = await enviar(a);
+    expect(frenado.status).toBe(429);
+    expect(frenado.body.codigo).toBe('DEMASIADAS_SOLICITUDES');
+    // Si el throttle contara por IP (o corriera antes que el JWT), este también sería un 429.
+    expect((await enviar(randomUUID())).status).toBe(201);
   });
 });

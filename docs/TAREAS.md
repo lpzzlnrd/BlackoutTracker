@@ -14,8 +14,9 @@
 - **Rediseño (27-oct):** F-003 en `feat/F-003-rediseno-flat`, apilada sobre #40, un commit por sección (R1 a R5): acento de tinta, barra superior, Bricolage Grotesque, bloque de estado con el consenso, barra de la estimación, panel con resumen y Reportar con tarjetas por servicio (D-038).
 - **Despliegue (27-oct, T-053 en curso):** API en Render desde `main`; CI/CD con `prod-api` y `prod-web` (D-039). Falta la web en Vercel.
 - **Gran Valencia (3-nov, T-070):** tesis presentada; el sistema deja Guaparo y cubre la Gran Valencia con sectores H3 (D-040). Rama `feat/T-070-gran-valencia` desde `main`, un commit por sección: **S1** datos y API [x], **S2** web [x], **S3** documentación y Supabase [x]. Supabase vaciado (sin usuarios reales), migrado a la 0004 y con la zona sembrada. PR #56 fusionado en `main` el 3-nov; el CI/CD desplegó API y web.
-- **Onboarding (3-nov, T-071):** rama `feat/T-071-onboarding` desde `main`, un commit por sección: **S1** bienvenida y guía en la web [x], **S2** `docs/operacion.md`, D-041 y documentación [x]. Falta: PR a `main`. Pendiente de decidir: la baja de un vecino (D-041 c).
-- **Última actualización:** 2026-11-03. T-071 en `feat/T-071-onboarding`; `main` tiene F-002, F-003, T-053, #50 y T-070 (#56).
+- **Onboarding (3-nov, T-071):** modal y guía en `main` (#57); el fix del aviso de versión de la PWA, en #58.
+- **Recorrido guiado (3-nov, T-073):** T-072 y D-042 son de las notificaciones push, que van en otra rama (`feat/T-072-notificaciones`). Leonardo cambió la guía por un recorrido "al estilo de Duolingo" sobre la app real (D-043). Rama `feat/T-073-recorrido-guiado` desde `main`, que también lleva T-074 (throttle por residente y registro idempotente, D-044), un commit por sección: **S1** recorrido en la web [x], **S2** guía resumida, Cuenta, E2E y docs [x], **S3** API [x]. Falta: PR a `main` y comprobar `TRUST_PROXY` en Render (D-044 d).
+- **Última actualización:** 2026-11-03. T-073 y T-074 en `feat/T-073-recorrido-guiado`; `main` tiene hasta T-071 (#57) y el fix de la PWA (#58).
 
 ---
 
@@ -202,4 +203,26 @@
   - `docs/operacion.md`, la guía del mantenedor: qué está en marcha, la revisión semanal, publicar y volver atrás, migrar, sembrar (el seed de demo no se frena solo con la URL de Supabase), Supabase pausado, API, web, cuentas y privacidad, rotar claves y una tabla de síntomas.
   - D-041.
   - Los textos nuevos en `CANON.md` §7.2.
+- [x] **T-073 · Recorrido guiado** (M) — D-043
+  Leonardo vio la guía de T-071 y pidió otra cosa: "Empezar" lleva a crear la cuenta, después a entrar, y cada paso abre las pantallas reales y señala dónde escribir o tocar, "al puro estilo de Duolingo, o un videojuego". La `/guia` se queda, pero más corta.
+  *Nota (hecha):* **S1 (web):**
+  - `aplicacion/recorrido.ts`: la lógica pura (orden, avance, progreso y memoria).
+  - `guia/recorrido/`: el motor (`Recorrido.tsx`, `seguimiento.ts`), el contenido de los 7 pasos (`pasos.tsx`) y su pantalla (`empezar.ts`).
+  - `data-guia` en las pantallas reales.
+  - El modal pasa a "Empezar · Ya tengo cuenta · Ahora no".
+  - `PantallaEntrar` sigue a `?modo=` aunque ya esté abierta.
 
+  **S2:**
+  - La `/guia` resumida y "Hacer el recorrido" en Cuenta y en la guía.
+  - `e2e/pruebas/recorrido.spec.ts` (recorrido completo, velo, reanudar, Saltar, repetir desde Cuenta y axe) y `guia.spec.ts` al día.
+  - D-043, CANON §7.2 y CHANGELOG.
+  - Tests: `recorrido.test.ts` (16).
+- [x] **T-074 · Throttle por residente y registro idempotente** (S) — D-044
+  Pedido por Leonardo en la misma rama que T-073: revisar el rate limiting de cada endpoint y la idempotencia del registro.
+  *Nota (hecha):*
+  - `GuardLimites` cuenta por residente con sesión y por IP sin ella; `JwtGuard` corre antes.
+  - Límites por endpoint en `comun/limites.ts`.
+  - `POST /residentes/me` es idempotente en el mismo sector.
+  - `docs/openapi.json` regenerado.
+  - Tests: OFF-04 (cola de 20 avisos sin 429), OFF-05 (registro repetido y en paralelo) y D-044 (por residente, misma IP, 429 en español), en `limites.e2e-spec.ts` y `registro.e2e-spec.ts`.
+  - Pendiente: comprobar `TRUST_PROXY` en Render.

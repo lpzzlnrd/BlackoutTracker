@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { ThrottlerStorage } from '@nestjs/throttler';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { CLAVES_JWT } from '../src/auth/claves-jwt';
@@ -8,6 +9,12 @@ import { configurarApp } from '../src/configurar-app';
 import { RELOJ } from '../src/reportes/reportes.service';
 import { abrirBd, type BdTest, crearSectoresDePrueba, limpiar } from './bd';
 import { EmisorJwt } from './jwt';
+
+/** Un almacén del throttle que nunca cuenta: ninguna solicitud llega al límite. */
+const SIN_LIMITES: ThrottlerStorage = {
+  increment: () =>
+    Promise.resolve({ totalHits: 0, timeToExpire: 0, isBlocked: false, timeToBlockExpire: 0 }),
+};
 
 export interface ResidentePrueba {
   id: string;
@@ -39,16 +46,22 @@ export class Contexto {
     this.reloj.ahora = valor;
   }
 
-  static async crear(): Promise<Contexto> {
+  /**
+   * `sinLimites` apaga el throttle (D-044): la prueba de red intermitente (NF-04) manda cientos de
+   * escrituras por residente y por minuto, mucho más que un cliente real, y mide otra cosa.
+   */
+  static async crear({ sinLimites = false } = {}): Promise<Contexto> {
     const bd = abrirBd();
     const emisor = await EmisorJwt.crear();
     const reloj = { ahora: new Date() };
-    const modulo = await Test.createTestingModule({ imports: [AppModule] })
+    let constructor = Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(CLAVES_JWT)
       .useValue(emisor.claves)
       .overrideProvider(RELOJ)
-      .useValue(() => reloj.ahora)
-      .compile();
+      .useValue(() => reloj.ahora);
+    if (sinLimites)
+      constructor = constructor.overrideProvider(ThrottlerStorage).useValue(SIN_LIMITES);
+    const modulo = await constructor.compile();
     const app = modulo.createNestApplication();
     configurarApp(app);
     await app.init();

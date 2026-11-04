@@ -8,7 +8,8 @@ import { Icono } from '../componentes/ui/Icono';
 import { Esqueleto, Mensaje } from '../componentes/ui/Mensaje';
 import { useColaAvisos, usePerfil, useSesion } from '../datos/consultas';
 import { usePuertos } from '../datos/contexto';
-import { Enlace, navegar } from '../navegacion/ruta';
+import { empezarRecorrido } from '../guia/recorrido/empezar';
+import { Enlace, navegar, useRuta } from '../navegacion/ruta';
 
 // Un `<a>` con el aspecto de los botones (Boton no es un enlace).
 const ENLACE_PRIMARIO =
@@ -18,10 +19,12 @@ const ENLACE_SECUNDARIO =
 
 /**
  * Cuenta: entrar si no hay sesión; si la hay, el correo, el sector y cerrar sesión. Con o sin
- * sesión, la guía "Cómo funciona" (D-041) y las preferencias.
+ * sesión, el recorrido guiado y la guía "Cómo funciona" (D-041, D-043) y las preferencias.
  */
 export function PantallaCuenta() {
   const usuario = useSesion();
+  const perfil = usePerfil();
+  const ruta = useRuta();
   return (
     <Contenido>
       <EncabezadoPantalla titulo="Cuenta" />
@@ -34,12 +37,26 @@ export function PantallaCuenta() {
           Cómo funciona
         </h2>
         <p className="text-sm text-secundario">
-          La guía paso a paso: el mapa, tu cuenta, cómo avisar de un corte y cómo se confirma.
+          Aprende usando la app, paso a paso, o lee la guía corta.
         </p>
-        <Enlace a="/guia" className={`${ENLACE_SECUNDARIO} self-start`}>
-          <Icono nombre="help-circle" tamano={18} />
-          Ver la guía
-        </Enlace>
+        <div className="flex flex-wrap gap-2">
+          <Boton
+            variante="secundario"
+            icono="map"
+            onClick={() =>
+              empezarRecorrido(
+                { hayUsuario: usuario !== null, tienePerfil: Boolean(perfil.data) },
+                ruta,
+              )
+            }
+          >
+            Hacer el recorrido
+          </Boton>
+          <Enlace a="/guia" className={ENLACE_SECUNDARIO}>
+            <Icono nombre="help-circle" tamano={18} />
+            Ver la guía
+          </Enlace>
+        </div>
       </section>
       <section className="flex flex-col gap-4 rounded-tarjeta border border-borde bg-superficie p-4 lg:p-6">
         <h2 className="text-lg leading-tight font-bold">Preferencias</h2>

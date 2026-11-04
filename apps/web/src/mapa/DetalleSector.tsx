@@ -95,7 +95,7 @@ export function DetalleSector({
       </div>
 
       {/* D-038: el estado como bloque, con el consenso a la vista. */}
-      <div className={panel ? 'mt-4' : 'mt-2'}>
+      <div data-guia="estado-sector" className={panel ? 'mt-4' : 'mt-2'}>
         <BloqueEstado
           estado={estado}
           servicio={servicio}
@@ -106,7 +106,7 @@ export function DetalleSector({
         />
       </div>
 
-      <div className={panel ? 'mt-5' : 'mt-3'}>
+      <div data-guia="estimacion" className={panel ? 'mt-5' : 'mt-3'}>
         {resumen.isError ? (
           <p className="text-sm text-secundario">
             No hay una estimación guardada para mostrar sin conexión.

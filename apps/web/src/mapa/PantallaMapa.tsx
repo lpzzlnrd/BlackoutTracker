@@ -178,7 +178,10 @@ export function PantallaMapa() {
 
         {/* La marca y los pendientes viven en la barra superior del marco; el selector va a todo
             el ancho y dice cuántos sectores están sin cada servicio (D-038). */}
-        <div className="absolute inset-x-4 top-2 z-[1000] lg:inset-x-auto lg:top-4 lg:left-4">
+        <div
+          data-guia="selector-servicio"
+          className="absolute inset-x-4 top-2 z-[1000] lg:inset-x-auto lg:top-4 lg:left-4"
+        >
           <SelectorServicio
             valor={servicio}
             onChange={elegirServicio}
@@ -190,6 +193,7 @@ export function PantallaMapa() {
         {/* Leyenda: chips en fila en el teléfono, tarjeta en el escritorio (A §3 y §4). */}
         <ul
           aria-label="Leyenda"
+          data-guia="leyenda"
           className="absolute inset-x-4 top-[70px] z-[1000] flex flex-wrap gap-1.5 lg:hidden"
         >
           {LEYENDA.map((estado) => (
@@ -198,7 +202,10 @@ export function PantallaMapa() {
             </li>
           ))}
         </ul>
-        <div className="absolute bottom-4 left-4 z-[1000] hidden flex-col gap-2 rounded-bloque border border-borde bg-superficie p-3 lg:flex">
+        <div
+          data-guia="leyenda"
+          className="absolute bottom-4 left-4 z-[1000] hidden flex-col gap-2 rounded-bloque border border-borde bg-superficie p-3 lg:flex"
+        >
           <p className="text-xs font-bold tracking-[.05em] text-secundario uppercase">Leyenda</p>
           <ul className="flex flex-col items-start gap-2">
             {LEYENDA.map((estado) => (
