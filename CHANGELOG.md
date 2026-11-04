@@ -8,6 +8,15 @@ Secciones por versión: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**
 ## [Sin publicar]
 
 ### Añadido
+- Notificaciones push (T-072, D-042): Web Push con VAPID y cifrado de punta a punta, con la voz B («Se fue la luz en Guaparo», «¡Llegó el agua a Guaparo! Aprovecha y llena los tobos»).
+  - **Avisos del consenso:** «se fue» y «volvió» salen de una bandeja de salida que se escribe en la misma transacción. Son una sola tarjeta por corte, que compara la duración con lo habitual.
+  - **Pregunta neutral a los vecinos** cuando aparecen reportes sin confirmar («¿Y la luz por tu casa?», Se fue / Aquí sí hay).
+  - **Recordatorios:** a las 19:00, a quien no entró hoy (`residentes.ultimo_ingreso`) y solo si hay algo útil que contar: «¿ya volvió?» pasada la mediana, el resumen del día o la pregunta. Máximo uno al día (`RECORDATORIOS_HORAS`) y pausa tras 3 sin abrir.
+  - **Horas silenciosas** de 22:00 a 07:00, salvo «llegó el agua» para quien lo pide.
+  - **Imagen del hexágono y sus 6 vecinos H3** (`GET /notificaciones/imagen/:sector/:servicio`).
+  - **Suscripciones** solo de servicios push de navegadores (anti-SSRF).
+  - **Web:** permiso ofrecido después de reportar, sección Notificaciones en Cuenta, enlaces profundos, baja al cerrar sesión y banner por Realtime.
+  - Migración 0005 y tests NOT-01 a NOT-24.
 - Bienvenida y guía (T-071, D-041): la primera vez que alguien entra sin sesión, el modal "¿Nuevo en BlackoutTracker?" lleva a `/guia` ("Cómo funciona"), con 7 pasos (mapa, cuenta, vivienda, reportar, consenso, estimación y sin conexión), ejemplos hechos con las piezas reales y los pasos ya hechos marcados. La guía queda en Cuenta; `/entrar?modo=crear` y la demo `&vecino=visitante`. `docs/operacion.md`: la guía del mantenedor (no hay rol de administrador en la app). Tests de Vitest y E2E con prefijo D-041.
 - Gran Valencia (T-070, D-040): la zona de cobertura son los municipios Valencia, Naguanagua, San Diego, Los Guayos y Libertador (límites de OSM, tabla `municipios`), y cada sector es una celda H3 de resolución 8 que nace con su primer residente y toma el nombre del lugar de OSM más cercano (tabla `lugares`, numerado si se repite). Migración 0004, `GET /zona`, `validar-pin` con el hexágono (`sectorId: null` si la celda es nueva) y `pnpm db:seed` para la zona. En la web, el registro muestra el hexágono del sector, el mapa enmascara fuera de la zona y encuadra el casco urbano, y hay un estado vacío sin sectores. Tests REG-01/02/03, NF-06 y D-040.
 - CI/CD (T-053, D-039): `ci.yml` despliega tras `verificar` en `main` con dos jobs y sus environments, `desplegar-api` (`prod-api`: pide a la API de Render el despliegue del commit, lo sigue hasta `live` y comprueba `/api/salud`) y `desplegar-web` (`prod-web`: CLI de Vercel, después de la API). Cada despliegue queda en *Deployments* de GitHub con su resultado y su URL; sin la variable del servicio, el job se salta. API desplegada en `https://blackouttracker.onrender.com`.

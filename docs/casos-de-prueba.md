@@ -87,6 +87,36 @@ Datos de prueba:
 | VIS-04 | Panel del sector | Abrir el detalle | Estado, estimación y cortes recientes | M |
 | VIS-05 | Pantalla pequeña | Teléfono de 5–6" | Sin desbordes ni elementos superpuestos | B |
 
+## NOT — Notificaciones (T-072, D-042)
+Casos nuevos, añadidos después del plan original. Los de la API están en `apps/api/test/notificaciones.e2e-spec.ts` y `src/notificaciones/*.spec.ts`, y los de la web, en Vitest (`apps/web/src`).
+
+| ID | Caso | Entrada | Esperado | P |
+|---|---|---|---|---|
+| NOT-01 | Aviso de corte confirmado | 3 vecinos confirman; en el sector hay otro suscrito, uno sin suscribir y otro de otro sector | Solo los suscritos del sector reciben «Se fue la luz en {sector}» con su n; quien confirmó lee «Tu reporte y el de 2 vecinos más»; se dice cuántos sectores vecinos están igual | A |
+| NOT-02 | N + 1 | 4.º reporte tras el consenso | Ningún aviso duplicado | A |
+| NOT-03 | Restablecimiento | 3 vecinos cierran / todos los reportes vencen | «¡Volvió la luz!» con la duración; el ciclo incompleto no avisa | A |
+| NOT-04 | Horas silenciosas | Corte confirmado a las 23:10 | Sale a las 07:00 si sigue vigente; a las 21:59 todavía suena | A |
+| NOT-05 | Agua de noche | «Llegó el agua» a las 23:30; un vecino lo pidió y otro no | Solo le suena al que lo pidió («Perdón la hora…»); al otro, a las 07:00 | M |
+| NOT-06 | Recordatorio a quien no entró | A las 19:00, un vecino no abrió la app hoy y en su sector hubo cortes | Recibe «Hoy en {sector}»; quien entró no recibe nada | A |
+| NOT-07 | Nada que contar | Sin cortes, reportes abiertos ni preguntas | No se envía ningún recordatorio | A |
+| NOT-08 | Tope diario | Segunda pasada de la franja y una pregunta el mismo día | A lo sumo uno por día (`RECORDATORIOS_HORAS`) | A |
+| NOT-09 | Pausa | 3 recordatorios seguidos sin abrir | Uno por semana hasta que abra alguno | M |
+| NOT-10 | ¿Ya volvió? | Reporte abierto más que la mediana del sector (o 12 h sin estimación) | Se pregunta una sola vez por reporte | M |
+| NOT-11 | Pregunta neutral | Primer reporte sin confirmar del sector | «¿Y la luz por tu casa?» a quien no reportó, con dos botones simétricos; se descarta si el corte ya se confirmó | M |
+| NOT-12 | Redacción | Cualquier notificación | Voz B; «aprox.» con su n; sin cifra con datos insuficientes; nunca «predicción» | A |
+| NOT-13 | Anti-SSRF | Suscripción con una URL que no es de un servicio push | 400 y no se guarda | A |
+| NOT-14 | Suscripción caducada | El servicio push responde 410 | Se borra la suscripción | M |
+| NOT-15 | Privacidad | Cualquier mensaje o imagen | Sin coordenadas: solo el nombre del sector y hexágonos | A |
+| NOT-16 | Apertura | Abrir la app desde la notificación (`?n=`) | Se anota `abierta_en`, solo si la notificación es propia | B |
+| NOT-17 | Corte ya terminado | Se confirma y se restablece antes de enviar | Solo sale «volvió» (la misma tarjeta) | M |
+| NOT-18 | Permiso en el momento justo | Abrir la app; guardar un reporte; «Ahora no» | Nunca al abrir; se ofrece tras reportar; tras «Ahora no», una semana; sin claves en el servidor no se pide | A |
+| NOT-19 | Alta y baja del dispositivo | Activar, desactivar, cerrar sesión, otra cuenta en el mismo teléfono | Se da de alta y de baja; al cerrar sesión se borra; el teléfono pasa a la cuenta nueva | A |
+| NOT-20 | iPhone sin instalar | Safari iOS sin la app en la pantalla de inicio | Explica que hay que instalarla para recibirlas | M |
+| NOT-21 | Service worker | Llega un push | Una tarjeta por corte (`tag`), vibración por servicio, imagen y botones; un push ilegible muestra un aviso genérico | A |
+| NOT-22 | Clic | Tocar / «Se fue» / «Aquí sí hay» | Abre su ruta de la app; «Se fue» deja listo el aviso sin enviarlo; «Aquí sí hay» solo cierra | A |
+| NOT-23 | Aviso dentro de la app | Cambia el estado confirmado del sector con la app abierta | Banner; los reportes sin confirmar no interrumpen | M |
+| NOT-24 | Preferencias | Apagar los recordatorios / activar el agua de noche | Sin recordatorios ni preguntas; los avisos de corte siguen | M |
+
 ## No funcionales
 | ID | Atributo | Criterio |
 |---|---|---|

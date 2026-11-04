@@ -14,8 +14,9 @@
 - **Rediseño (27-oct):** F-003 en `feat/F-003-rediseno-flat`, apilada sobre #40, un commit por sección (R1 a R5): acento de tinta, barra superior, Bricolage Grotesque, bloque de estado con el consenso, barra de la estimación, panel con resumen y Reportar con tarjetas por servicio (D-038).
 - **Despliegue (27-oct, T-053 en curso):** API en Render desde `main`; CI/CD con `prod-api` y `prod-web` (D-039). Falta la web en Vercel.
 - **Gran Valencia (3-nov, T-070):** tesis presentada; el sistema deja Guaparo y cubre la Gran Valencia con sectores H3 (D-040). Rama `feat/T-070-gran-valencia` desde `main`, un commit por sección: **S1** datos y API [x], **S2** web [x], **S3** documentación y Supabase [x]. Supabase vaciado (sin usuarios reales), migrado a la 0004 y con la zona sembrada. PR #56 fusionado en `main` el 3-nov; el CI/CD desplegó API y web.
-- **Onboarding (3-nov, T-071):** rama `feat/T-071-onboarding` desde `main`, un commit por sección: **S1** bienvenida y guía en la web [x], **S2** `docs/operacion.md`, D-041 y documentación [x]. Falta: PR a `main`. Pendiente de decidir: la baja de un vecino (D-041 c).
-- **Última actualización:** 2026-11-03. T-071 en `feat/T-071-onboarding`; `main` tiene F-002, F-003, T-053, #50 y T-070 (#56).
+- **Onboarding (3-nov, T-071):** PR #57 fusionado en `main`. Pendiente de decidir: la baja de un vecino (D-041 c).
+- **Notificaciones (3-nov, T-072):** rama `feat/T-072-notificaciones` desde `main` con el PR #58 (`fix/pwa-aviso-actualizar`) traído por avance rápido. Worktree `../BlackoutTracker-notificaciones`. Un commit por sección: **S1** API y migración 0005 [x], **S2** web [x], **S3** documentación [x], **S4** imagen del hexágono [x] (D-042). Falta: claves VAPID y variables en Render, migrar Supabase a la 0005, probar en un teléfono real y abrir el PR.
+- **Última actualización:** 2026-11-03. T-072 en `feat/T-072-notificaciones`; `main` tiene F-002, F-003, T-053, #50, T-070 (#56) y T-071 (#57).
 
 ---
 
@@ -202,4 +203,12 @@
   - `docs/operacion.md`, la guía del mantenedor: qué está en marcha, la revisión semanal, publicar y volver atrás, migrar, sembrar (el seed de demo no se frena solo con la URL de Supabase), Supabase pausado, API, web, cuentas y privacidad, rotar claves y una tabla de síntomas.
   - D-041.
   - Los textos nuevos en `CANON.md` §7.2.
+- [~] **T-072 · Notificaciones push** (L) — D-042
+  Notificaciones llamativas, útiles y que inviten a entrar, con algo innovador (visualización y redacción propias), y recordatorios con la última entrada del vecino (`ultimo_ingreso`, idea de Leonardo). Claude propuso el diseño; Leonardo eligió la voz B, las cuatro ideas, un recordatorio al día como máximo (configurable) y silencio de 22:00 a 07:00.
+  *Nota (hecha en código; falta el despliegue):*
+  - **S1 (API):** migración 0005 (`notificaciones` como bandeja de salida, `suscripciones_push`, `residentes.ultimo_ingreso`, `recordatorios` y `agua_de_noche`; RLS deny-all). Módulo `src/notificaciones/`: reglas puras (`horario`, `reglas`, `redaccion` con la voz B), `BandejaService` (escribe dentro de la transacción del consenso), `EnvioService` (revisa la vigencia y envía), `RecordatoriosService` (franjas, tope, pausa y qué contar), `WebPushTransporte` (`web-push`, cifrado, `Topic`, 404/410 borra la suscripción) y el cron. Endpoints `GET /notificaciones/clave`, `PUT`/`DELETE /notificaciones/suscripcion`, `GET`/`PATCH /notificaciones/preferencias` y `POST /notificaciones/:id/abierta`. `GET /residentes/me` anota la entrada. Variables `VAPID_*`, `API_URL_PUBLICA`, `RECORDATORIOS_HORAS`, `SILENCIO_DESDE`/`HASTA` y `RECORDATORIO_REPORTE_ABIERTO_HORAS`. Tests unitarios y `test/notificaciones.e2e-spec.ts` (NOT-01 a NOT-19 y NOT-24, con un transporte falso), más los barridos de privacidad, RLS y NF-07 ampliados.
+  - **S2 (web):** service worker con `push` y `notificationclick` (tarjeta por corte, vibración por servicio, imagen, botones y un aviso genérico si el push no se entiende), insignia monocroma `public/insignia-96.png`, oferta del permiso tras reportar, sección Notificaciones en Cuenta (activar, recordatorios, agua de noche, iPhone sin instalar, permiso denegado), enlaces `?servicio=`, `?accion=se-fue` y `?n=`, baja al cerrar sesión y banner por Realtime con la app abierta. Tests Vitest NOT-04, NOT-12, NOT-16 y NOT-18 a NOT-23.
+  - **S3:** D-042, casos NOT-01 a NOT-24 en `docs/casos-de-prueba.md`, `docs/despliegue.md`, `.env.example`, `CANON.md` §7.2, `PWA.md` y `openapi.json`.
+  - **S4:** `GET /notificaciones/imagen/:sectorId/:tipoServicio`: el PNG del hexágono y sus 6 vecinos H3, generado con resvg (`imagen.puro.ts`).
+  - **Pendiente de Leonardo:** generar las claves VAPID y poner las variables en Render; `pnpm db:migrate` contra Supabase (0005); probar en un Android real y en un iPhone con la app instalada; el PR.
 

@@ -189,6 +189,7 @@ Notas:
 - `estado_sector` tiene una fila por sector y servicio, y se crea en el seed. No contiene ningún dato personal.
 - **RLS:** `ENABLE ROW LEVEL SECURITY` en las cinco tablas, una sola política `SELECT` sobre `estado_sector` para `anon, authenticated` y `REVOKE ALL` de `anon, authenticated` en las demás (defensa en profundidad frente a la Data API de Supabase).
 - **Realtime:** `ALTER PUBLICATION supabase_realtime ADD TABLE estado_sector`, dentro de un bloque `DO` que verifica que la publicación exista, para que la migración también corra en el PostGIS local.
+- **Notificaciones (T-072, D-042, migración 0005):** `suscripciones_push` (un dispositivo por fila: `endpoint` como clave, `p256dh`, `auth`, `residente_id` con cascada) y `notificaciones` (bandeja de salida y bitácora: `tipo`, `sector_id`, `tipo_servicio`, `evento_id` o `reporte_id`, `datos` jsonb, `estado`, `programada_para`, `enviada_en`, `abierta_en`; únicas por residente + evento + tipo y por residente + reporte + tipo). En `residentes`: `ultimo_ingreso`, `recordatorios` y `agua_de_noche`. Las dos tablas, con RLS deny-all.
 
 ### PostGIS con Drizzle: los detalles que muerden
 - Drizzle trae `geometry(..., { type: 'point', srid: 4326 })`. Para `MultiPolygon` hace falta un `customType`.
@@ -215,6 +216,11 @@ Notas:
 | `GET /estimaciones?sectorId&tipoServicio` | JWT | `{suficiente, medianaMin, n, q1Min?, q3Min?}` | EST-* |
 | `GET /sectores/:id/resumen` | JWT | Estado por servicio + estimación + últimos eventos | VIS-04 |
 | `GET /sectores/:id/historial?tipoServicio&cursor` | JWT | Eventos cerrados, paginados | Fase 3 |
+| `GET /notificaciones/clave` | pública | Clave pública VAPID; `activo: false` sin claves | D-042 |
+| `PUT` / `DELETE /notificaciones/suscripcion` | JWT | Alta (idempotente, solo servicios push de navegadores) y baja del dispositivo propio | NOT-13, NOT-19 |
+| `GET` / `PATCH /notificaciones/preferencias` | JWT | `{recordatorios, aguaDeNoche}` | NOT-24 |
+| `POST /notificaciones/:id/abierta` | JWT | La app se abrió desde la notificación (solo la propia) | NOT-16 |
+| `GET /notificaciones/imagen/:sectorId/:tipoServicio` | pública | PNG del hexágono y sus 6 vecinos H3, por estado | NOT-15, D-042 |
 
 **Registro en dos pasos** (D-014): el front llama a `validar-pin`, luego a `supabase.auth.signUp`, y por último a `POST /residentes/me`. Un usuario de Auth sin perfil recibe 403 `REGISTRO_INCOMPLETO` en los endpoints de reportes, y el front lo devuelve al paso del pin. REG-04 (correo repetido) y REG-07 (login) los resuelve Supabase Auth y se prueban en el front.
 
@@ -292,6 +298,12 @@ ESTIMACION_N_MIN=5
 REPORTE_MAX_ANTIGUEDAD_DIAS=7
 REPORTE_VENCE_HORAS=48
 PORT=3000
+VAPID_PUBLIC_KEY= / VAPID_PRIVATE_KEY=   # notificaciones (T-072): las dos o ninguna
+VAPID_SUBJECT=mailto:...
+API_URL_PUBLICA=https://<api>          # la imagen del hexágono en la notificación
+RECORDATORIOS_HORAS=19                 # una franja por hora: el tope diario es cuántas hay
+SILENCIO_DESDE=22
+SILENCIO_HASTA=7
 ```
 
 Se valida al arrancar: si falta una variable o su valor no sirve, Nest no levanta. El `.env` real nunca se sube al repo.

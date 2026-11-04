@@ -43,6 +43,7 @@ Marco teórico: **Teoría General de Sistemas (TGS)**.
 | **OFF** | Modo sin conexión | Cola persistente en **IndexedDB** (nunca en memoria). Sincroniza con el evento `online`, y con Background Sync API como mejora progresiva. |
 | **EST** | Estimación estadística | **Mediana** histórica de la duración de los ciclos completos, por sector y tipo de servicio. |
 | **VIS** | Visualización | Mapa de calor por sector y panel/dashboard filtrable por servicio, con actualización en tiempo real. |
+| **NOT** | Notificaciones (después del MVP, T-072, D-042) | Web Push con la voz B ("¡Llegó el agua a Guaparo!"): avisos de corte confirmado y restablecido desde una bandeja de salida, la pregunta neutral a los vecinos y recordatorios solo a quien no entró hoy (`ultimo_ingreso`), con tope diario y horas silenciosas de 22:00 a 07:00. |
 
 ### No funcionales (§5.3)
 - Funcionar de forma confiable con conectividad **intermitente o lenta**.

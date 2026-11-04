@@ -126,8 +126,15 @@ pnpm db:seed:demo      # solo staging o una demo: zona + sectores + historial de
 | `REPORTE_MAX_ANTIGUEDAD_DIAS` | `7` |
 | `REPORTE_VENCE_HORAS` | `48` |
 | `CRON_ACTIVO` | `true` |
+| `VAPID_PUBLIC_KEY` | Notificaciones (T-072). La pública de `npx web-push generate-vapid-keys` (87 caracteres) |
+| `VAPID_PRIVATE_KEY` | **Secreta.** La privada del mismo par (43 caracteres). Van las dos o ninguna |
+| `VAPID_SUBJECT` | `mailto:<tu correo>` o una URL `https://` de contacto para los servicios push |
+| `API_URL_PUBLICA` | `https://blackouttracker.onrender.com` (**sin** `/api`): la imagen del hexágono en la notificación |
+| `RECORDATORIOS_HORAS` | `19`: un recordatorio al día. Para dos, `12,19` (cada hora es una franja y suma uno al tope) |
+| `SILENCIO_DESDE` / `SILENCIO_HASTA` | `22` / `7` (horas silenciosas, en hora de Caracas) |
 
 - `PORT` no se pone: lo asigna Render. `DATABASE_URL_TEST`, `DATABASE_PASSWORD` y las `VITE_*` tampoco.
+- **Claves VAPID:** genéralas una sola vez (`npx web-push generate-vapid-keys`) y guárdalas. Si se cambian, todas las suscripciones dejan de servir: la web se vuelve a suscribir sola al abrirse, pero hasta entonces nadie recibe nada. La web no necesita ninguna variable: lee la clave pública de `GET /api/notificaciones/clave`. Sin claves, la API no envía nada y la web no ofrece activarlas.
 - *Add from .env* acepta varias líneas `CLAVE=valor` pegadas de una vez. Pega valores reales: en el primer despliegue entró un texto de ejemplo en `DATABASE_URL` y Nest no arrancó (ahora la validación lo dice por su nombre).
 - Si cambias una variable, *Save and deploy* reinicia el servicio con ella; no hace falta un commit.
 - El plan Free se duerme a los 15 min sin tráfico y tarda ~1 min en despertar; §5 lo mantiene despierto.

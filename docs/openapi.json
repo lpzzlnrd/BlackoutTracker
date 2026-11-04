@@ -94,6 +94,7 @@
         ]
       },
       "get": {
+        "description": "La app lo pide al abrir: también anota la hora de entrada, que decide los recordatorios (T-072).",
         "operationId": "ResidentesController_yo",
         "parameters": [],
         "responses": {
@@ -302,6 +303,318 @@
         ]
       }
     },
+    "/api/notificaciones/clave": {
+      "get": {
+        "description": "Con `activo: false` la API no envía notificaciones y la web no las ofrece.",
+        "operationId": "NotificacionesController_clave",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClavePushRespuesta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "DATOS_INVALIDOS"
+          },
+          "429": {
+            "description": "DEMASIADAS_SOLICITUDES"
+          }
+        },
+        "summary": "Clave pública VAPID para suscribirse a Web Push",
+        "tags": [
+          "notificaciones"
+        ]
+      }
+    },
+    "/api/notificaciones/suscripcion": {
+      "put": {
+        "description": "Lo que da `PushSubscription.toJSON()` con `keys` renombrado a `claves`. Solo se aceptan servicios push de navegadores: cualquier otra URL es 400 (la API haría un POST a ella).",
+        "operationId": "NotificacionesController_suscribir",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuscripcionPushDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Guardada"
+          },
+          "400": {
+            "description": "DATOS_INVALIDOS"
+          },
+          "403": {
+            "description": "REGISTRO_INCOMPLETO"
+          },
+          "429": {
+            "description": "DEMASIADAS_SOLICITUDES"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Suscribe este dispositivo (idempotente)",
+        "tags": [
+          "notificaciones"
+        ]
+      },
+      "delete": {
+        "operationId": "NotificacionesController_darDeBaja",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BajaSuscripcionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Borrada, o no existía"
+          },
+          "400": {
+            "description": "DATOS_INVALIDOS"
+          },
+          "429": {
+            "description": "DEMASIADAS_SOLICITUDES"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Da de baja este dispositivo (al cerrar sesión o desactivarlas)",
+        "tags": [
+          "notificaciones"
+        ]
+      }
+    },
+    "/api/notificaciones/preferencias": {
+      "get": {
+        "operationId": "NotificacionesController_preferencias",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferenciasRespuesta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "DATOS_INVALIDOS"
+          },
+          "429": {
+            "description": "DEMASIADAS_SOLICITUDES"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Recordatorios y «llegó el agua» de noche",
+        "tags": [
+          "notificaciones"
+        ]
+      },
+      "patch": {
+        "operationId": "NotificacionesController_actualizarPreferencias",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferenciasDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferenciasRespuesta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "DATOS_INVALIDOS"
+          },
+          "429": {
+            "description": "DEMASIADAS_SOLICITUDES"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cambia las preferencias (solo los campos enviados)",
+        "tags": [
+          "notificaciones"
+        ]
+      }
+    },
+    "/api/notificaciones/{id}/abierta": {
+      "post": {
+        "description": "Mide la tasa de apertura y la pausa de recordatorios. Con un id ajeno no hace nada.",
+        "operationId": "NotificacionesController_marcarAbierta",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Anotada (o nada que anotar)"
+          },
+          "400": {
+            "description": "DATOS_INVALIDOS"
+          },
+          "429": {
+            "description": "DEMASIADAS_SOLICITUDES"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "La app se abrió desde una notificación",
+        "tags": [
+          "notificaciones"
+        ]
+      }
+    },
+    "/api/notificaciones/imagen/{sectorId}/{tipoServicio}": {
+      "get": {
+        "description": "PNG de 720 × 360. Solo hexágonos, como el mapa público: nunca personas (NF-06).",
+        "operationId": "NotificacionesController_imagen",
+        "parameters": [
+          {
+            "name": "sectorId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "tipoServicio",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "agua",
+                "electricidad"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "image/png"
+          },
+          "400": {
+            "description": "DATOS_INVALIDOS"
+          },
+          "404": {
+            "description": "SECTOR_NO_ENCONTRADO"
+          },
+          "429": {
+            "description": "DEMASIADAS_SOLICITUDES"
+          }
+        },
+        "summary": "Imagen de la notificación: el sector y sus 6 vecinos, coloreados por estado",
+        "tags": [
+          "notificaciones"
+        ]
+      }
+    },
+    "/api/estimaciones": {
+      "get": {
+        "description": "Mediana de la duración de los cortes cerrados del sector y servicio. Con menos de n_min cortes devuelve `suficiente: false` y solo el n (EST-04). La cifra siempre va con su n.",
+        "operationId": "EstimacionController_estimar",
+        "parameters": [
+          {
+            "name": "sectorId",
+            "required": true,
+            "in": "query",
+            "description": "Id del sector.",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "tipoServicio",
+            "required": true,
+            "in": "query",
+            "description": "Agua y luz nunca se mezclan (EST-05).",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "agua",
+                "electricidad"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EstimacionRespuesta"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "SECTOR_NO_ENCONTRADO"
+          },
+          "429": {
+            "description": "DEMASIADAS_SOLICITUDES"
+          }
+        },
+        "summary": "Estimación estadística de la duración de un corte",
+        "tags": [
+          "estimaciones"
+        ]
+      }
+    },
     "/api/sectores/{id}/historial": {
       "get": {
         "description": "Solo eventos cerrados, el de fin más reciente primero, con su duración. Paginado por cursor: pasa `siguienteCursor` como `cursor` para la página siguiente (nulo en la última).",
@@ -375,59 +688,6 @@
         "summary": "Historial de cortes cerrados de un sector",
         "tags": [
           "sectores"
-        ]
-      }
-    },
-    "/api/estimaciones": {
-      "get": {
-        "description": "Mediana de la duración de los cortes cerrados del sector y servicio. Con menos de n_min cortes devuelve `suficiente: false` y solo el n (EST-04). La cifra siempre va con su n.",
-        "operationId": "EstimacionController_estimar",
-        "parameters": [
-          {
-            "name": "sectorId",
-            "required": true,
-            "in": "query",
-            "description": "Id del sector.",
-            "schema": {
-              "example": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "tipoServicio",
-            "required": true,
-            "in": "query",
-            "description": "Agua y luz nunca se mezclan (EST-05).",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "agua",
-                "electricidad"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EstimacionRespuesta"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "SECTOR_NO_ENCONTRADO"
-          },
-          "429": {
-            "description": "DEMASIADAS_SOLICITUDES"
-          }
-        },
-        "summary": "Estimación estadística de la duración de un corte",
-        "tags": [
-          "estimaciones"
         ]
       }
     },
@@ -708,6 +968,126 @@
           "ocurridoEn"
         ]
       },
+      "ClavePushRespuesta": {
+        "type": "object",
+        "properties": {
+          "activo": {
+            "type": "boolean"
+          },
+          "clavePublica": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "activo",
+          "clavePublica"
+        ]
+      },
+      "ClavesPushDto": {
+        "type": "object",
+        "properties": {
+          "p256dh": {
+            "type": "string",
+            "description": "Clave pública P-256 del navegador (65 bytes en base64url)"
+          },
+          "auth": {
+            "type": "string",
+            "description": "Secreto de autenticación del navegador (16 bytes en base64url)"
+          }
+        },
+        "required": [
+          "p256dh",
+          "auth"
+        ]
+      },
+      "SuscripcionPushDto": {
+        "type": "object",
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "example": "https://fcm.googleapis.com/fcm/send/…",
+            "description": "Solo servicios push de navegadores (FCM, Mozilla, Apple, Windows)"
+          },
+          "claves": {
+            "$ref": "#/components/schemas/ClavesPushDto"
+          }
+        },
+        "required": [
+          "endpoint",
+          "claves"
+        ]
+      },
+      "BajaSuscripcionDto": {
+        "type": "object",
+        "properties": {
+          "endpoint": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "endpoint"
+        ]
+      },
+      "PreferenciasRespuesta": {
+        "type": "object",
+        "properties": {
+          "recordatorios": {
+            "type": "boolean"
+          },
+          "aguaDeNoche": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "recordatorios",
+          "aguaDeNoche"
+        ]
+      },
+      "PreferenciasDto": {
+        "type": "object",
+        "properties": {
+          "recordatorios": {
+            "type": "boolean",
+            "description": "Recordatorios y preguntas (máximo uno al día por defecto)"
+          },
+          "aguaDeNoche": {
+            "type": "boolean",
+            "description": "«Llegó el agua» suena aunque sea de noche"
+          }
+        }
+      },
+      "EstimacionRespuesta": {
+        "type": "object",
+        "properties": {
+          "suficiente": {
+            "type": "boolean",
+            "description": "false con menos de n_min cortes cerrados: no hay cifra (EST-04)."
+          },
+          "n": {
+            "type": "number",
+            "example": 12,
+            "description": "Cortes cerrados que entran en el cálculo."
+          },
+          "medianaMin": {
+            "type": "number",
+            "example": 240,
+            "description": "Mediana de la duración, en minutos."
+          },
+          "q1Min": {
+            "type": "number",
+            "description": "Primer cuartil, en minutos."
+          },
+          "q3Min": {
+            "type": "number",
+            "description": "Tercer cuartil, en minutos."
+          }
+        },
+        "required": [
+          "suficiente",
+          "n"
+        ]
+      },
       "EventoSectorRespuesta": {
         "type": "object",
         "properties": {
@@ -774,37 +1154,6 @@
         "required": [
           "eventos",
           "siguienteCursor"
-        ]
-      },
-      "EstimacionRespuesta": {
-        "type": "object",
-        "properties": {
-          "suficiente": {
-            "type": "boolean",
-            "description": "false con menos de n_min cortes cerrados: no hay cifra (EST-04)."
-          },
-          "n": {
-            "type": "number",
-            "example": 12,
-            "description": "Cortes cerrados que entran en el cálculo."
-          },
-          "medianaMin": {
-            "type": "number",
-            "example": 240,
-            "description": "Mediana de la duración, en minutos."
-          },
-          "q1Min": {
-            "type": "number",
-            "description": "Primer cuartil, en minutos."
-          },
-          "q3Min": {
-            "type": "number",
-            "description": "Tercer cuartil, en minutos."
-          }
-        },
-        "required": [
-          "suficiente",
-          "n"
         ]
       },
       "SectorPropiedades": {

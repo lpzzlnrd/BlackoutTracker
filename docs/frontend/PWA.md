@@ -99,6 +99,14 @@ VitePWA({
    - Una página sin SW que la controle (Ctrl+Shift+R) viene de la red con el código nuevo: no se le ofrece la versión.
 4. No se actualiza en medio de un envío: si la cola tiene avisos en vuelo, el aviso espera a que termine.
 
+### Notificaciones push (T-072, D-042)
+
+- **`push`:** el mensaje (`NotificacionPushDto`, ya redactado por la API) se valida en `src/pwa/notificaciones-sw.ts` y se muestra con `showNotification`. Siempre se muestra algo: si no se entiende, sale un aviso genérico, porque Chrome castiga los push sin notificación (`userVisibleOnly`). `tag` = sector y servicio (una tarjeta por corte; «volvió» reemplaza a «se fue» y vuelve a sonar), vibración distinta para luz y agua, `image` con el hexágono y sus vecinos (solo HTTPS) y los botones de la pregunta a los vecinos.
+- **Insignia:** `public/insignia-96.png`, un hexágono con un rayo calado, blanco sobre transparente. Android usa solo el canal alfa: con el icono a color saldría un cuadrado blanco.
+- **`notificationclick`:** solo abre rutas de la app. Si hay una pestaña abierta, la enfoca y le manda `postMessage({ tipo: 'navegar' })` para navegar sin recargar; si no, abre una ventana. «Se fue» lleva a `/reportar?servicio=…&accion=se-fue`, con el aviso listo pero **sin enviarlo**: el vecino confirma y pasa por la cola (OFF-03, OFF-05). «Aquí sí hay» solo cierra.
+- **Permiso:** nunca al abrir. Se ofrece tras guardar un reporte; «Ahora no» dura una semana. iPhone y iPad solo tienen push con la app instalada (Safari 16.4+): Cuenta lo explica.
+- **Suscripción:** la clave pública sale de `GET /api/notificaciones/clave` (sin variable `VITE_*`). Se reenvía a la API como mucho una vez al día; si la clave cambió, se rehace. Al cerrar sesión se da de baja antes de borrar la sesión.
+
 ## 5. Pantalla y navegador
 
 En `index.html` (colores de la propuesta elegida):

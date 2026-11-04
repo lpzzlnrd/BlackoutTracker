@@ -201,3 +201,34 @@ Un reporte abierto hace más de **48 h** se marca `vencido`: deja de contar para
 - (a) La bienvenida no vuelve a salir en un dispositivo donde ya se vio, aunque se cierre sesión. Para volver a verla hay que borrar los datos del sitio.
 - (b) Las pruebas E2E existentes no la ven, porque la demo arranca con sesión. Las suyas están en `e2e/pruebas/guia.spec.ts`.
 - (c) Al escribir `docs/operacion.md` apareció un hueco: no hay procedimiento para dar de baja a un vecino. `residentes` no tiene clave foránea a `auth.users`, y `reportes` apunta a `residentes` sin cascada. Hay que decidirlo antes de la primera baja.
+
+### D-042 · Notificaciones push con voz propia y recordatorios que no molestan — **Decidida por Leonardo** (T-072, 3-nov-2026)
+**Contexto:** Leonardo pidió notificaciones "llamativas, funcionales y que inviten a entrar a la app", y algo innovador: una visualización distinta y una redacción con identidad propia. También propuso los recordatorios con un campo de última entrada en `residentes` ("last_log"): si el vecino no entró en el día, se le envía algo. Claude propuso la base técnica, cuatro ideas y tres registros de voz. Leonardo aprobó el diseño del cron, las cuatro ideas y la voz B, con un recordatorio al día como máximo, que se pueda subir a dos cuando el hosting crezca, y horas silenciosas de 22:00 a 07:00 ("incluso a las 9 pm suelen cortar la luz").
+
+**Decisión:**
+1. **Web Push estándar** (VAPID con la librería `web-push`, MIT). El mensaje va cifrado con las claves del navegador: FCM, Mozilla o Apple no pueden leerlo. Solo lleva el nombre del sector y textos ya redactados, nunca coordenadas (NF-06). Sin claves VAPID, la API no envía nada y la web no ofrece activarlas.
+2. **Bandeja de salida** (`notificaciones`): el consenso escribe el aviso en la misma transacción en la que confirma o cierra el evento, y un cron de Nest (cada minuto, no `pg_cron`) lo envía. Si la API se cae después del commit no se pierde nada, y un índice único impide duplicarlo con N + 1 reportes. Justo antes de enviar se revisa si sigue teniendo sentido: «se fue» se descarta si el corte ya terminó, y lo que lleva más de 12 h esperando, también. El texto se redacta al enviar, con la estimación de ese momento.
+3. **Cinco tipos.** Dos son avisos del consenso: «se fue» y «volvió/llegó». Los otros tres son recordatorios: la pregunta a los vecinos, «¿ya volvió?» y el resumen del día. Los avisos de corte no tienen tope.
+4. **Horas silenciosas de 22:00 a 07:00** (`SILENCIO_DESDE`, `SILENCIO_HASTA`): lo que pasa de noche sale a las 07:00 si sigue vigente.
+5. **Recordatorios con `residentes.ultimo_ingreso`** (la idea de Leonardo):
+   - Se anota en `GET /residentes/me`, que la app llama al abrir, con 15 min de resolución.
+   - A las 19:00 de Caracas (`RECORDATORIOS_HORAS=19`), a quien **no entró hoy** se le busca algo útil que contar, en este orden: su reporte sigue abierto más que la mediana del sector (o 12 h sin estimación), lo que pasó hoy en su sector, o reportes sin confirmar de un servicio que él no reportó.
+   - **Si no hay nada útil, no se envía nada.** Un recordatorio vacío es spam, y un permiso bloqueado se lleva también los avisos de corte.
+   - **Tope diario = número de franjas:** con `RECORDATORIOS_HORAS=12,19` serían dos. Subirlo es cambiar una variable, sin tocar código.
+   - Tras 3 recordatorios seguidos sin abrir, uno por semana hasta que abra alguno.
+6. **Voz B, la del vecino valenciano:** «Se fue la luz en Guaparo», «¡Llegó el agua a Guaparo! Aprovecha y llena los tobos», «Oye, ¿ya volvió la luz?», «Hoy en Guaparo… Échale un ojo al mapa». Las reglas del canon siguen: tuteo, 24 h, «aprox.» con su n, «datos insuficientes» sin cifra y nunca «predicción».
+7. **Las cuatro ideas:**
+   - (a) **Una tarjeta por corte:** misma `tag` y cabecera `Topic` por sector y servicio. «Volvió» reemplaza a «se fue» y cuenta la duración frente a lo habitual: el ciclo TGS completo en una sola notificación.
+   - (b) **El hexágono en la notificación:** un PNG de 720 × 360 (`GET /notificaciones/imagen/:sector/:servicio`, con resvg) con tu hexágono y sus 6 vecinos H3 coloreados como el mapa. Responde "¿es solo aquí o toda la zona?" y además el texto lo dice («También sin luz en 2 sectores vecinos»). Solo hexágonos, como el mapa público.
+   - (c) **La notificación como entrada del sistema:** con el primer reporte sin confirmar del sector se pregunta a los demás «¿Y la luz por tu casa?», con dos botones simétricos («Se fue» / «Aquí sí hay»). La pregunta es neutral a propósito: «¿a ti también se te fue?» empujaría a confirmar (sesgo de conformidad) y ensuciaría el consenso. «Se fue» abre Reportar con el aviso listo, sin enviarlo, para que pase por la cola (OFF-03, OFF-05).
+   - (d) **El agua de madrugada:** quien lo pide (`agua_de_noche`) recibe «Perdón la hora: ¡llegó el agua…!» aunque sea de noche.
+8. **Permiso en el momento justo:** nunca al abrir la app; se ofrece después de guardar un reporte, con «Ahora no» que dura una semana. En iPhone, la app tiene que estar instalada (Safari 16.4+). Con la app abierta, un banner por Realtime avisa igual.
+9. **Seguridad:** solo se aceptan suscripciones de servicios push de navegadores (la API hace un POST a esa URL: aceptar cualquiera sería SSRF). RLS deny-all en las dos tablas nuevas. El único `DELETE` de la API es el de tu propio dispositivo.
+10. En la interfaz se llaman **«Notificaciones»**: «Avisos» ya es la cola de reportes (D-037).
+
+**Consecuencias:**
+- (a) Migración 0005 (`notificaciones`, `suscripciones_push` y tres columnas en `residentes`). Variables nuevas en Render: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` y `API_URL_PUBLICA` (`docs/despliegue.md`).
+- (b) Los recordatorios dependen de que la API esté despierta a las 19:00: el keep-alive de cada 14 min ya lo garantiza. El cron revisa cada 10 min dentro de la franja, así que aguanta una pasada perdida.
+- (c) `ultimo_ingreso` es dato de actividad: nunca sale por la API, igual que la ubicación.
+- (d) En Safari y Firefox no se ven la imagen ni los botones: el texto basta, y tocar la notificación abre la pantalla correspondiente.
+- (e) La tasa de apertura (`abierta_en`) es una métrica para el informe de la tesis.
